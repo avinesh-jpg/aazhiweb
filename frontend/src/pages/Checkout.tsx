@@ -37,6 +37,45 @@ const Checkout = () => {
     pincode: '',
   });
 
+  // Load user's default address from profile
+  useEffect(() => {
+    const loadAddress = async () => {
+      try {
+        if (!token) return;
+
+        const res = await fetch(`${API_URL}/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.user.addresses?.length > 0) {
+          const defaultAddress =
+            data.user.addresses.find((a: any) => a.isDefault) ||
+            data.user.addresses[0];
+
+          setFormData((prev) => ({
+            ...prev,
+            fullName: defaultAddress.fullName || prev.fullName,
+            email: defaultAddress.email || prev.email,
+            phone: defaultAddress.phone || prev.phone,
+            address: defaultAddress.address || '',
+            city: defaultAddress.city || '',
+            state: defaultAddress.state || '',
+            pincode: defaultAddress.pincode || ''
+          }));
+        }
+      } catch (err) {
+        console.error('Error loading address:', err);
+      }
+    };
+
+    loadAddress();
+  }, [token]);
+
+  // Redirect to cart if cart is empty
   useEffect(() => {
     if (cartItems.length === 0 && !orderPlaced) {
       navigate('/cart');
@@ -323,8 +362,6 @@ const Checkout = () => {
                       {isFreeShipping ? 'FREE' : `₹${shippingCost}`}
                     </span>
                   </label>
-                  
-                  
                 </div>
                 
                 {!isFreeShipping && remainingForFree > 0 && (
