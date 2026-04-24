@@ -31,12 +31,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration this is for main hosting
+// CORS configuration
 app.use(cors({
   origin: [
     'http://localhost:8080', 
     'http://127.0.0.1:8080', 
     'http://localhost:5173',
-    'https://aazhi1.vercel.app/'  // ← ADD YOUR VERCEL URL
+    'https://tiinyberryy.vercel.app',
+    'https://aazhi1.vercel.app'  // ← ADD THIS LINE (YOUR CURRENT FRONTEND URL)
+    // Add any other frontend URLs you're using
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
