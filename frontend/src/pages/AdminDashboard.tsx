@@ -135,71 +135,93 @@ const AdminDashboard = () => {
   };
 
   const printInvoice = (order: any) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    
-    const invoiceHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Invoice #${order.orderNumber}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 40px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .header h1 { color: #2c3e50; margin: 0; }
-          .order-info { margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-          th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-          th { background-color: #2c3e50; color: white; }
-          .total { text-align: right; font-size: 18px; font-weight: bold; }
-          .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Aazhi</h1>
-          <p>Order Invoice</p>
-        </div>
-        <div class="order-info">
-          <p><strong>Order #:</strong> ${order.orderNumber}</p>
-          <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
-          <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
-          <p><strong>Payment Method:</strong> ${order.paymentMethod?.toUpperCase() || 'RAZORPAY'}</p>
-          <p><strong>Payment Status:</strong> ${order.paymentStatus?.toUpperCase() || 'PAID'}</p>
-        </div>
-        <h3>Order Items</h3>
-        <table>
-          <thead>
-            <tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr>
-          </thead>
-          <tbody>
-            ${order.items.map((item: any) => `
-              <tr>
-                <td>${item.name}${item.size ? ` (${item.size})` : ''}${item.color ? ` - ${item.color}` : ''}</td>
-                <td>${item.quantity}</td>
-                <td>₹${item.price.toLocaleString()}</td>
-                <td>₹${(item.price * item.quantity).toLocaleString()}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        <div class="total">
-          <p>Subtotal: ₹${order.subtotal.toLocaleString()}</p>
-          <p>Shipping: ${order.shipping === 0 ? 'FREE' : `₹${order.shipping.toLocaleString()}`}</p>
-          <p>Total: ₹${order.total.toLocaleString()}</p>
-        </div>
-        <div class="footer">
-          <p>Thank you for shopping with Aazhi!</p>
-          <p>For any queries, contact: support@aazhi.com</p>
-        </div>
-      </body>
-      </html>
-    `;
-    
-    printWindow.document.write(invoiceHtml);
-    printWindow.document.close();
-    printWindow.print();
-  };
+  const invoiceHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Invoice #${order.orderNumber}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #2c3e50; margin: 0; }
+        .order-info { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+        .total { text-align: right; font-size: 18px; font-weight: bold; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>Aazhi</h1>
+        <p>Order Invoice</p>
+      </div>
+
+      <div class="order-info">
+        <p><strong>Order #:</strong> ${order.orderNumber}</p>
+        <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
+        <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
+        <p><strong>Payment Method:</strong> ${order.paymentMethod?.toUpperCase() || 'RAZORPAY'}</p>
+        <p><strong>Payment Status:</strong> ${order.paymentStatus?.toUpperCase() || 'PAID'}</p>
+      </div>
+
+      <h3>Order Items</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${order.items.map((item: any) => `
+            <tr>
+              <td>
+                ${item.name}
+                ${item.size ? ` (${item.size})` : ''}
+                ${item.color ? ` - ${item.color}` : ''}
+              </td>
+              <td>${item.quantity}</td>
+              <td>₹${item.price.toLocaleString()}</td>
+              <td>₹${(item.price * item.quantity).toLocaleString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="total">
+        <p>Subtotal: ₹${order.subtotal.toLocaleString()}</p>
+        <p>Shipping: ${order.shipping === 0 ? 'FREE' : `₹${order.shipping.toLocaleString()}`}</p>
+        <p>Total: ₹${order.total.toLocaleString()}</p>
+      </div>
+
+      <div class="footer">
+        <p>Thank you for shopping with Aazhi!</p>
+        <p>For any queries, contact: support@aazhi.com</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Save original page
+  const originalContent = document.body.innerHTML;
+
+  // Replace with invoice
+  document.body.innerHTML = invoiceHtml;
+
+  // Print
+  window.print();
+
+  // Restore original page
+  document.body.innerHTML = originalContent;
+
+  // Optional reload (ensures React UI comes back clean)
+  window.location.reload();
+};
+
 
   const handleAddProduct = () => {
     setEditingProduct(null);
