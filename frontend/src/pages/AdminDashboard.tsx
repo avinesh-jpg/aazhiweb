@@ -328,7 +328,7 @@ const AdminDashboard = () => {
           >
             <Truck size={18} />
             Shipping
-          </button>
+          {/* ... </button>
           <button
             onClick={() => setActiveTab('combos')}
             className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
@@ -338,6 +338,7 @@ const AdminDashboard = () => {
             <Gift size={18} />
             Combos
           </button>
+          */}
           <div className="pt-4 border-t mt-4">
             <button
               onClick={handleLogout}
