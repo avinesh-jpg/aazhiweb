@@ -336,7 +336,7 @@ const AdminDashboard = () => {
             }`}
           >
             <Gift size={18} />
-            Combos
+            /
           </button>
           <div className="pt-4 border-t mt-4">
             <button
@@ -432,8 +432,9 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Orders Tab */}
+        {/* Orders Tab - Same as before */}
         {activeTab === 'orders' && (
+          // ... (keep your existing orders tab code)
           <div>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Orders Management</h1>
@@ -539,6 +540,7 @@ const AdminDashboard = () => {
                       <X size={24} />
                     </button>
                   </div>
+                  {/* Order details content */}
                   <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-sm text-muted-foreground">Order Number</p>
@@ -574,6 +576,7 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                   </div>
+                  {/* Add more order details as needed */}
                 </div>
               </div>
             )}
