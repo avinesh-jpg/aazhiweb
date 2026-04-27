@@ -77,7 +77,7 @@ const Navbar = () => {
     { label: "Thottil",              category: "thottil",    path: "/category/collection/thottil" },
     { label: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
     { label: "Nursery & Accessories",category: "accessories",path: "/category/collection/accessories" },
-    { label: "Combo",                category: "",           path: "/shop/combos" },
+    /*{ label: "Combo",                category: "",           path: "/shop/combos" },*/
   ];
 
   return (
