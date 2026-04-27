@@ -329,15 +329,15 @@ const AdminDashboard = () => {
             <Truck size={18} />
             Shipping
           </button>
-          {/*<button
+          <button
             onClick={() => setActiveTab('combos')}
             className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
               activeTab === 'combos' ? 'bg-primary text-white' : 'hover:bg-gray-100'
             }`}
           >
-            <Gift size={18} />
-            combos
-          </button>*/}
+            {/*<Gift size={18} />
+            combos*/}
+          </button>
           <div className="pt-4 border-t mt-4">
             <button
               onClick={handleLogout}
