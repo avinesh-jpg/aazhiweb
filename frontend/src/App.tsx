@@ -1,5 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "@/context/CartProvider";
+import ReactGA from "react-ga4";
 import Index from "@/pages/Index";
 import CategoryPage from "@/pages/CategoryPage";  
 import ProductDetails from "@/pages/ProductDetails";
@@ -14,13 +16,26 @@ import SearchResults from "@/pages/SearchResults";
 import ComboDetails from "@/pages/ComboDetails";
 import CombosPage from "@/pages/Combospage";
 
+// Component to track page views on route changes
+const PageTracker = () => {
+  const location = useLocation();
 
+  useEffect(() => {
+    // Track page view whenever the URL changes
+    ReactGA.send({
+      hitType: "pageview",
+      page: location.pathname + location.search,
+    });
+  }, [location]);
 
+  return null;
+};
 
 function App() {
   return (
     <CartProvider>
       <Router>
+        <PageTracker />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/category/:type/:value" element={<CategoryPage />} />
@@ -34,7 +49,6 @@ function App() {
           <Route path="/search" element={<SearchResults />} />
           <Route path="/combo/:id" element={<ComboDetails />} />
           <Route path="/shop/combos" element={<CombosPage />} />
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
