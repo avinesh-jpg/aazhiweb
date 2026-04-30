@@ -72,6 +72,16 @@ router.post('/send-otp', async (req, res) => {
     console.log(`💾 OTP saved for ${cleanEmail}: ${otp}`);
     
     // Send OTP via email
+
+    /*const emailSent = await sendOTPEmail(cleanEmail, otp, user.name);
+
+res.json({
+  success: true,
+  message: emailSent ? 'OTP sent to your email' : 'OTP generated (check console)',
+  email: cleanEmail,
+  expiresIn: 600
+});*/
+
     // Fire and forget — don't block the response on SMTP
 sendOTPEmail(cleanEmail, otp, user.name).catch(err =>
   console.error('OTP email send failed:', err.message)
