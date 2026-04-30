@@ -1,22 +1,39 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import dns from 'dns';
 
 dotenv.config();
 
-// Create email transporter
+// CRITICAL: Force Node.js to use IPv4 first (fix for ENETUNREACH error)
+dns.setDefaultResultOrder('ipv4first');
+
+// Gmail's IPv4 address (bypasses DNS resolution issues)
+// This is more reliable than relying on family:4 which some environments ignore
+const GMAIL_SMTP_IPV4 = '142.250.141.108'; // smtp.gmail.com IPv4 address
+
+// Create email transporter with IPv4 fix
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  // OPTION 1: Use IPv4 address directly (MOST RELIABLE on Render)
+  host: GMAIL_SMTP_IPV4,
   port: 587,
-  secure: false, // true for 465, false for other ports
+  secure: false, // true for 465, false for 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  // Force Node.js to prefer IPv4 over IPv6
-  family: 4, // This is the key - forces IPv4 only
   tls: {
+    // CRITICAL: This validates the certificate against smtp.gmail.com
+    servername: 'smtp.gmail.com',
     ciphers: 'SSLv3'
-  }
+  },
+  // Connection settings for Render
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
+  // Pool connections for better performance
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100
 });
 
 // Escape HTML to prevent XSS
@@ -82,6 +99,14 @@ const generateOTPEmailHTML = (otp, userName) => {
 // Send OTP via Email
 export const sendOTPEmail = async (email, otp, userName) => {
   try {
+    // Check if credentials exist
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('❌ Email credentials missing in environment variables');
+      return false;
+    }
+
+    console.log(`📧 Attempting to send OTP to: ${email}`);
+    
     const html = generateOTPEmailHTML(otp, userName);
     
     const mailOptions = {
@@ -96,10 +121,21 @@ export const sendOTPEmail = async (email, otp, userName) => {
     return true;
   } catch (error) {
     console.error('❌ OTP email error:', error.message);
-    if (error.message.includes('Invalid login')) {
-      console.error('⚠️ Please check your Gmail credentials in .env file');
+    console.error('❌ Error code:', error.code);
+    
+    if (error.code === 'ENETUNREACH') {
+      console.error('⚠️ Network unreachable - This should be fixed by using IPv4 address directly');
+      console.error('⚠️ If error persists, check if Render is blocking outbound SMTP');
+    } else if (error.message.includes('Invalid login') || error.message.includes('535')) {
+      console.error('⚠️ Gmail authentication failed');
       console.error('⚠️ Make sure you generated an App Password (not your regular password)');
+      console.error('⚠️ Generate one at: https://myaccount.google.com/apppasswords');
+      console.error('⚠️ Your .env file should have: EMAIL_PASS="xxxx xxxx xxxx xxxx"');
+    } else if (error.message.includes('connect ETIMEDOUT')) {
+      console.error('⚠️ Connection timeout - Render might be blocking port 587');
+      console.error('⚠️ Try using port 465 instead (change secure to true)');
     }
+    
     return false;
   }
 };
@@ -338,10 +374,6 @@ const generateOrderEmailHTML = (orderDetails, customerName) => {
 export const sendOrderConfirmation = async (orderDetails, customerEmail, customerName) => {
   try {
     console.log(`📧 Sending order confirmation email to: ${customerEmail}`);
-    
-    // Verify connection
-    await transporter.verify();
-    console.log('✅ Gmail connection verified');
     
     const emailHtml = generateOrderEmailHTML(orderDetails, customerName);
     
