@@ -53,7 +53,7 @@ router.get('/count', async (req, res) => {
   }
 });
 
-// Add item to cart with size and color
+// Add item to cart with size and color - UPDATED WITH STOCK CHECK
 router.post('/add', async (req, res) => {
   try {
     const { productId, quantity = 1, size = '', color = '', colorImage = '' } = req.body;
@@ -69,16 +69,56 @@ router.post('/add', async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    // Check if size is required
-    const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
+    // Check if product has sizes array (new structure with objects)
+    const hasNewSizeStructure = product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object';
+    const hasOldSizeStructure = product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'string';
+    const hasSizes = product.sizes && product.sizes.length > 0;
     
-    if (hasSizes && !size) {
-      return res.status(400).json({ error: 'Please select a size' });
-    }
-    
-    // Validate size if provided
-    if (hasSizes && size && !product.sizes.includes(size)) {
-      return res.status(400).json({ error: 'Invalid size selected' });
+    // Handle size validation and stock check
+    if (hasSizes) {
+      // Check if One Size (no size selection needed)
+      const isOneSize = hasNewSizeStructure 
+        ? product.sizes[0].name === 'One Size'
+        : (hasOldSizeStructure && product.sizes[0] === 'One Size');
+      
+      if (!isOneSize && !size) {
+        return res.status(400).json({ error: 'Please select a size' });
+      }
+      
+      // Find the size object and check stock
+      let selectedSizeObj = null;
+      
+      if (hasNewSizeStructure) {
+        // New structure: sizes are objects with name and stock
+        selectedSizeObj = product.sizes.find(s => s.name === size);
+        
+        if (!isOneSize && !selectedSizeObj) {
+          return res.status(400).json({ error: 'Invalid size selected' });
+        }
+        
+        // For One Size products, get the first size object
+        if (isOneSize) {
+          selectedSizeObj = product.sizes[0];
+        }
+        
+        // Check stock availability
+        if (selectedSizeObj && selectedSizeObj.stock < quantity) {
+          return res.status(400).json({ 
+            error: `Only ${selectedSizeObj.stock} items left in ${selectedSizeObj.name} size` 
+          });
+        }
+        
+        if (selectedSizeObj && selectedSizeObj.stock === 0) {
+          return res.status(400).json({ 
+            error: `${selectedSizeObj.name} size is out of stock` 
+          });
+        }
+      } else if (hasOldSizeStructure) {
+        // Old structure: sizes are strings (no stock tracking)
+        if (!isOneSize && !product.sizes.includes(size)) {
+          return res.status(400).json({ error: 'Invalid size selected' });
+        }
+      }
     }
     
     const query = getCartQuery(req);
@@ -99,7 +139,27 @@ router.post('/add', async (req, res) => {
     const imageToUse = colorImage || product.image;
     
     if (existingIndex > -1) {
-      cart.items[existingIndex].quantity += quantity;
+      // Check stock for updated quantity
+      let newQuantity = cart.items[existingIndex].quantity + quantity;
+      
+      if (hasNewSizeStructure) {
+        let selectedSizeObj = null;
+        const isOneSize = product.sizes[0].name === 'One Size';
+        
+        if (isOneSize) {
+          selectedSizeObj = product.sizes[0];
+        } else {
+          selectedSizeObj = product.sizes.find(s => s.name === size);
+        }
+        
+        if (selectedSizeObj && selectedSizeObj.stock < newQuantity) {
+          return res.status(400).json({ 
+            error: `Cannot add ${quantity} more. Only ${selectedSizeObj.stock} items available in ${selectedSizeObj.name} size` 
+          });
+        }
+      }
+      
+      cart.items[existingIndex].quantity = newQuantity;
       console.log('Updated existing item, new quantity:', cart.items[existingIndex].quantity);
     } else {
       cart.items.push({
@@ -125,11 +185,11 @@ router.post('/add', async (req, res) => {
   }
 });
 
-// Update item quantity
+// Update item quantity - UPDATED WITH STOCK CHECK
 router.put('/update/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
-    const { quantity } = req.body;
+    const { quantity, size, color } = req.body;
     
     const query = getCartQuery(req);
     const cart = await Cart.findOne(query);
@@ -138,9 +198,41 @@ router.put('/update/:productId', async (req, res) => {
       return res.status(404).json({ error: 'Cart not found' });
     }
     
-    const itemIndex = cart.items.findIndex(item => String(item.productId) === String(productId));
+    // Find the item with matching productId, size, and color
+    const itemIndex = cart.items.findIndex(item => 
+      String(item.productId) === String(productId) && 
+      item.size === (size || '') && 
+      item.color === (color || '')
+    );
+    
     if (itemIndex === -1) {
       return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    // Check stock availability before updating
+    const product = await Product.findOne({ productId: parseInt(productId) });
+    if (product && product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object') {
+      const itemSize = cart.items[itemIndex].size;
+      const isOneSize = product.sizes[0].name === 'One Size';
+      
+      let selectedSizeObj = null;
+      if (isOneSize) {
+        selectedSizeObj = product.sizes[0];
+      } else if (itemSize) {
+        selectedSizeObj = product.sizes.find(s => s.name === itemSize);
+      }
+      
+      if (selectedSizeObj && selectedSizeObj.stock < quantity) {
+        return res.status(400).json({ 
+          error: `Only ${selectedSizeObj.stock} items available in ${selectedSizeObj.name} size` 
+        });
+      }
+      
+      if (selectedSizeObj && selectedSizeObj.stock === 0) {
+        return res.status(400).json({ 
+          error: `${selectedSizeObj.name} size is out of stock` 
+        });
+      }
     }
     
     cart.items[itemIndex].quantity = quantity;
@@ -156,6 +248,8 @@ router.put('/update/:productId', async (req, res) => {
 router.delete('/remove/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
+    const { size, color } = req.query;
+    
     const query = getCartQuery(req);
     const cart = await Cart.findOne(query);
     
@@ -163,7 +257,12 @@ router.delete('/remove/:productId', async (req, res) => {
       return res.status(404).json({ error: 'Cart not found' });
     }
     
-    cart.items = cart.items.filter(item => String(item.productId) !== String(productId));
+    // Remove item with matching productId, size, and color
+    cart.items = cart.items.filter(item => 
+      !(String(item.productId) === String(productId) && 
+        item.size === (size || '') && 
+        item.color === (color || ''))
+    );
     await cart.save();
     
     res.json({ success: true, items: cart.items });
@@ -211,6 +310,29 @@ router.post('/merge', async (req, res) => {
     
     if (guestCart && guestCart.items.length > 0) {
       for (const guestItem of guestCart.items) {
+        // Check stock for each guest item before merging
+        const product = await Product.findOne({ productId: parseInt(guestItem.productId) });
+        if (product && product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object') {
+          const isOneSize = product.sizes[0].name === 'One Size';
+          let selectedSizeObj = null;
+          
+          if (isOneSize) {
+            selectedSizeObj = product.sizes[0];
+          } else if (guestItem.size) {
+            selectedSizeObj = product.sizes.find(s => s.name === guestItem.size);
+          }
+          
+          if (selectedSizeObj && selectedSizeObj.stock < guestItem.quantity) {
+            // If not enough stock, adjust quantity to available stock
+            if (selectedSizeObj.stock > 0) {
+              guestItem.quantity = selectedSizeObj.stock;
+            } else {
+              // Skip this item if out of stock
+              continue;
+            }
+          }
+        }
+        
         const existingIndex = userCart.items.findIndex(
           item => String(item.productId) === String(guestItem.productId) && 
                   item.size === guestItem.size && 

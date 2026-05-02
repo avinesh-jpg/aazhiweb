@@ -8,6 +8,11 @@ interface Color {
   images: string[];
 }
 
+interface Size {
+  name: string;
+  stock: number;
+}
+
 interface Product {
   _id?: string;
   productId: number;
@@ -22,11 +27,10 @@ interface Product {
   subcategory: string;
   age: string;
   description: string;
-  sizes: string[];
+  sizes: Size[];
   material: string;
   care: string;
   inStock: boolean;
-  stockQuantity: number;
 }
 
 interface ProductModalProps {
@@ -38,7 +42,7 @@ interface ProductModalProps {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) => {
+const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, product }) => {
   const [loading, setLoading] = useState(false);
   const [availableSubcategories, setAvailableSubcategories] = useState<Array<{name: string, path: string}>>([]);
   const [formData, setFormData] = useState<Product>({
@@ -57,8 +61,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
     sizes: [],
     material: '',
     care: '',
-    inStock: true,
-    stockQuantity: 10
+    inStock: true
   });
 
   const [newColor, setNewColor] = useState<Color>({
@@ -73,7 +76,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
 
   useEffect(() => {
     if (product) {
-      console.log('Editing product:', product);
       setFormData({
         productId: product.productId || Date.now(),
         name: product.name || '',
@@ -90,8 +92,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
         sizes: product.sizes || [],
         material: product.material || '',
         care: product.care || '',
-        inStock: product.inStock !== undefined ? product.inStock : true,
-        stockQuantity: product.stockQuantity || 10
+        inStock: product.inStock !== undefined ? product.inStock : true
       });
     } else {
       setFormData({
@@ -110,13 +111,11 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
         sizes: [],
         material: '',
         care: '',
-        inStock: true,
-        stockQuantity: 10
+        inStock: true
       });
     }
   }, [product]);
 
-  // Fetch subcategories when category changes
   useEffect(() => {
     const fetchSubcategories = async () => {
       if (formData.category) {
@@ -128,7 +127,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
           const data = await response.json();
           if (data.success) {
             setAvailableSubcategories(data.subcategories);
-            console.log('Fetched subcategories:', data.subcategories);
           } else {
             setAvailableSubcategories([]);
           }
@@ -178,14 +176,32 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
   };
 
   const addSize = () => {
-    if (newSize && !formData.sizes.includes(newSize)) {
-      setFormData({ ...formData, sizes: [...formData.sizes, newSize] });
+    if (newSize && !formData.sizes.some(s => s.name === newSize)) {
+      setFormData({ 
+        ...formData, 
+        sizes: [...formData.sizes, { name: newSize, stock: 0 }] 
+      });
       setNewSize('');
     }
   };
 
-  const removeSize = (size: string) => {
-    setFormData({ ...formData, sizes: formData.sizes.filter(s => s !== size) });
+  const removeSize = (index: number) => {
+    setFormData({ 
+      ...formData, 
+      sizes: formData.sizes.filter((_, i) => i !== index) 
+    });
+  };
+
+  const updateSizeStock = (index: number, stock: number) => {
+    const newSizes = [...formData.sizes];
+    newSizes[index].stock = stock;
+    setFormData({ ...formData, sizes: newSizes });
+  };
+
+  const updateSizeName = (index: number, name: string) => {
+    const newSizes = [...formData.sizes];
+    newSizes[index].name = name;
+    setFormData({ ...formData, sizes: newSizes });
   };
 
   const addColor = () => {
@@ -203,7 +219,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
     setFormData({ ...formData, colors: formData.colors.filter(c => c.name !== colorName) });
   };
 
-  // Add manual URL for main image
   const addManualImageUrl = () => {
     if (manualImageUrl && manualImageUrl.trim()) {
       setFormData({ ...formData, image: manualImageUrl.trim() });
@@ -211,7 +226,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
     }
   };
 
-  // Add manual URL for gallery
   const addManualGalleryUrl = () => {
     if (manualGalleryUrl && manualGalleryUrl.trim() && !formData.images.includes(manualGalleryUrl.trim())) {
       setFormData({ ...formData, images: [...formData.images, manualGalleryUrl.trim()] });
@@ -233,7 +247,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Product Name *</label>
@@ -304,11 +317,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
                   <option key={sub.name} value={sub.name}>{sub.name}</option>
                 ))}
               </select>
-              {availableSubcategories.length === 0 && formData.category && (
-                <p className="text-xs text-yellow-600 mt-1">
-                  No subcategories found for this category. Add them in Subcategories tab.
-                </p>
-              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Age Range</label>
@@ -343,7 +351,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
             </div>
           </div>
           
-          {/* Description */}
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
@@ -354,34 +361,15 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
             />
           </div>
           
-          {/* Main Image Section - Both Upload and URL */}
           <div>
             <label className="block text-sm font-medium mb-2">Main Image</label>
             
-            {/* Tab buttons */}
-            <div className="flex gap-2 mb-3 border-b">
-              <button
-                type="button"
-                className="px-3 py-1 text-sm font-medium text-primary border-b-2 border-primary"
-              >
-                <Upload size={14} className="inline mr-1" /> Upload File
-              </button>
-              <button
-                type="button"
-                className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700"
-              >
-                <Link size={14} className="inline mr-1" /> Enter URL
-              </button>
-            </div>
-            
-            {/* Image Upload Component */}
             <ImageUpload
               onUpload={(url) => setFormData({ ...formData, image: url })}
               existingImages={formData.image ? [formData.image] : []}
               onRemove={() => setFormData({ ...formData, image: '' })}
             />
             
-            {/* OR Divider */}
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -391,7 +379,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
               </div>
             </div>
             
-            {/* Manual URL Input */}
             <div className="mt-2">
               <label className="block text-xs text-gray-500 mb-1">Enter Image URL directly</label>
               <div className="flex gap-2">
@@ -412,7 +399,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
               </div>
             </div>
             
-            {/* Main Image Preview */}
             {formData.image && (
               <div className="mt-3 p-3 bg-green-50 rounded-lg">
                 <p className="text-xs text-green-600 mb-2">✓ Main image set:</p>
@@ -437,11 +423,9 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
             )}
           </div>
           
-          {/* Product Images Gallery - Both Upload and URL */}
           <div>
             <label className="block text-sm font-medium mb-2">Product Images (Gallery)</label>
             
-            {/* Image Upload Component for multiple images */}
             <ImageUpload
               multiple
               onUpload={(url) => setFormData({ ...formData, images: [...formData.images, url] })}
@@ -449,7 +433,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
               onRemove={(url) => setFormData({ ...formData, images: formData.images.filter(img => img !== url) })}
             />
             
-            {/* OR Divider */}
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -459,7 +442,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
               </div>
             </div>
             
-            {/* Manual URL Input for Gallery */}
             <div className="mt-2">
               <label className="block text-xs text-gray-500 mb-1">Enter Gallery Image URL</label>
               <div className="flex gap-2">
@@ -480,7 +462,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
               </div>
             </div>
             
-            {/* Gallery Images Preview */}
             {formData.images.length > 0 && (
               <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                 <p className="text-xs text-blue-600 mb-2">✓ {formData.images.length} gallery image(s) in order:</p>
@@ -508,23 +489,49 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Images will be displayed in this order on the product page
-                </p>
               </div>
             )}
           </div>
           
-          {/* Sizes */}
           <div>
-            <label className="block text-sm font-medium mb-1">Sizes</label>
-            <div className="flex gap-2 mb-2">
+            <label className="block text-sm font-medium mb-1">Sizes with Stock</label>
+            
+            <div className="space-y-2 mb-3">
+              {formData.sizes.map((sizeObj, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={sizeObj.name}
+                    onChange={(e) => updateSizeName(idx, e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Size (e.g., 2-3M)"
+                  />
+                  <input
+                    type="number"
+                    value={sizeObj.stock}
+                    onChange={(e) => updateSizeStock(idx, parseInt(e.target.value) || 0)}
+                    className="w-24 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Stock"
+                    min="0"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => removeSize(idx)} 
+                    className="text-red-500 hover:text-red-700 p-2"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={newSize}
                 onChange={(e) => setNewSize(e.target.value)}
                 className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Size (e.g., 0-3 months)"
+                placeholder="New size (e.g., 4-5M)"
                 onKeyPress={(e) => e.key === 'Enter' && addSize()}
               />
               <button 
@@ -532,26 +539,12 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
                 onClick={addSize} 
                 className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
-                Add
+                Add Size
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.sizes.map((size) => (
-                <span key={size} className="px-3 py-1 bg-gray-100 rounded-full flex items-center gap-2">
-                  {size}
-                  <button 
-                    type="button" 
-                    onClick={() => removeSize(size)} 
-                    className="text-red-500 hover:text-red-700 transition-colors"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
+            <p className="text-xs text-gray-500 mt-1">Set stock quantity for each size. Product will show as out of stock if all sizes have 0 stock.</p>
           </div>
           
-          {/* Colors Section */}
           <div className="border-t pt-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Colors ({formData.colors.length})</h3>
@@ -564,7 +557,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
               </button>
             </div>
             
-            {/* Existing Colors Display */}
             {formData.colors.length > 0 && (
               <div className="mb-4 space-y-3">
                 {formData.colors.map((color, idx) => (
@@ -593,9 +585,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
                                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid+Image';
                               }}
                             />
-                            <div className="absolute top-0 left-0 bg-primary text-white text-xs rounded-br-md px-1">
-                              {imgIdx + 1}
-                            </div>
                           </div>
                         ))}
                       </div>
@@ -605,7 +594,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
               </div>
             )}
             
-            {/* Add New Color Form */}
             {showColorForm && (
               <div className="border rounded-lg p-4 mb-4 bg-white shadow-sm">
                 <h4 className="font-medium mb-3">Add New Color</h4>
@@ -638,7 +626,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
                   </div>
                 </div>
                 
-                {/* Color Images Upload */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-1">Color Images</label>
                   <ImageUpload
@@ -732,36 +719,6 @@ const ProductModal = ({ isOpen, onClose, onSave, product }: ProductModalProps) =
             )}
           </div>
           
-          {/* Stock Information */}
-          // In ProductModal.tsx - Add these fields
-<div className="grid grid-cols-2 gap-4">
-  <div>
-    <label className="block text-sm font-medium mb-1">Stock Status</label>
-    <select
-      value={formData.inStock ? 'in-stock' : 'out-of-stock'}
-      onChange={(e) => setFormData({ ...formData, inStock: e.target.value === 'in-stock' })}
-      className="w-full px-3 py-2 border rounded-lg"
-    >
-      <option value="in-stock">In Stock</option>
-      <option value="out-of-stock">Out of Stock</option>
-    </select>
-  </div>
-  
-  {formData.inStock && (
-    <div>
-      <label className="block text-sm font-medium mb-1">Stock Quantity</label>
-      <input
-        type="number"
-        value={formData.stockQuantity || 0}
-        onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
-        className="w-full px-3 py-2 border rounded-lg"
-        min="0"
-      />
-    </div>
-  )}
-</div>
-          
-          {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white">
             <button 
               type="button" 

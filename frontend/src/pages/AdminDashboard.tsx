@@ -606,65 +606,77 @@ const printInvoice = (order: any) => {
         )}
 
         {/* Products Tab */}
-        {activeTab === 'products' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Products Management</h1>
-              <button
-                onClick={handleAddProduct}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
-              >
-                <Plus size={18} />
-                Add Product
-              </button>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Image</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Category</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Subcategory</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Price</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Stock</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {products.map((product) => (
-                      <tr key={product._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                        </td>
-                        <td className="px-6 py-4 text-sm font-medium">{product.name}</td>
-                        <td className="px-6 py-4 text-sm capitalize">{product.category}</td>
-                        <td className="px-6 py-4 text-sm">{product.subcategory || '-'}</td>
-                        <td className="px-6 py-4 text-sm">₹{product.price.toLocaleString()}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs ${product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {product.inStock ? `${product.stockQuantity} in stock` : 'Out of stock'}
+        {/* Products Tab */}
+{activeTab === 'products' && (
+  <div>
+    <div className="flex justify-between items-center mb-6">
+      <h1 className="text-2xl font-bold">Products Management</h1>
+      <button
+        onClick={handleAddProduct}
+        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
+      >
+        <Plus size={18} />
+        Add Product
+      </button>
+    </div>
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Image</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Category</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Subcategory</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Stock</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {products.map((product) => (
+              <tr key={product._id} className="hover:bg-gray-50">
+                <td className="px-6 py-4">
+                  <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                </td>
+                <td className="px-6 py-4 text-sm font-medium">{product.name}</td>
+                <td className="px-6 py-4 text-sm capitalize">{product.category}</td>
+                <td className="px-6 py-4 text-sm">{product.subcategory || '-'}</td>
+                <td className="px-6 py-4 text-sm">₹{product.price.toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm">
+                  {product.sizes && product.sizes.length > 0 ? (
+                    <div className="space-y-1">
+                      {product.sizes.map((size, idx) => (
+                        <div key={idx} className="text-xs">
+                          <span className="font-medium">{size.name}:</span>{' '}
+                          <span className={size.stock === 0 ? 'text-red-600' : 'text-green-600'}>
+                            {size.stock} left
                           </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex gap-2">
-                            <button onClick={() => handleEditProduct(product)} className="text-blue-600 hover:text-blue-800">
-                              <Edit size={18} />
-                            </button>
-                            <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800">
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">No sizes</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-2">
+                    <button onClick={() => handleEditProduct(product)} className="text-blue-600 hover:text-blue-800">
+                      <Edit size={18} />
+                    </button>
+                    <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Users Tab */}
         {activeTab === 'users' && (
