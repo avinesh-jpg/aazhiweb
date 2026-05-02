@@ -288,7 +288,7 @@ const CategoryPage = () => {
           )}
           
           {/* LOW STOCK BADGE - NEW (shows when quantity is 10 or less) */}
-          {product.inStock !== false && product.stockQuantity !== undefined && product.stockQuantity <= 10 && product.stockQuantity > 0 && (
+          {product.inStock !== false && product.stockQuantity !== undefined && product.stockQuantity <= 3 && product.stockQuantity > 0 && (
             <span className="absolute top-3 right-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-orange-500 text-white shadow-md animate-pulse">
               Only {product.stockQuantity} left!
             </span>
@@ -343,7 +343,7 @@ const CategoryPage = () => {
           </div>
           
           {/* LOW STOCK TEXT WARNING below price */}
-          {product.inStock !== false && product.stockQuantity !== undefined && product.stockQuantity <= 10 && product.stockQuantity > 0 && (
+          {product.inStock !== false && product.stockQuantity !== undefined && product.stockQuantity <= 3 && product.stockQuantity > 0 && (
             <p className="text-xs text-orange-600 font-medium mt-1 animate-pulse">
               ⚡ Only {product.stockQuantity} left in stock - order soon!
             </p>
