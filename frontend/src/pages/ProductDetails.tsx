@@ -36,7 +36,6 @@ interface Product {
   material?: string;
   care?: string;
   inStock?: boolean;
-  stockQuantity?: number;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -170,17 +169,6 @@ const ProductDetails = () => {
     }
   };
 
-  // Get stock status display
-  const getStockStatus = () => {
-    if (!product?.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0)) {
-      return { text: "Out of Stock", color: "text-red-600", bg: "bg-red-100", badge: "bg-red-100 text-red-800" };
-    }
-    if (product.stockQuantity !== undefined && product.stockQuantity <= 10) {
-      return { text: `⚠️ Only ${product.stockQuantity} left in stock`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
-    }
-    if (product.stockQuantity !== undefined && product.stockQuantity <= 20) {
-      return { text: `📦 Only ${product.stockQuantity} left`, color: "text-yellow-600", bg: "bg-yellow-100", badge: "bg-yellow-100 text-yellow-800" };
-    }
   const getStockStatus = () => {
     if (!product) return { text: "Loading...", color: "text-gray-600", bg: "bg-gray-100", badge: "bg-gray-100 text-gray-800" };
     
@@ -220,19 +208,6 @@ const ProductDetails = () => {
   const handleAddToCart = async () => {
     if (!product) return;
     
-    // Check if product is out of stock
-    if (!product.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0)) {
-      toast.error('This product is out of stock!');
-      return;
-    }
-    
-    // Check if quantity exceeds available stock
-    if (product.stockQuantity !== undefined && quantity > product.stockQuantity) {
-      toast.error(`Only ${product.stockQuantity} items available in stock!`);
-      return;
-    }
-    
-    const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
     const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0].name !== 'One Size';
     
     if (hasSizes) {
@@ -282,16 +257,24 @@ const ProductDetails = () => {
   const handleBuyNow = async () => {
     if (!product) return;
     
-    // Check if product is out of stock
-    if (!product.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0)) {
-      toast.error('This product is out of stock!');
-      return;
-    }
+    const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0].name !== 'One Size';
     
-    const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size';
-    if (hasSizes && !selectedSize) {
-      setSizeError('Please select a size');
-      return;
+    if (hasSizes) {
+      if (!selectedSize) {
+        setSizeError('Please select a size');
+        toast.error('Please select a size');
+        return;
+      }
+      
+      if (selectedSize.stock === 0) {
+        toast.error(`${selectedSize.name} size is out of stock!`);
+        return;
+      }
+    } else if (product.sizes && product.sizes.length > 0 && product.sizes[0].name === 'One Size') {
+      if (product.sizes[0].stock === 0) {
+        toast.error('This product is out of stock!');
+        return;
+      }
     }
     
     await handleAddToCart();
@@ -301,10 +284,6 @@ const ProductDetails = () => {
   const handleQuantityChange = (type: 'increase' | 'decrease') => {
     if (!product) return;
     
-    if (type === 'increase') {
-      // Don't exceed available stock
-      if (product.stockQuantity !== undefined && quantity >= product.stockQuantity) {
-        toast.error(`Only ${product.stockQuantity} items available`);
     let maxStock = Infinity;
     const hasSizes = product.sizes && product.sizes.length > 0 && product.sizes[0].name !== 'One Size';
     
@@ -349,7 +328,6 @@ const ProductDetails = () => {
   const hasMultipleImages = currentImages.length > 1;
   const hasColors = product?.colors && product.colors.length > 0;
   const stockStatus = getStockStatus();
-  const isOutOfStock = !product?.inStock || (product.stockQuantity !== undefined && product.stockQuantity <= 0);
   
   const hasSizes = product?.sizes && product.sizes.length > 0 && product.sizes[0].name !== 'One Size';
   
@@ -427,15 +405,12 @@ const ProductDetails = () => {
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
                 
-                {/* Badge - only show if in stock */}
-                {product.badge && !isOutOfStock && (
+                {product.badge && !outOfStock && (
                   <span className="absolute top-4 left-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
                     {product.badge}
                   </span>
                 )}
                 
-                {/* OUT OF STOCK OVERLAY */}
-                {isOutOfStock && (
                 {outOfStock && (
                   <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
                     <span className="text-white font-bold text-lg uppercase tracking-wider px-6 py-3 bg-red-600 rounded-full rotate-12 shadow-lg">
@@ -444,8 +419,6 @@ const ProductDetails = () => {
                   </div>
                 )}
                 
-                {/* Wishlist Button - hide for out of stock */}
-                {!isOutOfStock && (
                 {!outOfStock && (
                   <button
                     onClick={toggleWish}
@@ -457,7 +430,7 @@ const ProductDetails = () => {
                   </button>
                 )}
                 
-                {hasMultipleImages && !isOutOfStock && (
+                {hasMultipleImages && !outOfStock && (
                   <>
                     <button
                       onClick={prevImage}
@@ -475,8 +448,6 @@ const ProductDetails = () => {
                 )}
               </div>
 
-              {/* Thumbnail Images - hide for out of stock */}
-              {hasMultipleImages && !isOutOfStock && (
               {hasMultipleImages && !outOfStock && (
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {currentImages.map((img, idx) => (
@@ -503,7 +474,6 @@ const ProductDetails = () => {
                 {product.name}
               </h1>
               
-              {/* Stock Status Badge - NEW */}
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${stockStatus.badge} mb-4`}>
                 <span className={`text-sm font-medium ${stockStatus.color}`}>
                   {stockStatus.text}
@@ -511,7 +481,6 @@ const ProductDetails = () => {
               </div>
               
               <div className="flex items-center gap-3 mb-6">
-                <span className={`text-2xl font-bold ${isOutOfStock ? 'text-gray-400' : 'bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent'}`}>
                 <span className={`text-2xl font-bold ${outOfStock ? 'text-gray-400' : 'bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent'}`}>
                   Rs. {product.price.toLocaleString()}
                 </span>
@@ -526,8 +495,7 @@ const ProductDetails = () => {
                 {product.description || "Crafted with love from 100% organic cotton muslin, luxuriously soft and breathable for ultimate comfort."}
               </p>
 
-              {/* Color Selection - hide for out of stock */}
-              {hasColors && !isOutOfStock && (
+              {hasColors && !outOfStock && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Color</h3>
@@ -590,8 +558,7 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Size Selection - hide for out of stock */}
-              {hasSizes && !isOutOfStock && (
+              {hasSizes && !outOfStock && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Size</h3>
@@ -666,41 +633,8 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Quantity Selection - hide for out of stock */}
-              {!isOutOfStock && (
-                <div className="mb-8">
-                  <h3 className="text-sm font-semibold text-[#1e1b4b] mb-3">Quantity</h3>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-purple-200 rounded-full bg-white/50">
-                      <button
-                        onClick={() => handleQuantityChange('decrease')}
-                        className="w-10 h-10 flex items-center justify-center rounded-l-full hover:bg-purple-100 transition-colors text-purple-600"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-12 text-center font-medium text-[#1e1b4b]">{quantity}</span>
-                      <button
-                        onClick={() => handleQuantityChange('increase')}
-                        className="w-10 h-10 flex items-center justify-center rounded-r-full hover:bg-purple-100 transition-colors text-purple-600"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {quantity} item{quantity > 1 ? 's' : ''}
-                    </span>
-                    {product.stockQuantity && product.stockQuantity <= 10 && (
-                      <span className="text-xs text-orange-600 animate-pulse">
-                        Only {product.stockQuantity} left!
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                {isOutOfStock ? (
+                {outOfStock ? (
                   <button
                     disabled
                     className="flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -768,35 +702,37 @@ const ProductDetails = () => {
                 You May Also Like
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {relatedProducts.map((related) => (
-                  <div
-                    key={related.productId}
-                    onClick={() => navigate(`/product/${related.productId}`)}
-                    className="group cursor-pointer transition-all duration-300 hover:-translate-y-1"
-                  >
-                    <div className="relative overflow-hidden rounded-xl bg-purple-50/30 shadow-md" style={{ aspectRatio: "3/4" }}>
-                      <img
-                        src={related.image || defaultImage}
-                        alt={related.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      {/* Show out of stock badge on related products */}
-                      {(!related.inStock || (related.stockQuantity !== undefined && related.stockQuantity <= 0)) && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold px-2 py-1 bg-red-600 rounded-full">
-                            Out of Stock
+                {relatedProducts.map((related) => {
+                  const relatedOutOfStock = related.sizes && related.sizes.length > 0 && related.sizes[0].stock === 0;
+                  return (
+                    <div
+                      key={related.productId}
+                      onClick={() => navigate(`/product/${related.productId}`)}
+                      className="group cursor-pointer transition-all duration-300 hover:-translate-y-1"
+                    >
+                      <div className="relative overflow-hidden rounded-xl bg-purple-50/30 shadow-md" style={{ aspectRatio: "3/4" }}>
+                        <img
+                          src={related.image || defaultImage}
+                          alt={related.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        {relatedOutOfStock && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold px-2 py-1 bg-red-600 rounded-full">
+                              Out of Stock
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-3">
+                        <h3 className="text-sm font-medium text-[#1e1b4b] group-hover:text-purple-600 transition-colors">
+                          {related.name}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                            Rs. {related.price.toLocaleString()}
                           </span>
                         </div>
-                      )}
-                    </div>
-                    <div className="mt-3">
-                      <h3 className="text-sm font-medium text-[#1e1b4b] group-hover:text-purple-600 transition-colors">
-                        {related.name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                          Rs. {related.price.toLocaleString()}
-                        </span>
                       </div>
                     </div>
                   );
