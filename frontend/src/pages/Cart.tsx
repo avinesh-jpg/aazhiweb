@@ -101,13 +101,28 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
-    if (token) {
-      navigate('/checkout');
-    } else {
-      window.dispatchEvent(new CustomEvent('showLoginModal', { 
-        detail: { message: 'Login to save your order history, or continue as guest' } 
-      }));
+    console.log('Checkout button clicked');
+    console.log('Cart items:', cartItems.length);
+    
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      return;
     }
+    
+    // Check if any items are out of stock
+    const hasOutOfStock = cartItems.some(item => {
+      const availableStock = getAvailableStock(item);
+      return availableStock === 0;
+    });
+    
+    if (hasOutOfStock) {
+      toast.error('Some items in your cart are out of stock. Please remove them to continue.');
+      return;
+    }
+    
+    // Navigate to checkout page
+    console.log('Navigating to checkout...');
+    navigate('/checkout');
   };
 
   if (loading || checkingStock) {
@@ -333,15 +348,3 @@ const Cart = () => {
 };
 
 export default Cart;
-
-/* Add this to your global CSS or create a new CSS file and import it */
-const styles = `
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-`;
