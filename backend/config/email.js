@@ -569,8 +569,6 @@ export const checkEmailServiceHealth = async () => {
   }
 };
 
-// Export transporter for potential reuse
-export { transporter };
 // Export rate limiter for use in routes
 export const getRateLimitStatus = (email) => {
   const otpLimit = checkRateLimit(`otp:${email}`, 3600000, 3);
