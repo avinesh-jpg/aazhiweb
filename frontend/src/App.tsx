@@ -43,8 +43,6 @@ function App() {
   return (
     <CartProvider>
       <Router>
-      
-        <PageTracker />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/category/:type/:value" element={<CategoryPage />} />
