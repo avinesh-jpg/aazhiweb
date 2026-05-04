@@ -7,7 +7,8 @@ dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Production configuration
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Aazhi <noreply@aazhi.com>';
+//const FROM_EMAIL = process.env.FROM_EMAIL || 'Aazhi <noreply@aazhi.com>';
+const FROM_EMAIL = 'onboarding@resend.dev';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const ENABLE_RATE_LIMITING = process.env.ENABLE_RATE_LIMITING === 'true';
 const MAX_RETRIES = parseInt(process.env.MAX_EMAIL_RETRIES) || 3;
