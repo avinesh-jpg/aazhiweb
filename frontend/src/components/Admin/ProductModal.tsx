@@ -297,11 +297,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
                 onChange={(e) => setFormData({ ...formData, category: e.target.value, subcategory: '' })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="clothing">Clothing</option>
+               <option value="Boys">Boys</option>
                 <option value="newborn">Newborn</option>
-                <option value="thottil">Thottil</option>
-                <option value="bathing">Bathing</option>
-                <option value="bedding">Bedding</option>
+                <option value="UniSex">UniSex</option>
+                <option value="Girls">Girls</option>
+                {/*<option value="bedding">Bedding</option>*/}
                 <option value="accessories">Accessories</option>
               </select>
             </div>
