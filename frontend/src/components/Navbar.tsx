@@ -72,11 +72,12 @@ const Navbar = () => {
 
   const navItems = [
     { label: "New Born",             category: "newborn",    path: "/category/collection/newborn" },
-    { label: "Bathing",              category: "bathing",    path: "/category/collection/bathing" },
-    { label: "Clothing",             category: "clothing",   path: "/category/collection/clothing" },
-    { label: "Thottil",              category: "thottil",    path: "/category/collection/thottil" },
-    { label: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
-    { label: "Nursery & Accessories",category: "accessories",path: "/category/collection/accessories" },
+    { label: "Girls",              category: "Girls",    path: "/category/collection/Girls" },
+    { label: "Boys",             category: "Boys",   path: "/category/collection/Boys" },
+    { label: "UniSex",              category: "UniSex",    path: "/category/collection/UniSex" },
+    //{ label: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
+    { label: "Accessories",category: "accessories",path: "/category/collection/accessories" },
+    //{ label: "Combo",                category: "",           path: "/shop/combos" },
   ];
 
   return (
