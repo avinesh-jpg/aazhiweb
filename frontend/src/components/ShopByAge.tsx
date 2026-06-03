@@ -5,8 +5,8 @@ import age612 from "@/assets/age-6-12.jpg";
 import age110 from "@/assets/age-1-10.jpg";
 
 const ages = [
-  { label: "0–3 Months", sub: "Newborn essentials", image: age03, ageRange: "0-3" },
-  { label: "3–6 Months", sub: "Growing & exploring", image: age36, ageRange: "3-6" },
+  { label: "0–24 Months", sub: "Newborn essentials", image: age03, ageRange: "0-24" },
+  { label: "2–12 Years", sub: "Growing & exploring", image: age36, ageRange: "2-12" },
   { label: "6–12 Months", sub: "Active little ones", image: age612, ageRange: "6-12" },
   { label: "1–10 Years", sub: "Kids fashion & comfort", image: age110, ageRange: "1-10" },
 ];
