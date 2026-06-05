@@ -529,7 +529,7 @@ const ProductDetails = () => {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-[#1e1b4b] mb-3">Product Features</h3>
+                    <h3 className="text-2xl font-semibold text-[#1e1b4b] mb-3">Product Features</h3>
                     <ul className="space-y-2">
                       {descriptionBullets.map((bullet, index) => (
                         <li key={index} className="flex items-start gap-2 text-gray-600">
@@ -547,7 +547,7 @@ const ProductDetails = () => {
               {hasColors && !outOfStock && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Color</h3>
+                    <h3 className="text-2xl font-semibold text-[#1e1b4b]">Select Color</h3>
                     {product.colors && product.colors.length > 6 && (
                       <p className="text-xs text-gray-500">
                         {product.colors.length} colors
@@ -610,7 +610,7 @@ const ProductDetails = () => {
               {hasSizes && !outOfStock && (
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-sm font-semibold text-[#1e1b4b]">Select Size</h3>
+                    <h3 className="text-2xl font-semibold text-[#1e1b4b]">Select Size</h3>
                     {sizeError && <p className="text-xs text-red-500">{sizeError}</p>}
                   </div>
                   <div className="flex flex-wrap gap-3">
@@ -653,7 +653,7 @@ const ProductDetails = () => {
 
               {!outOfStock && (
                 <div className="mb-8">
-                  <h3 className="text-sm font-semibold text-[#1e1b4b] mb-3">Quantity</h3>
+                  <h3 className="text-2xl font-semibold text-[#1e1b4b] mb-3">Quantity</h3>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-purple-200 rounded-full bg-white/50">
                       <button
@@ -705,7 +705,7 @@ const ProductDetails = () => {
                     <button
                       onClick={handleBuyNow}
                       className="flex-1 py-3 px-6 font-bold uppercase tracking-wider text-sm rounded-full border-2 border-purple-400 text-purple-600 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:text-white hover:border-transparent transition-all duration-300"
-                    >
+                    > 
                       Buy It Now
                     </button>
                   </>

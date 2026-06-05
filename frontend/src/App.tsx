@@ -16,6 +16,10 @@ import NotFound from "@/pages/NotFound";
 import SearchResults from "@/pages/SearchResults";
 import ComboDetails from "@/pages/ComboDetails";
 import CombosPage from "@/pages/Combospage";
+import About from "./pages/About";
+import ShippingPolicy from "./pages/ShippingPolicy";
+import ReturnPolicy from "./pages/ReturnPolicy";
+import Contact from "./pages/ContactUs";
 
 // Component to track page views on route changes
 //const PageTracker = () => {
@@ -56,6 +60,10 @@ function App() {
           <Route path="/search" element={<SearchResults />} />
           <Route path="/combo/:id" element={<ComboDetails />} />
           <Route path="/shop/combos" element={<CombosPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/ShippingPolicy" element={<ShippingPolicy />} />
+          <Route path="/help/return-policy" element={<ReturnPolicy />} /> 
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

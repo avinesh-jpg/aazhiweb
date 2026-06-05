@@ -59,8 +59,8 @@ const CategoryPage = () => {
   const getPageTitle = () => {
     if (type === 'age') {
       const ageMap: { [key: string]: string } = {
-        '0-3': 'Newborn (0-3 Months)',
-        '3-6': '3-6 Months',
+        '0-24': 'Newborn (0-24 Months)',
+        '2-12': '2-12 years',
         '6-12': '6-12 Months',
         '1-10': '1-10 Years'
       };
