@@ -18,7 +18,7 @@ const categories = [
   { value: 'Boys', label: 'Boys' },
   { value: 'UniSex', label: 'UniSex' },
   //{ value: 'bedding', label: 'Bedding' },
-  { value: 'womens', label: 'Accessories' }
+  { value: 'womens', label: 'Womens' }
 ];
 
 const SubcategoryManager = () => {
