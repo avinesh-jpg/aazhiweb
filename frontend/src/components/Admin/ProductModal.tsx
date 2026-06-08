@@ -297,12 +297,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
                 onChange={(e) => setFormData({ ...formData, category: e.target.value, subcategory: '' })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-               <option value="clothing">Boys</option>
+               <option value="Boys">Boys</option>
                 <option value="newborn">Newborn</option>
-                <option value="thottil">UniSex</option>
-                <option value="bathing">Girls</option>
+                <option value="UniSex">UniSex</option>
+                <option value="Girls">Girls</option>
                 {/*<option value="bedding">Bedding</option>*/}
-                <option value="accessories">womens</option>
+                <option value="womens">womens</option>
               </select>
             </div>
             <div>
@@ -325,7 +325,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
                 onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="0-3">0-3 Months</option>
+                <option value="0-24">0-24 Months</option>
                 <option value="2-12">2-12 Years</option>
                 <option value="6-12">6-12 Months</option>
                 <option value="1-10">1-10 Years</option>
