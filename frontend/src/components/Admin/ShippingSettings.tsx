@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const ShippingSettings = () => {
   const [settings, setSettings] = useState({
-    freeShippingThreshold: 3000,
+    freeShippingThreshold: 2000,
     standardShippingRate: 100,
     expressShippingRate: 200,
     internationalShippingRate: 500

@@ -14,11 +14,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const categories = [
   { value: 'newborn', label: 'New Born' },
-  { value: 'Girls', label: 'Girls' },
-  { value: 'Boys', label: 'Boys' },
-  { value: 'UniSex', label: 'UniSex' },
+  { value: 'clothing', label: 'Girls' },
+  { value: 'bathing', label: 'Boys' },
+  { value: 'thottil', label: 'UniSex' },
   //{ value: 'bedding', label: 'Bedding' },
-  { value: 'accessories', label: 'Accessories' }
+  { value: 'accessories', label: 'womens' }
 ];
 
 const SubcategoryManager = () => {

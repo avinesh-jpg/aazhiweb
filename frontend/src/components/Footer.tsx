@@ -1,9 +1,11 @@
 const shopLinks = [
-  { name: "New Born", path: "/category/collection/newborn" },
-  { name: "Girls", path: "/category/collection/girls" },
-  { name: "Boys", path: "/category/collection/boys" },
-  { name: "Unisex", path: "/category/collection/unisex" },
-  { name: "Womens", path: "/category/collection/accessories" }
+ {name: "New Born",             category: "newborn",    path: "/category/collection/newborn" },  //new born as new born
+    { name: "Girls",              category: "Girls",    path: "/category/collection/Girls" }, //clothing as Girls
+    { name: "Boys",             category: "Boys",   path: "/category/collection/Boys" },//bathing as boys
+    { name: "UniSex",              category: "UniSex",    path: "/category/collection/UniSex" },// thottil as unisex
+    //{ name: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
+    { name: "womens",category: "accessories",path: "/category/collection/accessories" },//hhere the word accessories is used for womens because we have only one subcategory under accessories which is womens and we want to show that in the navbar instead of showing accessories to women
+    //{ name: "Combo",                category: "",           path: "/shop/combos" },
 ];
 
 

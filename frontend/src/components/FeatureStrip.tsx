@@ -1,9 +1,9 @@
 import { Truck, ShieldCheck, Heart, RefreshCw } from "lucide-react";
 
 const features = [
-  { icon: Truck, title: "Free Shipping", desc: "On orders above Rs.3000" },
-  { icon: ShieldCheck, title: "100% Organic", desc: "Safe, soft & skin-friendly" },
-  { icon: Heart, title: "Made with Love", desc: "Crafted by mothers, for babies" },
+  { icon: Truck, title: "Free Shipping", desc: "On orders above Rs.2000" },
+  { icon: ShieldCheck, title: "100% Premium Cotton", desc: "Safe, soft & skin-friendly" },
+  { icon: Heart, title: "Express 3 Days Delivery", desc: "Crafted by mothers, for babies" },
   { icon: RefreshCw, title: "Easy Returns", desc: "Hassle-free 7-day returns" },
 ];
 
