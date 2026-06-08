@@ -70,7 +70,7 @@ const Cart = () => {
   }, [cartItems]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = subtotal > 3000 ? 0 : 100;
+  const shipping = subtotal > 2000 ? 0 : 70;
   const total = subtotal + shipping;
 
   // Get available stock for an item
@@ -302,9 +302,9 @@ const Cart = () => {
                       {shipping === 0 ? 'Free' : `Rs. ${shipping.toLocaleString()}`}
                     </span>
                   </div>
-                  {shipping > 0 && subtotal < 3000 && (
+                  {shipping > 0 && subtotal < 2000 && (
                     <p className="text-xs text-green-600">
-                      Add Rs. {(3000 - subtotal).toLocaleString()} more for free shipping
+                      Add Rs. {(2000 - subtotal).toLocaleString()} more for free shipping
                     </p>
                   )}
                   <div className="border-t border-purple-200 pt-3 mt-3">

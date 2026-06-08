@@ -1,8 +1,8 @@
 const messages = [
-  "FREE SHIPPING ABOVE Rs.3000",
-  "100% ORGANIC COTTON",
+  "FREE SHIPPING ABOVE Rs.2000",
+  "100% PREMIUM COTTON",
   "MADE WITH LOVE",
-  "EASY 7-DAY RETURNS",
+  "Express 3 Days Delivery",
 ];
 
 const AnnouncementBar = () => (
