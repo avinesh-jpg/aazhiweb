@@ -3,7 +3,7 @@ const shopLinks = [
   { name: "Girls", path: "/category/collection/girls" },
   { name: "Boys", path: "/category/collection/boys" },
   { name: "Unisex", path: "/category/collection/unisex" },
-  { name: "Accessories", path: "/category/collection/accessories" }
+  { name: "Womens", path: "/category/collection/accessories" }
 ];
 
 
