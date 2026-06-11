@@ -302,7 +302,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
                 <option value="UniSex">UniSex</option>
                 <option value="Girls">Girls</option>
                 {/*<option value="bedding">Bedding</option>*/}
-                <option value="womens">womens</option>
+                <option value="women">womens</option>
               </select>
             </div>
             <div>
