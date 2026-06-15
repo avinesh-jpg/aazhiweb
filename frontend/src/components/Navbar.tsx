@@ -78,7 +78,7 @@ const Navbar = () => {
     //{ label: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
     { label: "womens",category: "women",path: "/category/collection/womens" },//hhere the word womens is used for womens because we have only one subcategory under womens which is womens and we want to show that in the navbar instead of showing accessories to women
     //{ label: "Combo",                category: "",           path: "/shop/combos" },
-  ];
+  ];  
 
   return (
     <>
