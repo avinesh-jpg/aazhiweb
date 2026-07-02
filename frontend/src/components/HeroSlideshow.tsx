@@ -1,24 +1,27 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import banner1 from "../assets/banner1.png";
+import banner2 from "../assets/banner2.png";
+import banner3 from "../assets/banner3.1.png"; // Add this import for the third banner
 
 // Use placeholder images from placeholder service
 const slides = [
   { 
-    image: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=1200&h=800&fit=crop", 
+    image: banner1,//https://images.unsplash.com/photo-1544816155-12df9643f363?w=1200&h=800&fit=crop 
     heading: "Explore a World of Tiny Delights", 
     sub: "Organic baby clothing & essentials, crafted with love", 
     cta: "Shop Now", 
     link: "#collections" 
   },
   { 
-    image: "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=1200&h=800&fit=crop", 
+    image: banner2,//https://images.unsplash.com/photo-1522771930-78848d9293e8?w=1200&h=800&fit=crop 
     heading: "No Itchy Tags, Just Happy Wiggles", 
     sub: "Comfy, breathable threads your baby will love", 
     cta: "Shop Clothing", 
     link: "#collections" 
   },
   { 
-    image: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1200&h=800&fit=crop", 
+    image: banner3,//https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1200&h=800&fit=crop 
     heading: "Hello Mamas! We've Got You Covered", 
     sub: "Everything your newborn needs, all in one place", 
     cta: "Discover Now", 
