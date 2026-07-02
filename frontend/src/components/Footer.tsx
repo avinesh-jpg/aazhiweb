@@ -43,10 +43,11 @@ const Footer = () => {
             </p>
             <div className="flex gap-2.5 mt-5">
               {[
-                { name: "Ig", path: "https://instagram.com" },
-                { name: "Fb", path: "https://facebook.com" },
-                { name: "WA", path: "https://wa.me" },
-                { name: "YT", path: "https://youtube.com" }
+                { name: "📸", path: "https://www.instagram.com/aazhi_clothing/?hl=en" },
+                
+                //{ name: "Fb", path: "https://facebook.com" },
+                //{ name: "WA", path: "https://wa.me" },
+                //{ name: "YT", path: "https://youtube.com" }
               ].map((social, i) => (
                 <a 
                   key={social.name} 
@@ -119,13 +120,13 @@ const Footer = () => {
             onClick={() => handleNavigation("/")}
             className="hover:text-purple-400 transition-colors duration-300 bg-transparent border-0 cursor-pointer"
           >
-            © 2024 Aazhi. All rights reserved. Made with ♥ for little ones.
+            © 2026 Aazhi. All rights reserved.
           </button>
           <button 
             onClick={() => handleNavigation("/credits")}
             className="hover:text-purple-400 transition-colors duration-300 bg-transparent border-0 cursor-pointer"
           >
-            Designed & Developed with Love
+            
           </button>
         </div>
       </div>
