@@ -1,7 +1,8 @@
 // src/pages/About.tsx
 import React from 'react';
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer"; // Adjust path as needed
+import Footer from "@/components/Footer";
+import { Link } from 'react-router-dom';
 
 const About: React.FC = () => {
   return (
@@ -17,86 +18,101 @@ const About: React.FC = () => {
               Welcome to Aazhi
             </h1>
             <p className="text-gray-300 text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-              India's Destination for Independent Kids Casual & Nightwear Brands
+              Bridging the Gap: Premium Tiruppur Quality Meets Indian Classrooms & Playgrounds
             </p>
           </div>
 
-          {/* The Problem Section */}
-          <div className="bg-white rounded-2xl p-6 sm:p-8 mb-8 backdrop-blur-sm animate-fadeIn" style={{ animationDelay: "0.1s" }}>
-            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-4">The Problem We Solved</h2>
-            <p className="text-black-300 leading-relaxed mb-4">
-              If you are looking to buy kids daily wear and nightwear online in India, you've likely run into the same frustrating problem. 
-              The big marketplaces are flooded with mass-produced, stiff clothes that lose their shape after two washes. And finding ultra-soft, 
-              breathable pajamas or playwear that doesn't look generic feels almost impossible.
+          {/* Brand Story Section */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 mb-8 animate-fadeIn border border-purple-500/20" style={{ animationDelay: "0.1s" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-4">Bringing Tiruppur's Finest to Your Doorstep</h2>
+            <p className="text-gray-300 leading-relaxed mb-4">
+              Welcome to <span className="text-purple-300 font-semibold">Aazhi</span>—where India's finest manufacturing hub meets every parent's search for premium, budget-friendly clothing.
             </p>
-            <p className="text-black-300 leading-relaxed">
-              At Aazhi, we believe that the clothes your children spend the most time in—the outfits they sleep in, play in, and explore 
-              the world in—deserve the absolute highest quality.
+            <p className="text-gray-300 leading-relaxed mb-4">
+              For decades, <span className="text-blue-300 font-semibold">Tiruppur</span> has been recognized globally as the textile and knitwear capital of India. It's the birthplace of some of the most comfortable, durable, and highest-quality 100% cotton clothing. Yet, the best of Tiruppur's surplus and offline factory brands have remained a well-kept local secret.
             </p>
-          </div>
-
-          {/* Our Solution Section */}
-          <div className="bg-white to-blue-500/10 rounded-2xl p-6 sm:p-8 mb-8 backdrop-blur-sm animate-fadeIn border border-purple-500/20" style={{ animationDelay: "0.2s" }}>
-            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-4">Our Solution</h2>
-            <p className="text-black-300 leading-relaxed mb-4 text-lg font-medium">
-              That is why we built Aazhi—India's only curated multi-brand online store for kids casual wear and nightwear, sourcing exclusively from premium, independent homegrown Indian kidswear labels.
+            <p className="text-gray-300 leading-relaxed">
+              For parents living across India—from Mumbai to Guwahati, Delhi to Kochi—finding these high-value, durable clothes online has been nearly impossible. <span className="text-purple-300 font-semibold">Aazhi was born to change that.</span>
             </p>
           </div>
 
-          {/* Discover Section */}
-          <div className="bg-white rounded-2xl p-6 sm:p-8 mb-8 backdrop-blur-sm animate-fadeIn" style={{ animationDelay: "0.3s" }}>
-            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-4">Discover the Softest Everyday Kids Clothing Online</h2>
-            <p className="text-black-300 leading-relaxed mb-4">
-              All across India—from the historic textile hubs of Coimbatore and Tirupur to independent design houses nationwide—talented 
-              creators are making incredible children's clothes. They specialize in the softest pure cottons, tagless comfort, and playful, modern prints.
+          {/* The Problem We're Solving */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 mb-8 animate-fadeIn" style={{ animationDelay: "0.2s" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-4">The Problem We're Solving</h2>
+            <p className="text-gray-300 leading-relaxed mb-4">
+              As parents, you shouldn't have to choose between overpriced premium brands or cheap, low-quality synthetic clothing that irritates your child's skin.
             </p>
-            <p className="text-black-300 leading-relaxed mb-4">
-              But because they operate as small, local businesses, they remain hidden gems.
-            </p>
-            <p className="text-black-300 leading-relaxed font-medium text-black-300">
-              Aazhi is their bridge to you. We scout the country to handpick the finest independent children's apparel brands. We bring them 
-              under one digital roof, making premium kids nightwear, cotton pajama sets, breathable co-ord sets, and everyday casuals 
-              accessible to conscious parents all over India.
+            <p className="text-gray-300 leading-relaxed">
+              Right now, hundreds of offline manufacturers and local brands in Tiruppur are creating extraordinary, export-grade garments that offer immense <span className="text-blue-300 font-semibold">value for money</span>. But because they operate purely offline, millions of Indian households miss out on them.
             </p>
           </div>
 
-          {/* Why Parents Trust Aazhi */}
-          <div className="bg-white/5 rounded-2xl p-6 sm:p-8 mb-8 backdrop-blur-sm animate-fadeIn" style={{ animationDelay: "0.4s" }}>
-            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-6 text-center">Why Parents Trust Aazhi for Kids Everyday Wear</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center p-4 rounded-xl bg-white from-purple-500/5 to-blue-500/5 hover:scale-105 transition-transform duration-300">
-                <div className="text-3xl mb-3">🌿</div>
-                <h3 className="font-semibold text-black-300 mb-2">Premium, Kid-Approved Fabrics</h3>
-                <p className="text-sm text-black-400 leading-relaxed">
-                  Kids are sensitive to rough seams and scratchy prints. Our independent partners prioritize hypoallergenic, pure combed cotton 
-                  and breathable fabrics that get softer with every single wash.
+          {/* Our Mission Section */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 mb-8 animate-fadeIn border border-purple-500/20" style={{ animationDelay: "0.3s" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-4">Our Mission: Opening the Tiruppur Market to India</h2>
+            <p className="text-gray-300 leading-relaxed mb-4">
+              <span className="text-purple-300 font-semibold">"Aazhi"</span> means the ocean. Just like the vast, deep blue sea, we aim to bring a boundless wave of premium, affordable fashion right to your doorstep.
+            </p>
+            <p className="text-gray-300 leading-relaxed mb-4">
+              We act as the digital bridge. Our team goes deep into the bustling textile lanes of Tiruppur, unearths the finest offline brands, curates the highest-quality surplus clothing, and brings them online.
+            </p>
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              <div className="bg-white/5 rounded-xl p-5">
+                <h3 className="text-lg font-semibold text-blue-300 mb-2">For Parents</h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  You gain direct access to ultra-soft, export-quality cotton garments that are incredibly <span className="text-purple-300 font-medium">value-for-money</span>, helping you dress your kids beautifully without stretching your budget.
                 </p>
               </div>
-              
-              <div className="text-center p-4 rounded-xl bg-white from-purple-500/5 to-blue-500/5 hover:scale-105 transition-transform duration-300">
-                <div className="text-3xl mb-3">🎨</div>
-                <h3 className="font-semibold text-black-300 mb-2">Unique Prints & Designs</h3>
-                <p className="text-sm text-black-400 leading-relaxed">
-                  Say goodbye to the same old repetitive cartoon characters. Our brands offer fresh, minimal, and playful aesthetic designs 
-                  that make everyday dressing fun.
-                </p>
-              </div>
-              
-              <div className="text-center p-4 rounded-xl bg-white from-purple-500/5 to-blue-500/5 hover:scale-105 transition-transform duration-300">
-                <div className="text-3xl mb-3">💤</div>
-                <h3 className="font-semibold text-black-300 mb-2">Built for Play and Sleep</h3>
-                <p className="text-sm text-black-400 leading-relaxed">
-                  Whether it is a cozy unisex nightsuit for a peaceful sleep or a durable cotton t-shirt and shorts set for playground adventures, 
-                  our curated collections are designed for ultimate movement and comfort.
+              <div className="bg-white/5 rounded-xl p-5">
+                <h3 className="text-lg font-semibold text-blue-300 mb-2">For Tiruppur's Makers</h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  We give hard-working, top-tier local manufacturers a voice and a national platform to showcase their incredible craftsmanship.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* The Aazhi Promise */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 mb-8 animate-fadeIn" style={{ animationDelay: "0.4s" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold text-purple-400 mb-6 text-center">The Aazhi Promise</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 border border-purple-500/10">
+                <div className="text-3xl mb-3">💰</div>
+                <h3 className="font-semibold text-blue-300 mb-2">100% Value for Money</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  We bypass the fancy middlemen, expensive retail markups, and excessive marketing costs to pass the savings directly to you.
+                </p>
+              </div>
+              
+              <div className="text-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 border border-purple-500/10">
+                <div className="text-3xl mb-3">✅</div>
+                <h3 className="font-semibold text-blue-300 mb-2">Uncompromised Quality</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Every garment featured on Aazhi undergoes a rigorous check to ensure it meets the comfort and durability standards your family deserves.
+                </p>
+              </div>
+              
+              <div className="text-center p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 border border-purple-500/10">
+                <div className="text-3xl mb-3">🏭</div>
+                <h3 className="font-semibold text-blue-300 mb-2">Direct from the Hub</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  No imitation goods. Everything is sourced straight from the heart of <span className="text-purple-300 font-medium">Tiruppur, Tamil Nadu</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Closing Message */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 mb-8 animate-fadeIn border border-purple-500/20" style={{ animationDelay: "0.5s" }}>
+            <p className="text-gray-300 leading-relaxed text-center text-lg">
+              Thank you for choosing <span className="text-purple-300 font-semibold">Aazhi</span>. By shopping with us, you aren't just buying premium clothing for your family; you are supporting local textile communities and unlocking the true potential of Made-in-India manufacturing.
+            </p>
+          </div>
+
           {/* Quote Section */}
-          <div className="text-center py-8 animate-fadeIn" style={{ animationDelay: "0.5s" }}>
-            <div className="inline-block p-6 rounded-2xl bg-white border-purple-500/30">
-              <p className="text-lg sm:text-xl md:text-2xl text-black-300 italic font-['Cormorant_Garamond',serif]">
+          <div className="text-center py-6 animate-fadeIn" style={{ animationDelay: "0.6s" }}>
+            <div className="inline-block p-6 rounded-2xl bg-white/5 border border-purple-500/20">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-300 italic font-['Cormorant_Garamond',serif]">
                 "We find India's finest independent labels so you don't have to. 
                 <br />
                 Dressing your little ones in ultimate everyday comfort."
@@ -104,9 +120,7 @@ const About: React.FC = () => {
             </div>
           </div>
 
-          {/* CTA Section */}
-          <div className="text-center mt-8 animate-fadeIn" style={{ animationDelay: "0.6s" }}>
-          </div>
+          
         </div>
       </div>
 
