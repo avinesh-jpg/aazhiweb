@@ -20,6 +20,7 @@ import About from "./pages/About";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ReturnPolicy from "./pages/ReturnPolicy";
 import Contact from "./pages/ContactUs";
+import { HelmetProvider } from 'react-helmet-async';
 
 // Component to track page views on route changes
 //const PageTracker = () => {
@@ -45,6 +46,7 @@ const PageTracker = () => {
 
 function App() {
   return (
+    <HelmetProvider>
     <CartProvider>
       <Router>
         <Routes>
@@ -68,6 +70,7 @@ function App() {
         </Routes>
       </Router>
     </CartProvider>
+    </HelmetProvider>
   );
 }
 

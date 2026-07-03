@@ -8,8 +8,8 @@ import banner3 from "../assets/banner3.1.png"; // Add this import for the third 
 const slides = [
   { 
     image: banner1,//https://images.unsplash.com/photo-1544816155-12df9643f363?w=1200&h=800&fit=crop 
-    heading: "Explore a World of Tiny Delights", 
-    sub: "Organic baby clothing & essentials, crafted with love", 
+    heading: "Premium Tiruppur Cotton Kids Wear. Made for Play, Priced for Parents.", 
+    sub: "Direct from the textile capital of India to your doorstep. Discover unbeatable value-for-money clothing from Tiruppur’s finest hidden brands.", 
     cta: "Shop Now", 
     link: "#collections" 
   },
