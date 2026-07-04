@@ -18,8 +18,6 @@ import { errorHandler } from './middleware/errorHandler.js';
 import shippingRoutes from './routes/shipping.js';
 import combosRoutes from './routes/combo.js';
 
-// Add after other routes
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -30,12 +28,8 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration this is for main hosting
-// CORS configuration
-// CORS configuration - REPLACE your current cors() setup with this:
-
 // Enable preflight for all routes
-app.options('*', cors()); // This handles OPTIONS preflight requests
+app.options('*', cors());
 
 // Your main CORS configuration
 app.use(cors({
@@ -46,28 +40,64 @@ app.use(cors({
     'https://aazhiweb.vercel.app',
     'https://theaazhi.com',
     'https://tiinyberryy.vercel.app',
-    'https://aazhiweb.onrender.com/'  // ← ADD THIS LINE (YOUR CURRENT FRONTEND URL)
-    // Add any other frontend URLs you're using
+    'https://aazhiweb.onrender.com'  // ← REMOVED trailing slash
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
 }));
 
-// CORS configuration
-/*app.use(cors({
-  origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'http://localhost:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
-}));*/
-
 app.use(express.json());
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// =============================================
+// ROUTES
+// =============================================
+
+// ✅ KEEP-ALIVE PING ENDPOINT (Prevents cold starts)
+// Place this BEFORE your other routes for faster response
+app.get('/api/ping', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    message: 'Server is awake!'
+  });
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Tiiny Berry API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Tiiny Berry API is running!',
+    endpoints: {
+      ping: '/api/ping',  // ← Added ping endpoint to the list
+      products: '/api/products',
+      cart: '/api/cart',
+      wishlist: '/api/wishlist',
+      auth: '/api/auth',
+      orders: '/api/orders',
+      'email-otp': '/api/email-otp',
+      payment: '/api/payment',
+      admin: '/api/admin',
+      upload: '/api/upload',
+      subcategories: '/api/subcategories',
+      health: '/api/health',
+      'debug-routes': '/api/debug-routes'
+    }
+  });
+});
+
+// Your API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
@@ -105,40 +135,11 @@ app.get('/api/debug-routes', (req, res) => {
   res.json({ routes });
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Tiiny Berry API is running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Root route
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Tiiny Berry API is running!',
-    endpoints: {
-      products: '/api/products',
-      cart: '/api/cart',
-      wishlist: '/api/wishlist',
-      auth: '/api/auth',
-      orders: '/api/orders',
-      'email-otp': '/api/email-otp',
-      payment: '/api/payment',
-      admin: '/api/admin',
-      upload: '/api/upload',
-      subcategories: '/api/subcategories',
-      health: '/api/health',
-      'debug-routes': '/api/debug-routes'
-    }
-  });
-});
-
-// Error handler
+// Error handler (should be last)
 app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📦 MongoDB connected - Data is now persistent!`);
+  console.log(`🏓 Ping endpoint: http://localhost:${PORT}/api/ping`);
 });
