@@ -24,18 +24,21 @@ const ThottilHighlight = () => (
       {/* Content Section */}
       <div className="reveal">
         <span className="inline-block text-xs font-bold uppercase tracking-[0.18em] mb-1 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          Traditional & Reimagined
+          Why Smart Parents Choose Aazhi
         </span>
         <h2 className="text-white font-light text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 drop-shadow-lg" style={{ 
           fontFamily: "'Cormorant Garamond', serif" 
         }}>
-          The Aazhi<br />Thottil
+          Direct from<br />Tiruppur Hub
         </h2>
         <p className="text-white/70 text-[0.9rem] leading-relaxed mb-4">
-          Crafted from the finest organic muslin, our Thottil collection blends timeless South Indian tradition with modern safety and style. Gentle on delicate skin, designed for restful sleep.
+          We source directly from the legendary factories and offline outlets of Tiruppur, Tamil Nadu. No middleman markups—just pure, export-grade quality.
+        </p>
+        <p className="text-white/70 text-[0.9rem] leading-relaxed mb-4">
+          100% Premium Cotton. Children's skin deserves the best. Our curated collections feature ultra-soft, breathable, and durable fabrics designed to withstand endless playtime and washes.
         </p>
         <p className="text-white/70 text-[0.9rem] leading-relaxed mb-8">
-          Each Thottil is thoughtfully designed to support your baby's natural movement while keeping them snugly cocooned in comfort and love.
+          Unbeatable Value for Money. Get premium brand-quality garments at a fraction of high-street retail prices. We unlock Tiruppur's surplus market for families nationwide.
         </p>
         <Link 
           to="/category/collection/thottil"

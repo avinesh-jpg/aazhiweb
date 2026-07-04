@@ -13,6 +13,7 @@ import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import useScrollReveal from "@/hooks/useScrollReveal";
+import SocialFeed from "@/components/SocialFeed";
 
 const Index = () => {
   useScrollReveal();
@@ -30,6 +31,7 @@ const Index = () => {
         <ComboOffers />
         <ThottilHighlight />
         <OurStory />
+        <SocialFeed />
         <Testimonials />
         <Newsletter />
       </main>

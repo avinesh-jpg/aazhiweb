@@ -31,22 +31,22 @@ const OurStory = () => (
       {/* Content Section */}
       <div className="reveal reveal-d2">
         <span className="inline-block text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-          Our Journey
+          The Story Section
         </span>
         <h2 className="text-3xl md:text-4xl font-light font-heading mb-6 bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
-          Our Story
+          Bringing Tiruppur's Best-Kept Clothing Secret Online
         </h2>
         <p className="font-body text-gray-600 leading-relaxed mb-4 text-[0.92rem]">
-          Aazhi grew from a mother's relentless pursuit of perfection in baby fashion. With the arrival of our second little miracle, finding exquisitely crafted, cozy clothing became an obsession. Dissatisfied with the choices, we decided to create our own.
+          For years, the best value-for-money clothing in India was hidden away in the bustling offline factory outlets of Tiruppur. Parents outside the region had no way to access these high-quality, durable garments without physically visiting the hub.
         </p>
         <p className="font-body text-gray-600 leading-relaxed mb-4 text-[0.92rem]">
-          Nurtured with love and dedication, Aazhi emerged, offering a collection designed for ages 0 to 5. Each piece embodies our belief that every baby and toddler deserves to be wrapped in comfort and dressed in elegance.
+          Aazhi changes the game. We bridge the gap between India's finest independent textile manufacturers and parents looking for reliable, budget-friendly children's wear. Every piece in our collection is handpicked for its fabric quality, stitching strength, and comfort.
         </p>
         <p className="font-body text-gray-600 leading-relaxed mb-8 text-[0.92rem]">
-          Every stitch is guided by a mother's instinct — safe, soft, sustainable, and simply beautiful.
+          By shopping with us, you get the absolute best price-to-quality ratio in Indian kidswear while supporting local textile communities.
         </p>
         <p className="font-['Cormorant_Garamond',serif] text-foreground font-medium italic text-lg mb-8 relative pl-6 border-l-4 border-purple-400">
-          "Where love, comfort, and style unite to dress your little ones in nothing but the finest."
+          "Bridging the gap between India's finest textile manufacturers and parents looking for reliable, budget-friendly children's wear."
         </p>
         <a 
           href="#" 

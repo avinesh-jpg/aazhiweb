@@ -10,25 +10,17 @@ const instagramContent = [
 
 const InstagramFeed = () => {
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-white to-gray-50/50">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-white to-gray-50/50">
       <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <span className="text-xs md:text-sm uppercase tracking-[0.2em] text-primary/70 font-semibold mb-3 inline-block">
+        <div className="text-center mb-10">
+          <span className="text-xs md:text-sm uppercase tracking-[0.2em] text-primary/70 font-semibold mb-2 inline-block">
             Follow Us
           </span>
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-foreground font-heading max-w-2xl mx-auto">
             On Instagram
           </h2>
-          <div className="w-16 h-0.5 bg-primary/30 mx-auto mt-4"></div>
-          <a
-            href="https://www.instagram.com/aazhi_clothing/reels/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block mt-4 text-sm text-primary hover:text-primary/80 transition-colors"
-          >
-            @aazhi_Clothing 👈 Follow us for more
-          </a>
+          <div className="w-16 h-0.5 bg-primary/30 mx-auto mt-3"></div>
         </div>
 
         {/* Instagram Grid */}
@@ -49,8 +41,20 @@ const InstagramFeed = () => {
           ))}
         </div>
 
+        {/* Follow Link */}
+        <div className="text-center mt-6">
+          <a
+            href="https://www.instagram.com/aazhi_clothing/reels/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-sm text-primary hover:text-primary/80 transition-colors"
+          >
+            @aazhi_Clothing 👈 Follow us for more
+          </a>
+        </div>
+
         {/* Follow Button */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-8">
           <a
             href="https://www.instagram.com/aazhi_clothing/reels/"
             target="_blank"
