@@ -17,6 +17,7 @@ import subcategoryRoutes from './routes/subcategories.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import shippingRoutes from './routes/shipping.js';
 import combosRoutes from './routes/combo.js';
+import Product from './models/Product.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,19 +53,105 @@ app.use(express.json());
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// server.js - REPLACE your existing slug routes with these
+
 // =============================================
-// ROUTES
+// ✅ FIXED: SLUG-BASED API ROUTES (Case-insensitive)
 // =============================================
 
-// ✅ KEEP-ALIVE PING ENDPOINT (Prevents cold starts)
-// Place this BEFORE your other routes for faster response
-app.get('/api/ping', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    message: 'Server is awake!'
-  });
+// Get product by category + subcategory + slug
+app.get('/api/product/:category/:subcategory/:slug', async (req, res) => {
+  try {
+    const { category, subcategory, slug } = req.params;
+    
+    // Decode URL parameters (replace hyphens with spaces)
+    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
+    const decodedSubcategory = decodeURIComponent(subcategory).replace(/-/g, ' ');
+    
+    console.log('Searching for:', { decodedCategory, decodedSubcategory, slug });
+    
+    // Find product with case-insensitive matching
+    const product = await Product.findOne({
+      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') },
+      subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') },
+      slug: slug
+    });
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product by slug:', error);
+    res.status(500).json({ message: error.message });
+  }
 });
+
+// Get product by category + slug (no subcategory)
+app.get('/api/product/:category/:slug', async (req, res) => {
+  try {
+    const { category, slug } = req.params;
+    
+    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
+    
+    console.log('Searching for:', { decodedCategory, slug });
+    
+    const product = await Product.findOne({
+      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') },
+      slug: slug
+    });
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product by slug:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get products by category with subcategory
+app.get('/api/product/:category/:subcategory', async (req, res) => {
+  try {
+    const { category, subcategory } = req.params;
+    
+    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
+    const decodedSubcategory = decodeURIComponent(subcategory).replace(/-/g, ' ');
+    
+    const products = await Product.find({
+      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') },
+      subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') }
+    });
+    
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get products by category
+app.get('/api/product/:category', async (req, res) => {
+  try {
+    const { category } = req.params;
+    
+    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
+    
+    const products = await Product.find({
+      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') }
+    });
+    
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// =============================================
+// EXISTING ROUTES (UNCHANGED)
+// =============================================
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -80,7 +167,6 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Tiiny Berry API is running!',
     endpoints: {
-      ping: '/api/ping',  // ← Added ping endpoint to the list
       products: '/api/products',
       cart: '/api/cart',
       wishlist: '/api/wishlist',
@@ -92,10 +178,16 @@ app.get('/', (req, res) => {
       upload: '/api/upload',
       subcategories: '/api/subcategories',
       health: '/api/health',
-      'debug-routes': '/api/debug-routes'
+      'debug-routes': '/api/debug-routes',
+      'slug-routes': '/api/product/:category/:subcategory/:slug'
     }
   });
 });
+
+
+
+
+
 
 // Your API Routes
 app.use('/api/products', productRoutes);

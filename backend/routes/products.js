@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Search products - MUST BE BEFORE /:id route
+// Search products
 router.get('/search', async (req, res) => {
   try {
     const { q } = req.query;
@@ -76,17 +76,121 @@ router.get('/subcategory/:subcategoryName', async (req, res) => {
   }
 });
 
-// Get single product by ID - THIS COMES AFTER SPECIFIC ROUTES
+// =============================================
+// ✅ NEW: SLUG-BASED ROUTES
+// =============================================
+
+// Get product by slug only
+router.get('/slug/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const product = await Product.findOne({ slug });
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product by slug:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get product by category + slug
+router.get('/category/:category/slug/:slug', async (req, res) => {
+  try {
+    const { category, slug } = req.params;
+    const product = await Product.findOne({ 
+      category: category,
+      slug 
+    });
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// routes/products.js - Add this route
+
+// Get product by category + subcategory + slug (case-insensitive)
+router.get('/category/:category/subcategory/:subcategory/slug/:slug', async (req, res) => {
+  try {
+    const { category, subcategory, slug } = req.params;
+    
+    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
+    const decodedSubcategory = decodeURIComponent(subcategory).replace(/-/g, ' ');
+    
+    const product = await Product.findOne({ 
+      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') },
+      subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') },
+      slug: slug
+    });
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ✅ NEW: Generate slugs for existing products (Migration endpoint)
+router.post('/generate-slugs', async (req, res) => {
+  try {
+    const products = await Product.find({ slug: { $exists: false } });
+    let updated = 0;
+    
+    for (const product of products) {
+      if (product.name) {
+        let slug = product.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+        
+        const existing = await Product.findOne({ 
+          slug: slug, 
+          _id: { $ne: product._id } 
+        });
+        
+        if (existing) {
+          slug = `${slug}-${product.productId}`;
+        }
+        
+        product.slug = slug;
+        await product.save();
+        updated++;
+      }
+    }
+    
+    res.json({ 
+      message: `Slugs generated for ${updated} products`,
+      totalProcessed: products.length,
+      updated
+    });
+  } catch (error) {
+    console.error('Error generating slugs:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// =============================================
+// EXISTING: Get single product by ID
+// =============================================
 router.get('/:id', async (req, res) => {
   try {
     const id = req.params.id;
     let product;
     
-    // Check if id is a number (numeric productId)
     if (!isNaN(id)) {
       product = await Product.findOne({ productId: parseInt(id) });
     } else {
-      // Try to find by MongoDB _id
       product = await Product.findById(id);
     }
     

@@ -1,11 +1,10 @@
-import { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+// App.tsx
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/context/CartProvider";
-//import ReactGA from "react-ga4";
-import ReactGA from "react-ga4";
 import Index from "@/pages/Index";
 import CategoryPage from "@/pages/CategoryPage";  
-import ProductDetails from "@/pages/ProductDetails";
+import ProductDetails from "@/pages/ProductDetails";        // ← ORIGINAL (ID-based)
+import ProductDetailsBySlug from "@/pages/ProductDetailsBySlug"; // ← NEW (Slug-based)
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Orders from "@/pages/Orders";
@@ -22,54 +21,39 @@ import ReturnPolicy from "./pages/ReturnPolicy";
 import Contact from "./pages/ContactUs";
 import { HelmetProvider } from 'react-helmet-async';
 
-// Component to track page views on route changes
-//const PageTracker = () => {
-  //const location = useLocation();
-
-  //useEffect(() => {
-    // Track page view whenever the URL changes
-    /*ReactGA.send({
-const PageTracker = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    // Track page view whenever the URL changes
-    ReactGA.send({
-      hitType: "pageview",
-      page: location.pathname + location.search,
-    });
-  }, [location]);
-
-  return null;
-};
-};*/
-
 function App() {
   return (
     <HelmetProvider>
-    <CartProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/category/:type/:value" element={<CategoryPage />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/search" element={<SearchResults />} />
-          <Route path="/combo/:id" element={<ComboDetails />} />
-          <Route path="/shop/combos" element={<CombosPage />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/ShippingPolicy" element={<ShippingPolicy />} />
-          <Route path="/help/return-policy" element={<ReturnPolicy />} /> 
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </CartProvider>
+      <CartProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/category/:type/:value" element={<CategoryPage />} />
+            
+            {/* ✅ NEW: Slug-based routes - PUT THESE FIRST */}
+            <Route path="/product/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />
+            <Route path="/product/:category/:slug" element={<ProductDetailsBySlug />} />
+            
+            {/* ✅ EXISTING: ID-based route - PUT THIS LAST */}
+            <Route path="/product/:id" element={<ProductDetails />} />
+            
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/search" element={<SearchResults />} />
+            <Route path="/combo/:id" element={<ComboDetails />} />
+            <Route path="/shop/combos" element={<CombosPage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/ShippingPolicy" element={<ShippingPolicy />} />
+            <Route path="/help/return-policy" element={<ReturnPolicy />} /> 
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </CartProvider>
     </HelmetProvider>
   );
 }

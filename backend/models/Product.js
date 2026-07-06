@@ -14,6 +14,11 @@ const sizeSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
   productId: { type: Number, unique: true, required: true },
   name: { type: String, required: true },
+  slug: { 
+    type: String,
+    unique: true,
+    sparse: true
+  },
   price: { type: Number, required: true },
   originalPrice: { type: Number, default: null },
   badge: { type: String, default: null },
@@ -29,6 +34,23 @@ const productSchema = new mongoose.Schema({
   care: { type: String },
   inStock: { type: Boolean, default: true }
 }, { timestamps: true });
+
+// Auto-generate slug from name
+productSchema.pre('save', async function(next) {
+  if (this.name && !this.slug) {
+    let slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    
+    const existing = await this.constructor.findOne({ slug, _id: { $ne: this._id } });
+    if (existing) {
+      slug = `${slug}-${this.productId}`;
+    }
+    this.slug = slug;
+  }
+  next();
+});
 
 // Auto-update inStock based on sizes
 productSchema.pre('save', function(next) {
