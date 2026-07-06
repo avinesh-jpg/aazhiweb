@@ -11,7 +11,9 @@ interface Product {
   badge: string | null;
   image: string;
   category: string;
+  subcategory?: string;
   sizes?: string[];
+  slug?: string;
 }
 
 interface WishlistItem {
@@ -19,6 +21,20 @@ interface WishlistItem {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// ✅ Helper: Get product URL (supports slug-based URLs)
+const getProductUrl = (product: Product): string => {
+  if (product.slug) {
+    let url = `/product/${product.category?.replace(/ /g, '-')}`;
+    if (product.subcategory) {
+      url += `/${product.subcategory?.replace(/ /g, '-')}`;
+    }
+    url += `/${product.slug}`;
+    return url;
+  }
+  // Fallback to ID-based URL
+  return `/product/${product.productId}`;
+};
 
 const defaultImages = [
   "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=500&fit=crop",
@@ -135,8 +151,9 @@ const Bestsellers = () => {
     }
   };
 
-  const handleProductClick = (productId: number) => {
-    navigate(`/product/${productId}`);
+  // ✅ UPDATED: Click handler uses slug-based URL
+  const handleProductClick = (product: Product) => {
+    navigate(getProductUrl(product));
   };
 
   if (loading) {
@@ -182,7 +199,8 @@ const Bestsellers = () => {
             key={product.productId} 
             className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 animate-fadeIn"
             style={{ animationDelay: `${index * 0.1}s` }}
-            onClick={() => handleProductClick(product.productId)}
+            // ✅ UPDATED: Pass entire product object
+            onClick={() => handleProductClick(product)}
           >
             <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-100/30 to-blue-100/30 shadow-md" style={{ aspectRatio: "3/4" }}>
               <img 
