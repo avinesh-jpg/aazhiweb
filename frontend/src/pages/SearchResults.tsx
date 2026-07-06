@@ -16,10 +16,26 @@ interface Product {
   badge: string | null;
   image: string;
   category: string;
+  subcategory?: string;
   description?: string;
+  slug?: string;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// ✅ Helper: Get product URL (supports slug-based URLs)
+const getProductUrl = (product: Product): string => {
+  if (product.slug) {
+    let url = `/product/${product.category?.replace(/ /g, '-')}`;
+    if (product.subcategory) {
+      url += `/${product.subcategory?.replace(/ /g, '-')}`;
+    }
+    url += `/${product.slug}`;
+    return url;
+  }
+  // Fallback to ID-based URL
+  return `/product/${product.productId}`;
+};
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -114,8 +130,9 @@ const SearchResults = () => {
     }
   };
 
-  const handleProductClick = (productId: number) => {
-    navigate(`/product/${productId}`);
+  // ✅ UPDATED: Click handler uses slug-based URL
+  const handleProductClick = (product: Product) => {
+    navigate(getProductUrl(product));
   };
 
   const defaultImage = "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=500&fit=crop";
@@ -160,7 +177,8 @@ const SearchResults = () => {
                   key={product.productId} 
                   className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 animate-fadeIn"
                   style={{ animationDelay: `${index * 0.05}s` }}
-                  onClick={() => handleProductClick(product.productId)}
+                  // ✅ UPDATED: Pass entire product object
+                  onClick={() => handleProductClick(product)}
                 >
                   <div className="relative overflow-hidden rounded-xl bg-purple-50/30 shadow-md" style={{ aspectRatio: "3/4" }}>
                     <img 

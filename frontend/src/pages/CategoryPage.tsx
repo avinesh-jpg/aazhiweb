@@ -36,6 +36,7 @@ interface Product {
   subcategory?: string;
   inStock?: boolean;
   stockQuantity?: number;
+  slug?: string;
 }
 
 interface WishlistItem {
@@ -43,6 +44,20 @@ interface WishlistItem {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// ✅ Helper: Get product URL (supports slug-based URLs)
+const getProductUrl = (product: Product): string => {
+  if (product.slug) {
+    let url = `/product/${product.category?.replace(/ /g, '-')}`;
+    if (product.subcategory) {
+      url += `/${product.subcategory?.replace(/ /g, '-')}`;
+    }
+    url += `/${product.slug}`;
+    return url;
+  }
+  // Fallback to ID-based URL
+  return `/product/${product.productId}`;
+};
 
 const CategoryPage = () => {
   const { type, value } = useParams<{ type: string; value: string }>();
@@ -308,8 +323,9 @@ const CategoryPage = () => {
     }
   };
 
-  const handleProductClick = (productId: number) => {
-    navigate(`/product/${productId}`);
+  // ✅ UPDATED: Click handler uses slug-based URL
+  const handleProductClick = (product: Product) => {
+    navigate(getProductUrl(product));
   };
 
   const defaultImage = "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=500&fit=crop";
@@ -392,7 +408,8 @@ const CategoryPage = () => {
                     className={`group cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
                       !inStock ? 'opacity-70' : ''
                     }`}
-                    onClick={() => handleProductClick(product.productId)}
+                    // ✅ UPDATED: Pass entire product object
+                    onClick={() => handleProductClick(product)}
                   >
                     <div className="relative overflow-hidden rounded-xl bg-purple-50/50" style={{ aspectRatio: "3/4" }}>
                       <img 
