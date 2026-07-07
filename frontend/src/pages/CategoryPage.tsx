@@ -45,17 +45,17 @@ interface WishlistItem {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// ✅ Helper: Get product URL (supports slug-based URLs)
+// ✅ Helper: Get product URL (without /product)
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    let url = `/product/${product.category?.replace(/ /g, '-')}`;
+    let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
     if (product.subcategory) {
-      url += `/${product.subcategory?.replace(/ /g, '-')}`;
+      url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
     }
     url += `/${product.slug}`;
     return url;
   }
-  // Fallback to ID-based URL
+  // Fallback to ID-based URL (keep /product for compatibility)
   return `/product/${product.productId}`;
 };
 
@@ -104,16 +104,13 @@ const CategoryPage = () => {
       return product.stockQuantity || 0;
     }
     
-    // Check if new format (array of objects with stock)
     if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
       return (product.sizes as Size[]).reduce((total, size) => total + size.stock, 0);
     }
     
-    // Old format (array of strings) - assume in stock if has sizes
     return (product.sizes as string[]).length > 0 ? 10 : 0;
   };
 
-  // Helper function to check if product is in stock
   const isProductInStock = (product: Product): boolean => {
     if (product.inStock === false) return false;
     
@@ -121,18 +118,14 @@ const CategoryPage = () => {
       return (product.stockQuantity || 0) > 0;
     }
     
-    // Check new format
     if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
       return (product.sizes as Size[]).some(size => size.stock > 0);
     }
     
-    // Old format - assume in stock
     return true;
   };
 
-  // Helper function to get low stock info (threshold = 3)
   const getLowStockInfo = (product: Product): { hasLowStock: boolean; lowestStock: number; sizeName?: string } => {
-    // Check new size format
     if (product.sizes && product.sizes.length > 0 && 
         typeof product.sizes[0] === 'object' && 
         product.sizes[0] !== null && 
@@ -146,7 +139,6 @@ const CategoryPage = () => {
       }
     }
     
-    // Check old format with stockQuantity
     if (product.stockQuantity !== undefined && product.stockQuantity <= 3 && product.stockQuantity > 0) {
       return { hasLowStock: true, lowestStock: product.stockQuantity, sizeName: undefined };
     }
@@ -154,11 +146,9 @@ const CategoryPage = () => {
     return { hasLowStock: false, lowestStock: 0 };
   };
 
-  // Helper function to get display sizes text
   const getSizesDisplay = (product: Product): string => {
     if (!product.sizes || product.sizes.length === 0) return '';
     
-    // Check new format
     if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
       const sizes = product.sizes as Size[];
       const availableSizes = sizes.filter(size => size.stock > 0).map(size => size.name);
@@ -168,7 +158,6 @@ const CategoryPage = () => {
       return `${availableSizes.slice(0, 3).join(', ')} +${availableSizes.length - 3}`;
     }
     
-    // Old format
     const sizes = product.sizes as string[];
     if (sizes.length === 1) return sizes[0];
     if (sizes.length <= 3) return sizes.join(', ');
@@ -202,7 +191,6 @@ const CategoryPage = () => {
         const data = await response.json();
         console.log('Received data:', data);
         
-        // Handle different response formats
         let productsArray: Product[] = [];
         if (Array.isArray(data)) {
           productsArray = data;
@@ -285,7 +273,6 @@ const CategoryPage = () => {
   const handleAdd = async (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Check if product has stock
     if (!isProductInStock(product)) {
       toast.error('This product is out of stock!');
       return;
@@ -294,7 +281,6 @@ const CategoryPage = () => {
     let selectedSize = '';
     let selectedColor = '';
     
-    // Get first available size for new format
     if (product.sizes && product.sizes.length > 0) {
       if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
         const availableSize = (product.sizes as Size[]).find(size => size.stock > 0);
@@ -323,7 +309,7 @@ const CategoryPage = () => {
     }
   };
 
-  // ✅ UPDATED: Click handler uses slug-based URL
+  // ✅ UPDATED: Click handler uses URL without /product
   const handleProductClick = (product: Product) => {
     navigate(getProductUrl(product));
   };
@@ -408,7 +394,6 @@ const CategoryPage = () => {
                     className={`group cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
                       !inStock ? 'opacity-70' : ''
                     }`}
-                    // ✅ UPDATED: Pass entire product object
                     onClick={() => handleProductClick(product)}
                   >
                     <div className="relative overflow-hidden rounded-xl bg-purple-50/50" style={{ aspectRatio: "3/4" }}>
@@ -423,21 +408,18 @@ const CategoryPage = () => {
                         }}
                       />
                       
-                      {/* Existing Badge (Sale, New, etc.) */}
                       {product.badge && inStock && (
                         <span className="absolute top-3 left-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md">
                           {product.badge}
                         </span>
                       )}
                       
-                      {/* LOW STOCK BADGE - shows when stock is 3 or less */}
                       {inStock && lowStockInfo.hasLowStock && (
                         <span className="absolute top-3 right-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-orange-500 text-white shadow-md animate-pulse">
                           Only {lowStockInfo.lowestStock} left!
                         </span>
                       )}
                       
-                      {/* OUT OF STOCK BADGE */}
                       {!inStock && (
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
                           <span className="text-white font-bold text-sm uppercase tracking-wider px-4 py-2 bg-red-600 rounded-full rotate-12 shadow-lg">
@@ -446,7 +428,6 @@ const CategoryPage = () => {
                         </div>
                       )}
                       
-                      {/* Wishlist Button - Hide for out of stock products */}
                       {inStock && (
                         <button
                           onClick={(e) => toggleWish(product.productId, e)}
@@ -465,7 +446,6 @@ const CategoryPage = () => {
                         {product.name}
                       </h3>
                       
-                      {/* Show sizes if available */}
                       {sizesDisplay && (
                         <p className="text-xs text-gray-400 mt-1">
                           {sizesDisplay}
@@ -493,14 +473,12 @@ const CategoryPage = () => {
                         )}
                       </div>
                       
-                      {/* LOW STOCK TEXT WARNING below price - shows when 3 or less */}
                       {inStock && lowStockInfo.hasLowStock && (
                         <p className="text-xs text-orange-600 font-medium mt-1 animate-pulse">
                           ⚡ Only {lowStockInfo.lowestStock} left {lowStockInfo.sizeName ? `in ${lowStockInfo.sizeName}` : 'in stock'} - order soon!
                         </p>
                       )}
                       
-                      {/* Add to Cart Button - Disabled for out of stock */}
                       {!inStock ? (
                         <button
                           disabled

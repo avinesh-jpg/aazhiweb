@@ -23,17 +23,16 @@ interface Product {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// ✅ Helper: Get product URL (supports slug-based URLs)
+// ✅ Helper: Get product URL (without /product)
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    let url = `/product/${product.category?.replace(/ /g, '-')}`;
+    let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
     if (product.subcategory) {
-      url += `/${product.subcategory?.replace(/ /g, '-')}`;
+      url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
     }
     url += `/${product.slug}`;
     return url;
   }
-  // Fallback to ID-based URL
   return `/product/${product.productId}`;
 };
 
@@ -130,7 +129,7 @@ const SearchResults = () => {
     }
   };
 
-  // ✅ UPDATED: Click handler uses slug-based URL
+  // ✅ UPDATED: Click handler uses URL without /product
   const handleProductClick = (product: Product) => {
     navigate(getProductUrl(product));
   };
@@ -177,7 +176,6 @@ const SearchResults = () => {
                   key={product.productId} 
                   className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 animate-fadeIn"
                   style={{ animationDelay: `${index * 0.05}s` }}
-                  // ✅ UPDATED: Pass entire product object
                   onClick={() => handleProductClick(product)}
                 >
                   <div className="relative overflow-hidden rounded-xl bg-purple-50/30 shadow-md" style={{ aspectRatio: "3/4" }}>

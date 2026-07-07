@@ -1,4 +1,3 @@
-// App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/context/CartProvider";
 import Index from "@/pages/Index";
@@ -30,11 +29,13 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/category/:type/:value" element={<CategoryPage />} />
             
-            {/* ✅ NEW: Slug-based routes - PUT THESE FIRST */}
-            <Route path="/product/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />
-            <Route path="/product/:category/:slug" element={<ProductDetailsBySlug />} />
+            {/* ✅ NEW: Direct category/subcategory/slug routes (without /product) */}
+            <Route path="/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />
             
-            {/* ✅ EXISTING: ID-based route - PUT THIS LAST */}
+            {/* ✅ Fallback: Just slug (if no category/subcategory) */}
+            <Route path="/:slug" element={<ProductDetailsBySlug />} />
+            
+            {/* ✅ EXISTING: ID-based route (keep for backward compatibility) */}
             <Route path="/product/:id" element={<ProductDetails />} />
             
             <Route path="/cart" element={<Cart />} />

@@ -43,15 +43,15 @@ interface Product {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Helper: Format text for URL - replace spaces with hyphens, preserve case
+// ✅ Helper: Format text for URL - lowercase + hyphens
 const formatForUrl = (text: string) => {
-  return text?.replace(/ /g, '-') || '';
+  return text?.toLowerCase().replace(/ /g, '-') || '';
 };
 
-// Helper: Get product URL - PRESERVES ORIGINAL CASE
-const getProductUrl = (product: Product) => {
+// ✅ Helper: Get product URL (without /product)
+const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    let url = `/product/${formatForUrl(product.category)}`;
+    let url = `/${formatForUrl(product.category)}`;
     if (product.subcategory) {
       url += `/${formatForUrl(product.subcategory)}`;
     }
@@ -85,19 +85,16 @@ const ProductDetailsBySlug = () => {
   const formatDescription = (description: string | undefined): string[] => {
     if (!description) return [];
     
-    // Check if description contains numbered list (e.g., "1. ", "2. ")
     if (description.match(/\d+\.\s/)) {
       const items = description.split(/\d+\.\s/).filter(item => item.trim().length > 0);
       return items.map(item => item.trim());
     }
     
-    // Check if description contains bullet points (e.g., "• ", "- ", "* ")
     if (description.match(/[•\-*]\s/)) {
       const items = description.split(/[•\-*]\s/).filter(item => item.trim().length > 0);
       return items.map(item => item.trim());
     }
     
-    // Check if description contains line breaks
     if (description.includes('\n')) {
       const lines = description.split('\n').filter(line => line.trim().length > 0);
       if (lines.length > 1) {
@@ -113,14 +110,11 @@ const ProductDetailsBySlug = () => {
       setLoading(true);
       try {
         let url = '';
+        let productData = null;
         
-        // Try to fetch by category + subcategory + slug
+        // ✅ NEW: Fetch by category + subcategory + slug
         if (category && subcategory && slug) {
-          url = `${API_URL}/product/${category}/${subcategory}/${slug}`;
-        } 
-        // Try to fetch by category + slug
-        else if (category && slug) {
-          url = `${API_URL}/product/${category}/${slug}`;
+          url = `${API_URL}/category/${formatForUrl(category)}/${formatForUrl(subcategory)}/${slug}`;
         } 
         // Fallback: fetch by slug only
         else if (slug) {
@@ -131,46 +125,46 @@ const ProductDetailsBySlug = () => {
         const response = await fetch(url);
         
         if (response.ok) {
-          const data = await response.json();
-          console.log('Product fetched by slug:', data);
-          setProduct(data);
+          productData = await response.json();
+          console.log('Product fetched:', productData);
+          setProduct(productData);
           
-          // Check if URL is correct, if not redirect
-          if (data.slug && data.category) {
-            const correctUrl = getProductUrl(data);
+          // ✅ Check if URL is correct (without /product)
+          if (productData.slug && productData.category) {
+            const correctUrl = getProductUrl(productData);
             const currentPath = window.location.pathname;
             
             if (currentPath !== correctUrl) {
-              console.log(`🔄 Redirecting to correct URL: "${correctUrl}"`);
+              console.log(`🔄 Redirecting to: "${correctUrl}"`);
               navigate(correctUrl, { replace: true });
               return;
             }
           }
           
           // Set default size
-          if (data.sizes && data.sizes.length > 0) {
-            if (data.sizes[0].name === 'One Size') {
-              setSelectedSize(data.sizes[0]);
+          if (productData.sizes && productData.sizes.length > 0) {
+            if (productData.sizes[0].name === 'One Size') {
+              setSelectedSize(productData.sizes[0]);
             } else {
-              setSelectedSize(data.sizes[0]);
+              setSelectedSize(productData.sizes[0]);
             }
           }
           
           // Set default color
-          if (data.colors && data.colors.length > 0) {
-            setSelectedColor(data.colors[0]);
-            if (data.colors[0].images && data.colors[0].images.length > 0) {
-              setSelectedImage(data.colors[0].images[0]);
+          if (productData.colors && productData.colors.length > 0) {
+            setSelectedColor(productData.colors[0]);
+            if (productData.colors[0].images && productData.colors[0].images.length > 0) {
+              setSelectedImage(productData.colors[0].images[0]);
             }
           } else {
-            setSelectedImage(data.image);
+            setSelectedImage(productData.image);
           }
           
           // Fetch related products
-          const relatedResponse = await fetch(`${API_URL}/products/category/${data.category}`);
+          const relatedResponse = await fetch(`${API_URL}/products/category/${productData.category}`);
           if (relatedResponse.ok) {
             const allRelated = await relatedResponse.json();
-            const filtered = allRelated.filter((p: Product) => p.productId !== data.productId);
+            const filtered = allRelated.filter((p: Product) => p.productId !== productData.productId);
             setRelatedProducts(filtered.slice(0, 4));
           }
         } else {
@@ -473,7 +467,7 @@ const ProductDetailsBySlug = () => {
   // Helper to generate product URL for navigation
   const getProductUrlForNav = (product: Product) => {
     if (product.slug) {
-      let url = `/product/${formatForUrl(product.category)}`;
+      let url = `/${formatForUrl(product.category)}`;
       if (product.subcategory) {
         url += `/${formatForUrl(product.subcategory)}`;
       }
@@ -523,25 +517,23 @@ const ProductDetailsBySlug = () => {
       <Navbar />
       <main className="pt-8 pb-16">
         <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumbs with slug-based navigation - PRESERVES ORIGINAL CASE */}
+          {/* Breadcrumbs with navigation (without /product) */}
           <div className="mb-6 text-sm text-gray-500">
             <button onClick={() => navigate('/')} className="hover:text-purple-500 transition-colors">Home</button>
             <span className="mx-2">/</span>
             
-            {/* Category - Preserve original case */}
             <button 
-              onClick={() => navigate(`/product/${formatForUrl(product.category)}`)} 
+              onClick={() => navigate(`/${formatForUrl(product.category)}`)} 
               className="hover:text-purple-500 transition-colors"
             >
               {product.category}
             </button>
             
-            {/* Subcategory - Preserve original case */}
             {product.subcategory && (
               <>
                 <span className="mx-2">/</span>
                 <button 
-                  onClick={() => navigate(`/product/${formatForUrl(product.category)}/${formatForUrl(product.subcategory)}`)} 
+                  onClick={() => navigate(`/${formatForUrl(product.category)}/${formatForUrl(product.subcategory)}`)} 
                   className="hover:text-purple-500 transition-colors"
                 >
                   {product.subcategory}
@@ -553,6 +545,7 @@ const ProductDetailsBySlug = () => {
             <span className="text-[#1e1b4b] font-medium">{product.name}</span>
           </div>
 
+          {/* Product Grid - Same as before */}
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-16">
             {/* Product Images */}
             <div className="space-y-4">

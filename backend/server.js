@@ -41,7 +41,7 @@ app.use(cors({
     'https://aazhiweb.vercel.app',
     'https://theaazhi.com',
     'https://tiinyberryy.vercel.app',
-    'https://aazhiweb.onrender.com'  // ← REMOVED trailing slash
+    'https://aazhiweb.onrender.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -53,13 +53,45 @@ app.use(express.json());
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// server.js - REPLACE your existing slug routes with these
-
 // =============================================
-// ✅ FIXED: SLUG-BASED API ROUTES (Case-insensitive)
+// ✅ SLUG-BASED API ROUTES (Case-insensitive)
 // =============================================
 
-// Get product by category + subcategory + slug
+// =============================================
+// ✅ NEW: Direct route without /product prefix
+// URL: /api/category/Boys/Shorts-Sets-With-Rope/half-white-lion-zebra-shorts
+// =============================================
+app.get('/api/category/:category/:subcategory/:slug', async (req, res) => {
+  try {
+    const { category, subcategory, slug } = req.params;
+    
+    // Decode URL parameters (replace hyphens with spaces)
+    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
+    const decodedSubcategory = decodeURIComponent(subcategory).replace(/-/g, ' ');
+    
+    console.log('Searching for (category route):', { decodedCategory, decodedSubcategory, slug });
+    
+    // Find product with case-insensitive matching
+    const product = await Product.findOne({
+      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') },
+      subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') },
+      slug: slug
+    });
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product by category:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// =============================================
+// ✅ EXISTING: Get product by category + subcategory + slug (with /product)
+// URL: /api/product/Boys/Shorts-Sets-With-Rope/half-white-lion-zebra-shorts
+// =============================================
 app.get('/api/product/:category/:subcategory/:slug', async (req, res) => {
   try {
     const { category, subcategory, slug } = req.params;
@@ -68,7 +100,7 @@ app.get('/api/product/:category/:subcategory/:slug', async (req, res) => {
     const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
     const decodedSubcategory = decodeURIComponent(subcategory).replace(/-/g, ' ');
     
-    console.log('Searching for:', { decodedCategory, decodedSubcategory, slug });
+    console.log('Searching for (product route):', { decodedCategory, decodedSubcategory, slug });
     
     // Find product with case-insensitive matching
     const product = await Product.findOne({
@@ -179,15 +211,11 @@ app.get('/', (req, res) => {
       subcategories: '/api/subcategories',
       health: '/api/health',
       'debug-routes': '/api/debug-routes',
-      'slug-routes': '/api/product/:category/:subcategory/:slug'
+      'product-slug-routes': '/api/product/:category/:subcategory/:slug',
+      'category-slug-routes': '/api/category/:category/:subcategory/:slug'
     }
   });
 });
-
-
-
-
-
 
 // Your API Routes
 app.use('/api/products', productRoutes);
@@ -233,5 +261,6 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📦 MongoDB connected - Data is now persistent!`);
-  console.log(`🏓 Ping endpoint: http://localhost:${PORT}/api/ping`);
+  console.log(`🔗 Category route: http://localhost:${PORT}/api/category/Boys/Shorts-Sets-With-Rope/half-white-lion-zebra-shorts`);
+  console.log(`🔗 Product route: http://localhost:${PORT}/api/product/Boys/Shorts-Sets-With-Rope/half-white-lion-zebra-shorts`);
 });

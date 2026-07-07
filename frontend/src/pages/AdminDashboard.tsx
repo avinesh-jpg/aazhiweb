@@ -134,94 +134,105 @@ const AdminDashboard = () => {
     setShowOrderDetails(true);
   };
 
-const printInvoice = (order: any) => {
-  const invoiceHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Invoice #${order.orderNumber}</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 40px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { color: #2c3e50; margin: 0; }
-        .order-info { margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #2c3e50; color: white; }
-        .total { text-align: right; font-size: 18px; font-weight: bold; }
-        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>Aazhi</h1>
-        <p>Order Invoice</p>
-      </div>
+  const printInvoice = (order: any) => {
+    const invoiceHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice #${order.orderNumber}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .header h1 { color: #2c3e50; margin: 0; }
+          .order-info { margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+          th { background-color: #2c3e50; color: white; }
+          .total { text-align: right; font-size: 18px; font-weight: bold; }
+          .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+          .address-box { background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Aazhi</h1>
+          <p>Order Invoice</p>
+        </div>
 
-      <div class="order-info">
-        <p><strong>Order #:</strong> ${order.orderNumber}</p>
-        <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
-        <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
-        <p><strong>Payment Method:</strong> ${order.paymentMethod?.toUpperCase() || 'RAZORPAY'}</p>
-        <p><strong>Payment Status:</strong> ${order.paymentStatus?.toUpperCase() || 'PAID'}</p>
-      </div>
+        <div class="order-info">
+          <p><strong>Order #:</strong> ${order.orderNumber}</p>
+          <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
+          <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
+          <p><strong>Payment Method:</strong> ${order.paymentMethod?.toUpperCase() || 'RAZORPAY'}</p>
+          <p><strong>Payment Status:</strong> ${order.paymentStatus?.toUpperCase() || 'PAID'}</p>
+        </div>
 
-      <h3>Order Items</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${order.items.map((item: any) => `
+        ${order.shippingAddress ? `
+          <div class="address-box">
+            <h3>Shipping Address</h3>
+            <p><strong>${order.shippingAddress.fullName}</strong></p>
+            <p>${order.shippingAddress.address}</p>
+            <p>${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.pincode}</p>
+            <p>Phone: ${order.shippingAddress.phone}</p>
+            ${order.shippingAddress.email ? `<p>Email: ${order.shippingAddress.email}</p>` : ''}
+          </div>
+        ` : ''}
+
+        <h3>Order Items</h3>
+        <table>
+          <thead>
             <tr>
-              <td>
-                ${item.name}
-                ${item.size ? ` (${item.size})` : ''}
-                ${item.color ? ` - ${item.color}` : ''}
-              </td>
-              <td>${item.quantity}</td>
-              <td>₹${item.price.toLocaleString()}</td>
-              <td>₹${(item.price * item.quantity).toLocaleString()}</td>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Total</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${order.items.map((item: any) => `
+              <tr>
+                <td>
+                  ${item.name}
+                  ${item.size ? ` (${item.size})` : ''}
+                  ${item.color ? ` - ${item.color}` : ''}
+                </td>
+                <td>${item.quantity}</td>
+                <td>₹${item.price.toLocaleString()}</td>
+                <td>₹${(item.price * item.quantity).toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
 
-      <div class="total">
-        <p>Subtotal: ₹${order.subtotal.toLocaleString()}</p>
-        <p>Shipping: ${order.shipping === 0 ? 'FREE' : `₹${order.shipping.toLocaleString()}`}</p>
-        <p>Total: ₹${order.total.toLocaleString()}</p>
-      </div>
+        <div class="total">
+          <p>Subtotal: ₹${order.subtotal.toLocaleString()}</p>
+          <p>Shipping: ${order.shipping === 0 ? 'FREE' : `₹${order.shipping.toLocaleString()}`}</p>
+          <p>Total: ₹${order.total.toLocaleString()}</p>
+        </div>
 
-      <div class="footer">
-        <p>Thank you for shopping with Aazhi!</p>
-        <p>For any queries, contact: support@aazhi.com</p>
-      </div>
-    </body>
-    </html>
-  `;
+        <div class="footer">
+          <p>Thank you for shopping with Aazhi!</p>
+          <p>For any queries, contact: support@aazhi.com</p>
+        </div>
+      </body>
+      </html>
+    `;
 
-  // Save original page
-  const originalContent = document.body.innerHTML;
+    // Save original page
+    const originalContent = document.body.innerHTML;
 
-  // Replace with invoice
-  document.body.innerHTML = invoiceHtml;
+    // Replace with invoice
+    document.body.innerHTML = invoiceHtml;
 
-  // Print
-  window.print();
+    // Print
+    window.print();
 
-  // Restore original page
-  document.body.innerHTML = originalContent;
+    // Restore original page
+    document.body.innerHTML = originalContent;
 
-  // Optional reload (ensures React UI comes back clean)
-  window.location.reload();
-};
-
+    // Optional reload (ensures React UI comes back clean)
+    window.location.reload();
+  };
 
   const handleAddProduct = () => {
     setEditingProduct(null);
@@ -454,9 +465,8 @@ const printInvoice = (order: any) => {
           </div>
         )}
 
-        {/* Orders Tab - Same as before */}
+        {/* Orders Tab */}
         {activeTab === 'orders' && (
-          // ... (keep your existing orders tab code)
           <div>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Orders Management</h1>
@@ -484,35 +494,39 @@ const printInvoice = (order: any) => {
             
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[1200px]">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Order #</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Customer</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Items</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Total</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Payment</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Order #</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Customer</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Items</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Total</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Payment</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Address</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {orders.map((order) => (
                       <tr key={order._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-medium">{order.orderNumber}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-4 text-sm font-medium">{order.orderNumber}</td>
+                        <td className="px-4 py-4">
                           <div className="text-sm font-medium">{order.userId?.name || order.guestName || 'Guest'}</div>
-                          <div className="text-xs text-muted-foreground">{order.userId?.email || order.guestEmail || '-'}</div>
+                          <div className="text-xs text-muted-foreground">{order.userId?.email || order.guestEmail || order.shippingAddress?.email || '-'}</div>
+                          {order.guestMobile && (
+                            <div className="text-xs text-muted-foreground">📱 {order.guestMobile}</div>
+                          )}
                         </td>
-                        <td className="px-6 py-4 text-sm">{order.items?.length || 0}</td>
-                        <td className="px-6 py-4 text-sm font-medium">₹{order.total.toLocaleString()}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-4 text-sm">{order.items?.length || 0}</td>
+                        <td className="px-4 py-4 text-sm font-medium">₹{order.total?.toLocaleString()}</td>
+                        <td className="px-4 py-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                             {order.paymentStatus || 'pending'}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-4">
                           <select
                             value={order.status}
                             onChange={(e) => updateOrderStatus(order._id, e.target.value)}
@@ -527,15 +541,36 @@ const printInvoice = (order: any) => {
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </td>
-                        <td className="px-6 py-4 text-sm">
+                        <td className="px-4 py-4 text-sm">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-4">
+                          {order.shippingAddress ? (
+                            <div className="text-xs max-w-[200px]">
+                              <div className="font-medium text-gray-700">{order.shippingAddress.fullName}</div>
+                              <div className="text-gray-500 truncate">{order.shippingAddress.address}</div>
+                              <div className="text-gray-500">{order.shippingAddress.city}, {order.shippingAddress.state}</div>
+                              <div className="text-gray-500">PIN: {order.shippingAddress.pincode}</div>
+                              <div className="text-gray-500">📱 {order.shippingAddress.phone}</div>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">No address</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4">
                           <div className="flex gap-2">
-                            <button onClick={() => viewOrderDetails(order)} className="text-primary hover:text-primary/80">
+                            <button 
+                              onClick={() => viewOrderDetails(order)} 
+                              className="text-primary hover:text-primary/80"
+                              title="View Details"
+                            >
                               <Eye size={18} />
                             </button>
-                            <button onClick={() => printInvoice(order)} className="text-gray-600 hover:text-gray-800">
+                            <button 
+                              onClick={() => printInvoice(order)} 
+                              className="text-gray-600 hover:text-gray-800"
+                              title="Print Invoice"
+                            >
                               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                                 <path d="M6 9V3h12v6"/>
@@ -548,135 +583,87 @@ const printInvoice = (order: any) => {
                     ))}
                   </tbody>
                 </table>
+                {orders.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No orders found
+                  </div>
+                )}
               </div>
             </div>
-            
-            {/* Order Details Modal */}
-            {showOrderDetails && selectedOrder && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center">
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowOrderDetails(false)} />
-                <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">Order Details</h2>
-                    <button onClick={() => setShowOrderDetails(false)} className="p-1 hover:bg-gray-100 rounded">
-                      <X size={24} />
-                    </button>
-                  </div>
-                  {/* Order details content */}
-                  <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Order Number</p>
-                      <p className="font-medium">{selectedOrder.orderNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Order Date</p>
-                      <p className="font-medium">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Payment Method</p>
-                      <p className="font-medium capitalize">{selectedOrder.paymentMethod || 'Razorpay'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Payment Status</p>
-                      <p className={`font-medium ${selectedOrder.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {selectedOrder.paymentStatus || 'pending'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Order Status</p>
-                      <select
-                        value={selectedOrder.status}
-                        onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
-                        className="mt-1 px-2 py-1 rounded text-sm font-medium border"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </div>
-                  </div>
-                  {/* Add more order details as needed */}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
         {/* Products Tab */}
-        {/* Products Tab */}
-{activeTab === 'products' && (
-  <div>
-    <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-bold">Products Management</h1>
-      <button
-        onClick={handleAddProduct}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
-      >
-        <Plus size={18} />
-        Add Product
-      </button>
-    </div>
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Image</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Category</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Subcategory</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Stock</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {products.map((product) => (
-              <tr key={product._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                </td>
-                <td className="px-6 py-4 text-sm font-medium">{product.name}</td>
-                <td className="px-6 py-4 text-sm capitalize">{product.category}</td>
-                <td className="px-6 py-4 text-sm">{product.subcategory || '-'}</td>
-                <td className="px-6 py-4 text-sm">₹{product.price.toLocaleString()}</td>
-                <td className="px-6 py-4 text-sm">
-                  {product.sizes && product.sizes.length > 0 ? (
-                    <div className="space-y-1">
-                      {product.sizes.map((size, idx) => (
-                        <div key={idx} className="text-xs">
-                          <span className="font-medium">{size.name}:</span>{' '}
-                          <span className={size.stock === 0 ? 'text-red-600' : 'text-green-600'}>
-                            {size.stock} left
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-gray-400">No sizes</span>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <button onClick={() => handleEditProduct(product)} className="text-blue-600 hover:text-blue-800">
-                      <Edit size={18} />
-                    </button>
-                    <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-)}
+        {activeTab === 'products' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Products Management</h1>
+              <button
+                onClick={handleAddProduct}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
+              >
+                <Plus size={18} />
+                Add Product
+              </button>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Image</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Category</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Subcategory</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Price</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Stock</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {products.map((product) => (
+                      <tr key={product._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">{product.name}</td>
+                        <td className="px-6 py-4 text-sm capitalize">{product.category}</td>
+                        <td className="px-6 py-4 text-sm">{product.subcategory || '-'}</td>
+                        <td className="px-6 py-4 text-sm">₹{product.price.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-sm">
+                          {product.sizes && product.sizes.length > 0 ? (
+                            <div className="space-y-1">
+                              {product.sizes.map((size: any, idx: number) => (
+                                <div key={idx} className="text-xs">
+                                  <span className="font-medium">{size.name}:</span>{' '}
+                                  <span className={size.stock === 0 ? 'text-red-600' : 'text-green-600'}>
+                                    {size.stock} left
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">No sizes</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEditProduct(product)} className="text-blue-600 hover:text-blue-800">
+                              <Edit size={18} />
+                            </button>
+                            <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800">
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Users Tab */}
         {activeTab === 'users' && (
@@ -733,6 +720,186 @@ const printInvoice = (order: any) => {
           </div>
         )}
       </div>
+
+      {/* Order Details Modal */}
+      {showOrderDetails && selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowOrderDetails(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Order Details</h2>
+              <button onClick={() => setShowOrderDetails(false)} className="p-1 hover:bg-gray-100 rounded">
+                <X size={24} />
+              </button>
+            </div>
+            
+            {/* Order Info */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+              <div>
+                <p className="text-sm text-muted-foreground">Order Number</p>
+                <p className="font-medium">{selectedOrder.orderNumber}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Order Date</p>
+                <p className="font-medium">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Payment Method</p>
+                <p className="font-medium capitalize">{selectedOrder.paymentMethod || 'Razorpay'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Payment Status</p>
+                <p className={`font-medium ${selectedOrder.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {selectedOrder.paymentStatus || 'pending'}
+                </p>
+              </div>
+            </div>
+
+            {/* Customer Info */}
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-semibold mb-3 text-gray-700">👤 Customer Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Name</p>
+                  <p className="font-medium">{selectedOrder.userId?.name || selectedOrder.guestName || selectedOrder.shippingAddress?.fullName || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{selectedOrder.userId?.email || selectedOrder.guestEmail || selectedOrder.shippingAddress?.email || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="font-medium">{selectedOrder.guestMobile || selectedOrder.shippingAddress?.phone || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Order Status</p>
+                  <select
+                    value={selectedOrder.status}
+                    onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
+                    className="mt-1 px-2 py-1 rounded text-sm font-medium border"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Address */}
+            <div className="mb-6 p-4 bg-green-50 rounded-lg">
+              <h3 className="font-semibold mb-3 text-gray-700">📦 Shipping Address</h3>
+              {selectedOrder.shippingAddress ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Full Name</p>
+                    <p className="font-medium">{selectedOrder.shippingAddress.fullName}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p className="font-medium">{selectedOrder.shippingAddress.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">City</p>
+                    <p className="font-medium">{selectedOrder.shippingAddress.city}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">State</p>
+                    <p className="font-medium">{selectedOrder.shippingAddress.state}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">PIN Code</p>
+                    <p className="font-medium">{selectedOrder.shippingAddress.pincode}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium">{selectedOrder.shippingAddress.phone}</p>
+                  </div>
+                  {selectedOrder.shippingAddress.email && (
+                    <div className="col-span-2">
+                      <p className="text-sm text-muted-foreground">Email</p>
+                      <p className="font-medium">{selectedOrder.shippingAddress.email}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500">No shipping address available</p>
+              )}
+            </div>
+
+            {/* Order Items */}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-3 text-gray-700">Order Items</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Product</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Size</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Qty</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Price</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {selectedOrder.items?.map((item: any, index: number) => (
+                      <tr key={index}>
+                        <td className="px-4 py-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            {item.image && (
+                              <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded" />
+                            )}
+                            <span>{item.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 text-sm">{item.size || '-'}</td>
+                        <td className="px-4 py-2 text-sm">{item.quantity}</td>
+                        <td className="px-4 py-2 text-sm">₹{item.price.toLocaleString()}</td>
+                        <td className="px-4 py-2 text-sm font-medium">₹{(item.price * item.quantity).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-gray-50">
+                    <tr>
+                      <td colSpan={4} className="px-4 py-2 text-right font-medium">Subtotal:</td>
+                      <td className="px-4 py-2 text-sm font-medium">₹{selectedOrder.subtotal?.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan={4} className="px-4 py-2 text-right font-medium">Shipping:</td>
+                      <td className="px-4 py-2 text-sm font-medium">
+                        {selectedOrder.shipping === 0 ? 'FREE' : `₹${selectedOrder.shipping?.toLocaleString()}`}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={4} className="px-4 py-2 text-right font-bold">Total:</td>
+                      <td className="px-4 py-2 text-sm font-bold">₹{selectedOrder.total?.toLocaleString()}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <button
+                onClick={() => printInvoice(selectedOrder)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                Print Invoice
+              </button>
+              <button
+                onClick={() => setShowOrderDetails(false)}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Product Modal */}
       <ProductModal

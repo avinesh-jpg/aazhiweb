@@ -22,17 +22,16 @@ interface WishlistItem {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// ✅ Helper: Get product URL (supports slug-based URLs)
+// ✅ Helper: Get product URL (without /product)
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    let url = `/product/${product.category?.replace(/ /g, '-')}`;
+    let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
     if (product.subcategory) {
-      url += `/${product.subcategory?.replace(/ /g, '-')}`;
+      url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
     }
     url += `/${product.slug}`;
     return url;
   }
-  // Fallback to ID-based URL
   return `/product/${product.productId}`;
 };
 
@@ -151,7 +150,7 @@ const Bestsellers = () => {
     }
   };
 
-  // ✅ UPDATED: Click handler uses slug-based URL
+  // ✅ UPDATED: Click handler uses URL without /product
   const handleProductClick = (product: Product) => {
     navigate(getProductUrl(product));
   };
@@ -181,7 +180,6 @@ const Bestsellers = () => {
 
   return (
     <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto">
-      {/* Section Header */}
       <div className="text-center mb-10 md:mb-14">
         <span className="text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3 inline-block bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
           Our most loved
@@ -192,14 +190,12 @@ const Bestsellers = () => {
         <div className="w-16 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 mx-auto mt-4 rounded-full"></div>
       </div>
 
-      {/* Products Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {products.map((product, index) => (
           <div 
             key={product.productId} 
             className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 animate-fadeIn"
             style={{ animationDelay: `${index * 0.1}s` }}
-            // ✅ UPDATED: Pass entire product object
             onClick={() => handleProductClick(product)}
           >
             <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-100/30 to-blue-100/30 shadow-md" style={{ aspectRatio: "3/4" }}>
