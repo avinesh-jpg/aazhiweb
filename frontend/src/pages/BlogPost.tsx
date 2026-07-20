@@ -216,16 +216,7 @@ const BlogPost: React.FC = () => {
               {/* Blog Header info */}
               <header className="mb-8">
                 {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {blog.tags?.map((tag) => (
-                    <span 
-                      key={tag}
-                      className="bg-purple-600/35 border border-purple-500/30 text-purple-300 text-[0.65rem] font-bold tracking-wider uppercase px-2.5 py-1 rounded-lg"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                
 
                 {/* Title */}
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-['Cormorant_Garamond',serif] font-bold text-white mb-6 leading-tight">

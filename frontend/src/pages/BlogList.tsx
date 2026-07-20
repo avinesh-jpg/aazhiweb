@@ -97,47 +97,7 @@ const BlogList: React.FC = () => {
             </p>
           </div>
 
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-10 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-            {/* Search Input */}
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors text-sm"
-              />
-            </div>
-
-            {/* Tag Filters */}
-            <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
-              <button
-                onClick={() => setSelectedTag(null)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
-                  !selectedTag 
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/20' 
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5'
-                }`}
-              >
-                All Articles
-              </button>
-              {allTags.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
-                    selectedTag === tag 
-                      ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/20' 
-                      : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5'
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
+          
 
           {/* Blog Cards Grid */}
           {loading ? (
