@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import colJablas from "@/assets/new.png";
+import colJablas from "@/assets/towel.png";
 import colEssentials from "@/assets/girls1.png";
 import colFrocks from "@/assets/girls.png";
-import colTowels from "@/assets/towel.png";
+import colTowels from "@/assets/newborn.png";
 import colBooties from "@/assets/unisex.png";
 import colCoords from "@/assets/boys.png";
 
