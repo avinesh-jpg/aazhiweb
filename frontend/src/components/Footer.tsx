@@ -15,6 +15,7 @@ const companyLinks = [
   { name: "Contact Us", path: "/contact" },
   { name: "Shipping Policy", path: "/ShippingPolicy" },
   { name: "Return Policy", path: "/help/return-policy" },
+  { name: "Blog", path: "/blog" },
 ];
 
 const Footer = () => {

@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
-  Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift 
+  Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText
 } from 'lucide-react';
 import ProductModal from '@/components/Admin/ProductModal';
 import SubcategoryManager from '@/components/Admin/SubcategoryManager';
 import ShippingSettings from '@/components/Admin/ShippingSettings';
 import ComboManager from '@/components/Admin/ComboManager';
+import BlogManager from '@/components/Admin/BlogManager';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -19,7 +20,7 @@ const AdminDashboard = () => {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos' | 'blogs'>('dashboard');
   const [loading, setLoading] = useState(true);
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -371,6 +372,15 @@ const AdminDashboard = () => {
             <Gift size={18} />
             Combos
           </button>
+          <button
+            onClick={() => setActiveTab('blogs')}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'blogs' ? 'bg-primary text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <FileText size={18} />
+            Blogs
+          </button>
           <div className="pt-4 border-t mt-4">
             <button
               onClick={handleLogout}
@@ -717,6 +727,13 @@ const AdminDashboard = () => {
           <div>
             <h1 className="text-2xl font-bold mb-6">Combo Offers</h1>
             <ComboManager />
+          </div>
+        )}
+
+        {/* Blogs Tab */}
+        {activeTab === 'blogs' && (
+          <div>
+            <BlogManager />
           </div>
         )}
       </div>

@@ -18,6 +18,8 @@ import About from "./pages/About";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ReturnPolicy from "./pages/ReturnPolicy";
 import Contact from "./pages/ContactUs";
+import BlogList from "./pages/BlogList";
+import BlogPost from "./pages/BlogPost";
 import { HelmetProvider } from 'react-helmet-async';
 
 function App() {
@@ -28,6 +30,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:type/:value" element={<CategoryPage />} />
+            
+            {/* ✅ NEW: Blog Routes */}
+            <Route path="/blog" element={<BlogList />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             
             {/* ✅ NEW: Direct category/subcategory/slug routes (without /product) */}
             <Route path="/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />

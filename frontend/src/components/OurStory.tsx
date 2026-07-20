@@ -1,4 +1,4 @@
-import storyImg from "@/assets/our-story.jpg";
+import storyImg from "@/assets/our-story1.jpeg";
 
 const OurStory = () => (
   <section className="bg-gradient-to-br from-purple-50/50 via-white to-blue-50/50 py-20 md:py-28 px-4 sm:px-6 lg:px-8 relative overflow-hidden">

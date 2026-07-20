@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
-import colJablas from "@/assets/col-jablas.jpg";
-import colEssentials from "@/assets/col-essentials.jpg";
-import colFrocks from "@/assets/col-frocks.jpg";
-import colTowels from "@/assets/col-towels.jpg";
-import colBooties from "@/assets/col-booties.jpg";
-import colCoords from "@/assets/col-coords.jpg";
+import colJablas from "@/assets/new.png";
+import colEssentials from "@/assets/girls1.png";
+import colFrocks from "@/assets/girls.png";
+import colTowels from "@/assets/towel.png";
+import colBooties from "@/assets/unisex.png";
+import colCoords from "@/assets/boys.png";
 
 const collections = [
-  { label: "Organic Jablas & Nappies", image: colJablas, category: "newborn" },
-  { label: "Newborn Essential Kit", image: colEssentials, category: "newborn" },
+  { label: "Newborn", image: colJablas, category: "newborn" },
+  { label: "Girls", image: colEssentials, category: "newborn" },
   { label: "Frocks", image: colFrocks, category: "clothing" },
-  { label: "Boys Co-Ord Sets", image: colCoords, category: "clothing" },
+  { label: "Boys", image: colCoords, category: "clothing" },
   { label: "Muslin Hooded Towels", image: colTowels, category: "bathing" },
-  { label: "Mittens & Booties", image: colBooties, category: "accessories" },
+  { label: "Unisex", image: colBooties, category: "accessories" },
 ];
 
 const ShopByCollections = () => {
