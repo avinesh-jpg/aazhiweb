@@ -38,30 +38,42 @@ const ShopByCollections = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
         {collections.map((col, i) => (
           <Link
-            key={i}
-            to={`/category/collection/${col.category}`}
-            className="relative overflow-hidden rounded-2xl cursor-pointer"
-          >
-            {/* Image (NO hover here) */}
-            <img
-              src={col.image}
-              alt={col.label}
-              loading="lazy"
-              className="w-full h-full object-cover aspect-square"
-            />
+  key={i}
+  to={`/category/collection/${col.category}`}
+  className="group relative overflow-hidden rounded-3xl bg-gray-100"
+>
+  {/* Image */}
+  <img
+    src={col.image}
+    alt={col.label}
+    loading="lazy"
+    className="aspect-square w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+  />
 
-            {/* Text */}
-            <div className="absolute bottom-3 left-3 right-3">
-              <h3 className="text-sm md:text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                {col.label}
-              </h3>
+  {/* Permanent Gradient Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent"></div>
 
-              {/* 🔥 Hover ONLY HERE */}
-              <span className="mt-2 inline-block text-[10px] font-semibold px-3 py-1 rounded-full border border-purple-300 text-purple-600 transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:text-white hover:border-transparent hover:shadow-md">
-                Shop Now →
-              </span>
-            </div>
-          </Link>
+  {/* Content - Always Visible */}
+  <div className="absolute bottom-0 left-0 w-full p-5">
+<h3 className="inline-block -ml-5 bg-gradient-to-r from-violet-600/90 to-indigo-600/90 px-2 py-2 text-sm font-bold text-white shadow-xl">
+  {col.label}
+</h3>
+
+    <div className="mt-2 flex items-center gap-2">
+      <span className="text-sm -ml-5 font-medium text-white border-b border-white/50 transition-all duration-300 group-hover:border-white">
+        Shop Now
+      </span>
+
+      <span className="text-white transition-all duration-300 group-hover:translate-x-2">
+        →
+      </span>
+    </div>
+
+  </div>
+
+  {/* Hover Glow */}
+  <div className="absolute inset-0 rounded-3xl ring-0 ring-purple-400/30 transition-all duration-500 group-hover:ring-4"></div>
+</Link>
         ))}
       </div>
     </section>

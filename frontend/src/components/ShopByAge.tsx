@@ -30,30 +30,45 @@ const ShopByAge = () => (
     
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
       {ages.map((age, i) => (
-        <Link 
-          key={age.label} 
-          to={`/category/age/${age.ageRange}`}
-          className="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 hover:shadow-lg hover:-translate-y-1"
-          style={{ aspectRatio: "3/4" }}
-        >
-          <img 
-            src={age.image} 
-            alt={age.label} 
-            loading="lazy" 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-          />
+        <Link
+  key={age.label}
+  to={`/category/age/${age.ageRange}`}
+  className="group relative overflow-hidden rounded-3xl bg-gray-100"
+  style={{ aspectRatio: "3/4" }}
+>
+  {/* Image */}
+  <img
+    src={age.image}
+    alt={age.label}
+    loading="lazy"
+    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+  />
 
-          {/* TEXT WITHOUT OVERLAY */}
-          <div className="absolute bottom-3 left-3 right-3">
-            <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">
-              {age.label}
-            </h3>
-            <p className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-              {age.sub}
-            </p>
-          </div>
+  {/* Permanent Gradient Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent"></div>
 
-        </Link>
+  {/* Content - Always Visible */}
+  <div className="absolute bottom-0 left-0 w-full p-5">
+    <h3 className="inline-block -ml-5 bg-gradient-to-r from-violet-600/90 to-indigo-600/90 px-3 py-2 text-sm md:text-base font-bold text-white shadow-xl">
+      {age.label}
+    </h3>
+
+    <div className="mt-2 flex items-center gap-2">
+      <span className="text-sm -ml-5 font-medium text-white border-b border-white/50 transition-all duration-300 group-hover:border-white">
+        {age.sub}
+      </span>
+
+      <span className="text-white transition-all duration-300 group-hover:translate-x-2">
+        →
+      </span>
+    </div>
+
+  
+  </div>
+
+  {/* Hover Glow */}
+  <div className="absolute inset-0 rounded-3xl ring-0 ring-purple-400/30 transition-all duration-500 group-hover:ring-4"></div>
+</Link>
       ))}
     </div>
   </section>

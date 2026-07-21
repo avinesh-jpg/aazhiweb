@@ -1,13 +1,24 @@
+// routes/products.js
 import express from 'express';
 import Product from '../models/Product.js';
+import { seoMiddleware } from '../middleware/seoMiddleware.js';
 
 const router = express.Router();
 
-// Get all products
+// Apply SEO middleware to all routes
+router.use(seoMiddleware);
+
+// Get all products with SEO
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find();
-    res.json(products);
+    
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -34,7 +45,12 @@ router.get('/search', async (req, res) => {
       ]
     }).limit(20);
     
-    res.json(products);
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ message: error.message });
@@ -46,7 +62,13 @@ router.get('/age/:age', async (req, res) => {
   try {
     const { age } = req.params;
     const products = await Product.find({ age });
-    res.json(products);
+    
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -57,7 +79,13 @@ router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
     const products = await Product.find({ category });
-    res.json(products);
+    
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -69,16 +97,18 @@ router.get('/subcategory/:subcategoryName', async (req, res) => {
     const { subcategoryName } = req.params;
     const decodedSubcategory = decodeURIComponent(subcategoryName);
     const products = await Product.find({ subcategory: decodedSubcategory });
-    res.json(products);
+    
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
     console.error('Error fetching products by subcategory:', error);
     res.status(500).json({ message: error.message });
   }
 });
-
-// =============================================
-// ✅ NEW: SLUG-BASED ROUTES
-// =============================================
 
 // Get product by slug only
 router.get('/slug/:slug', async (req, res) => {
@@ -89,7 +119,13 @@ router.get('/slug/:slug', async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product by slug:', error);
     res.status(500).json({ message: error.message });
@@ -108,16 +144,20 @@ router.get('/category/:category/slug/:slug', async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
-// routes/products.js - Add this route
-
-// Get product by category + subcategory + slug (case-insensitive)
+// Get product by category + subcategory + slug
 router.get('/category/:category/subcategory/:subcategory/slug/:slug', async (req, res) => {
   try {
     const { category, subcategory, slug } = req.params;
@@ -134,55 +174,20 @@ router.get('/category/:category/subcategory/:subcategory/slug/:slug', async (req
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
-// ✅ NEW: Generate slugs for existing products (Migration endpoint)
-router.post('/generate-slugs', async (req, res) => {
-  try {
-    const products = await Product.find({ slug: { $exists: false } });
-    let updated = 0;
-    
-    for (const product of products) {
-      if (product.name) {
-        let slug = product.name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '');
-        
-        const existing = await Product.findOne({ 
-          slug: slug, 
-          _id: { $ne: product._id } 
-        });
-        
-        if (existing) {
-          slug = `${slug}-${product.productId}`;
-        }
-        
-        product.slug = slug;
-        await product.save();
-        updated++;
-      }
-    }
-    
-    res.json({ 
-      message: `Slugs generated for ${updated} products`,
-      totalProcessed: products.length,
-      updated
-    });
-  } catch (error) {
-    console.error('Error generating slugs:', error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// =============================================
-// EXISTING: Get single product by ID
-// =============================================
+// Get single product by ID with SEO
 router.get('/:id', async (req, res) => {
   try {
     const id = req.params.id;
@@ -197,7 +202,13 @@ router.get('/:id', async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product:', error);
     res.status(500).json({ message: error.message });
@@ -219,7 +230,13 @@ router.get('/product/:id', async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product:', error);
     res.status(500).json({ message: error.message });
@@ -230,8 +247,55 @@ router.get('/product/:id', async (req, res) => {
 router.get('/bestsellers', async (req, res) => {
   try {
     const products = await Product.find({ badge: 'Bestseller' });
-    res.json(products);
+    
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ✅ Generate SEO data for all existing products (Migration endpoint)
+router.post('/generate-seo', async (req, res) => {
+  try {
+    const products = await Product.find({});
+    let updated = 0;
+    
+    for (const product of products) {
+      const cleanName = product.name.split("|")[0].trim();
+      
+      // Update SEO Title with your template
+      product.seoTitle = `${cleanName} | Buy Tiruppur Cotton Kids Wear | Aazhi`;
+      
+      // Update SEO Description
+      product.seoDescription = `Buy ${cleanName} online at Aazhi. Premium Tiruppur cotton kids wear made from soft breathable cotton. Comfortable, skin-friendly and perfect for everyday wear. Shop now!`;
+      
+      // Update SEO Keywords
+      product.seoKeywords = [
+        cleanName,
+        "Tiruppur cotton kids wear",
+        product.category,
+        "baby clothes",
+        "kids wear",
+        "cotton baby clothes",
+        "Aazhi"
+      ];
+      
+      await product.save();
+      updated++;
+    }
+    
+    res.json({ 
+      message: `SEO data generated for ${updated} products`,
+      totalProcessed: products.length,
+      updated
+    });
+  } catch (error) {
+    console.error('Error generating SEO data:', error);
     res.status(500).json({ message: error.message });
   }
 });

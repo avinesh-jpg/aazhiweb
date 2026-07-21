@@ -1,161 +1,183 @@
-import { Heart } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useCart } from "@/context/useCart";
+  import { Heart } from "lucide-react";
+  import { useState, useEffect } from "react";
+  import { useNavigate } from "react-router-dom";
+  import { useCart } from "@/context/useCart";
 
-interface Product {
-  productId: number;
-  name: string;
-  price: number;
-  originalPrice: number | null;
-  badge: string | null;
-  image: string;
-  category: string;
-  subcategory?: string;
-  sizes?: string[];
-  slug?: string;
-}
-
-interface WishlistItem {
-  productId: number;
-}
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-// ✅ Helper: Get product URL (without /product)
-const getProductUrl = (product: Product): string => {
-  if (product.slug) {
-    let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
-    if (product.subcategory) {
-      url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
-    }
-    url += `/${product.slug}`;
-    return url;
+  interface Product {
+    productId: number;
+    name: string;
+    price: number;
+    originalPrice: number | null;
+    badge: string | null;
+    image: string;
+    category: string;
+    subcategory?: string;
+    sizes?: string[];
+    slug?: string;
   }
-  return `/product/${product.productId}`;
-};
 
-const defaultImages = [
-  "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1544816155-12df9643f363?w=400&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=400&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=400&h=500&fit=crop",
-];
+  interface WishlistItem {
+    productId: number;
+  }
 
-const Bestsellers = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [wishlisted, setWishlisted] = useState<number[]>([]);
-  const [added, setAdded] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
-  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(`${API_URL}/products`);
-        if (response.ok) {
-          const data: Product[] = await response.json();
-          const productsWithImages = data.map((product: Product, index: number) => ({
-            ...product,
-            image: product.image || defaultImages[index % defaultImages.length]
-          }));
-          setProducts(productsWithImages.slice(0, 4));
-        } else {
+  // ✅ Helper: Get product URL (without /product)
+  const getProductUrl = (product: Product): string => {
+    if (product.slug) {
+      let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
+      if (product.subcategory) {
+        url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
+      }
+      url += `/${product.slug}`;
+      return url;
+    }
+    return `/product/${product.productId}`;
+  };
+
+  const defaultImages = [
+    "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1544816155-12df9643f363?w=400&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=400&h=500&fit=crop",
+    "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=400&h=500&fit=crop",
+  ];
+
+  const Bestsellers = () => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [wishlisted, setWishlisted] = useState<number[]>([]);
+    const [added, setAdded] = useState<number[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { addToCart } = useCart();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      const fetchProducts = async () => {
+        try {
+          const response = await fetch(`${API_URL}/products`);
+          if (response.ok) {
+            const data: Product[] = await response.json();
+            const productsWithImages = data.map((product: Product, index: number) => ({
+              ...product,
+              image: product.image || defaultImages[index % defaultImages.length]
+            }));
+            setProducts(productsWithImages.slice(0, 4));
+          } else {
+            setProducts([
+              { productId: 1, name: "Organic Cotton Jabla Set", price: 599, originalPrice: 799, badge: "Bestseller", image: defaultImages[0], category: "clothing", sizes: ["0-3 months", "3-6 months"] },
+              { productId: 2, name: "Newborn Essential Kit", price: 1299, originalPrice: null, badge: "New", image: defaultImages[1], category: "essentials", sizes: ["One Size"] },
+              { productId: 3, name: "Muslin Summer Frock", price: 749, originalPrice: 949, badge: null, image: defaultImages[2], category: "clothing", sizes: ["3-6 months", "6-9 months"] },
+              { productId: 4, name: "Muslin Hooded Towel", price: 499, originalPrice: null, badge: "Bestseller", image: defaultImages[3], category: "bath", sizes: ["One Size"] },
+            ]);
+          }
+        } catch (error) {
+          console.error('Failed to fetch products:', error);
           setProducts([
             { productId: 1, name: "Organic Cotton Jabla Set", price: 599, originalPrice: 799, badge: "Bestseller", image: defaultImages[0], category: "clothing", sizes: ["0-3 months", "3-6 months"] },
             { productId: 2, name: "Newborn Essential Kit", price: 1299, originalPrice: null, badge: "New", image: defaultImages[1], category: "essentials", sizes: ["One Size"] },
             { productId: 3, name: "Muslin Summer Frock", price: 749, originalPrice: 949, badge: null, image: defaultImages[2], category: "clothing", sizes: ["3-6 months", "6-9 months"] },
             { productId: 4, name: "Muslin Hooded Towel", price: 499, originalPrice: null, badge: "Bestseller", image: defaultImages[3], category: "bath", sizes: ["One Size"] },
           ]);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-        setProducts([
-          { productId: 1, name: "Organic Cotton Jabla Set", price: 599, originalPrice: 799, badge: "Bestseller", image: defaultImages[0], category: "clothing", sizes: ["0-3 months", "3-6 months"] },
-          { productId: 2, name: "Newborn Essential Kit", price: 1299, originalPrice: null, badge: "New", image: defaultImages[1], category: "essentials", sizes: ["One Size"] },
-          { productId: 3, name: "Muslin Summer Frock", price: 749, originalPrice: 949, badge: null, image: defaultImages[2], category: "clothing", sizes: ["3-6 months", "6-9 months"] },
-          { productId: 4, name: "Muslin Hooded Towel", price: 499, originalPrice: null, badge: "Bestseller", image: defaultImages[3], category: "bath", sizes: ["One Size"] },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, []);
+      };
+      fetchProducts();
+    }, []);
 
-  useEffect(() => {
-    const fetchWishlist = async () => {
+    useEffect(() => {
+      const fetchWishlist = async () => {
+        const sessionId = localStorage.getItem('tiinyberry_session_id');
+        if (!sessionId) return;
+        
+        try {
+          const response = await fetch(`${API_URL}/wishlist`, {
+            headers: { 'x-session-id': sessionId }
+          });
+          if (response.ok) {
+            const data: WishlistItem[] = await response.json();
+            setWishlisted(data.map(item => item.productId));
+          }
+        } catch (error) {
+          console.error('Failed to fetch wishlist:', error);
+        }
+      };
+      fetchWishlist();
+    }, []);
+
+    const toggleWish = async (id: number, e: React.MouseEvent) => {
+      e.stopPropagation();
       const sessionId = localStorage.getItem('tiinyberry_session_id');
       if (!sessionId) return;
+
+      const isWishlisted = wishlisted.includes(id);
       
       try {
-        const response = await fetch(`${API_URL}/wishlist`, {
-          headers: { 'x-session-id': sessionId }
-        });
-        if (response.ok) {
-          const data: WishlistItem[] = await response.json();
-          setWishlisted(data.map(item => item.productId));
+        if (isWishlisted) {
+          await fetch(`${API_URL}/wishlist/remove/${id}`, {
+            method: 'DELETE',
+            headers: { 'x-session-id': sessionId }
+          });
+          setWishlisted(wishlisted.filter(x => x !== id));
+        } else {
+          await fetch(`${API_URL}/wishlist/add`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-session-id': sessionId
+            },
+            body: JSON.stringify({ productId: id })
+          });
+          setWishlisted([...wishlisted, id]);
         }
       } catch (error) {
-        console.error('Failed to fetch wishlist:', error);
+        console.error('Failed to toggle wishlist:', error);
       }
     };
-    fetchWishlist();
-  }, []);
 
-  const toggleWish = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const sessionId = localStorage.getItem('tiinyberry_session_id');
-    if (!sessionId) return;
-
-    const isWishlisted = wishlisted.includes(id);
-    
-    try {
-      if (isWishlisted) {
-        await fetch(`${API_URL}/wishlist/remove/${id}`, {
-          method: 'DELETE',
-          headers: { 'x-session-id': sessionId }
-        });
-        setWishlisted(wishlisted.filter(x => x !== id));
-      } else {
-        await fetch(`${API_URL}/wishlist/add`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-session-id': sessionId
-          },
-          body: JSON.stringify({ productId: id })
-        });
-        setWishlisted([...wishlisted, id]);
+    const handleAdd = async (product: Product, e: React.MouseEvent) => {
+      e.stopPropagation();
+      
+      let selectedSize = '';
+      if (product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size') {
+        selectedSize = product.sizes[0];
       }
-    } catch (error) {
-      console.error('Failed to toggle wishlist:', error);
-    }
-  };
+      
+      const success = await addToCart(product.productId, 1, selectedSize);
+      
+      if (success) {
+        setAdded((prev) => [...prev, product.productId]);
+        setTimeout(() => setAdded((prev) => prev.filter((x) => x !== product.productId)), 1800);
+      }
+    };
 
-  const handleAdd = async (product: Product, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    let selectedSize = '';
-    if (product.sizes && product.sizes.length > 0 && product.sizes[0] !== 'One Size') {
-      selectedSize = product.sizes[0];
-    }
-    
-    const success = await addToCart(product.productId, 1, selectedSize);
-    
-    if (success) {
-      setAdded((prev) => [...prev, product.productId]);
-      setTimeout(() => setAdded((prev) => prev.filter((x) => x !== product.productId)), 1800);
-    }
-  };
+    // ✅ UPDATED: Click handler uses URL without /product
+    const handleProductClick = (product: Product) => {
+      navigate(getProductUrl(product));
+    };
 
-  // ✅ UPDATED: Click handler uses URL without /product
-  const handleProductClick = (product: Product) => {
-    navigate(getProductUrl(product));
-  };
+    if (loading) {
+      return (
+        <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <span className="text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3 inline-block bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+              Our most loved
+            </span>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-light font-heading max-w-2xl mx-auto bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
+              Bestsellers
+            </h2>
+            <div className="w-16 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 mx-auto mt-4 rounded-full"></div>
+          </div>
+          <div className="flex justify-center items-center py-12">
+            <div className="inline-block rounded-full h-8 w-8 border-2 border-purple-300 border-t-purple-600 animate-spin"></div>
+          </div>
+        </section>
+      );
+    }
 
-  if (loading) {
+    if (!products.length) {
+      return null;
+    }
+
     return (
       <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto">
         <div className="text-center mb-10 md:mb-14">
@@ -167,111 +189,89 @@ const Bestsellers = () => {
           </h2>
           <div className="w-16 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 mx-auto mt-4 rounded-full"></div>
         </div>
-        <div className="flex justify-center items-center py-12">
-          <div className="inline-block rounded-full h-8 w-8 border-2 border-purple-300 border-t-purple-600 animate-spin"></div>
-        </div>
-      </section>
-    );
-  }
 
-  if (!products.length) {
-    return null;
-  }
-
-  return (
-    <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-[1320px] mx-auto">
-      <div className="text-center mb-10 md:mb-14">
-        <span className="text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3 inline-block bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-          Our most loved
-        </span>
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-light font-heading max-w-2xl mx-auto bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
-          Bestsellers
-        </h2>
-        <div className="w-16 h-0.5 bg-gradient-to-r from-purple-300 to-blue-300 mx-auto mt-4 rounded-full"></div>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {products.map((product, index) => (
-          <div 
-            key={product.productId} 
-            className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 animate-fadeIn"
-            style={{ animationDelay: `${index * 0.1}s` }}
-            onClick={() => handleProductClick(product)}
-          >
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-100/30 to-blue-100/30 shadow-md" style={{ aspectRatio: "3/4" }}>
-              <img 
-                src={product.image} 
-                alt={product.name} 
-                loading="lazy" 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = defaultImages[index % defaultImages.length];
-                }}
-              />
-              {product.badge && (
-                <span className="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full shadow-md">
-                  {product.badge}
-                </span>
-              )}
-              <button
-                onClick={(e) => toggleWish(product.productId, e)}
-                className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110 ${
-                  wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
-                }`}
-                aria-label="Wishlist"
-              >
-                <Heart size={14} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
-              </button>
-            </div>
-            <div className="mt-3.5">
-              <h3 className="text-base font-medium text-[#1e1b4b] leading-snug font-serif hover:text-purple-600 transition-colors duration-200">
-                {product.name}
-              </h3>
-              <div className="mt-1.5 flex items-center gap-2">
-                <span className="text-[0.85rem] font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                  Rs. {product.price.toLocaleString()}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-[0.78rem] text-gray-400 line-through">
-                    Rs. {product.originalPrice.toLocaleString()}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          {products.map((product, index) => (
+            <div 
+              key={product.productId} 
+              className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 animate-fadeIn"
+              style={{ animationDelay: `${index * 0.1}s` }}
+              onClick={() => handleProductClick(product)}
+            >
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-100/30 to-blue-100/30 shadow-md" style={{ aspectRatio: "3/4" }}>
+                <img 
+                  src={product.image} 
+                  alt={product.name} 
+                  loading="lazy" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = defaultImages[index % defaultImages.length];
+                  }}
+                />
+                {product.badge && (
+                  <span className="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full shadow-md">
+                    {product.badge}
                   </span>
                 )}
+                <button
+                  onClick={(e) => toggleWish(product.productId, e)}
+                  className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110 ${
+                    wishlisted.includes(product.productId) ? "text-red-500" : "text-gray-400 hover:text-red-500"
+                  }`}
+                  aria-label="Wishlist"
+                >
+                  <Heart size={14} fill={wishlisted.includes(product.productId) ? "currentColor" : "none"} />
+                </button>
               </div>
-              <button
-                onClick={(e) => handleAdd(product, e)}
-                className={`w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full transition-all duration-300 ${
-                  added.includes(product.productId) 
-                    ? "bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md" 
-                    : "border-2 border-purple-200 text-gray-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:border-transparent hover:text-white hover:shadow-md"
-                }`}
-              >
-                {added.includes(product.productId) ? "Added! ✓" : "Add to Cart"}
-              </button>
+              <div className="mt-3.5">
+                <h3 className="text-base font-medium text-[#1e1b4b] leading-snug font-serif hover:text-purple-600 transition-colors duration-200">
+                  {product.name}
+                </h3>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="text-[0.85rem] font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                    Rs. {product.price.toLocaleString()}
+                  </span>
+                  {product.originalPrice && (
+                    <span className="text-[0.78rem] text-gray-400 line-through">
+                      Rs. {product.originalPrice.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={(e) => handleAdd(product, e)}
+                  className={`w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full transition-all duration-300 ${
+                    added.includes(product.productId) 
+                      ? "bg-gradient-to-r from-purple-500 to-purple-400 text-white shadow-md" 
+                      : "border-2 border-purple-200 text-gray-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:border-transparent hover:text-white hover:shadow-md"
+                  }`}
+                >
+                  {added.includes(product.productId) ? "Added! ✓" : "Add to Cart"}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <style>{`
-        @keyframes fadeIn {
-          from {
+        <style>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(15px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          .animate-fadeIn {
+            animation: fadeIn 0.4s ease forwards;
             opacity: 0;
-            transform: translateY(15px);
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.4s ease forwards;
-          opacity: 0;
-        }
-      `}</style>
-    </section>
-  );
-};
+        `}</style>
+      </section>
+    );
+  };
 
-export default Bestsellers;
+  export default Bestsellers;

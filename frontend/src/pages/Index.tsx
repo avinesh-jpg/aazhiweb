@@ -1,3 +1,5 @@
+// src/pages/Index.tsx
+import { Helmet } from 'react-helmet-async';
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Navbar from "@/components/Navbar";
 import HeroSlideshow from "@/components/HeroSlideshow";
@@ -14,30 +16,50 @@ import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import useScrollReveal from "@/hooks/useScrollReveal";
 import SocialFeed from "@/components/SocialFeed";
+import { SEOUtils } from "@/lib/seo";
 
 const Index = () => {
   useScrollReveal();
 
   return (
-    <div className="min-h-screen bg-background">
-      <AnnouncementBar />
-      <Navbar />
-      <main>
-        <HeroSlideshow />
-        <FeatureStrip />
-        <ShopByAge />
-        <ShopByCollections />
-        <Bestsellers />
-        <ComboOffers />
-        <ThottilHighlight />
-        <OurStory />
-        <SocialFeed />
-        <Testimonials />
-        <Newsletter />
-      </main>
-      <Footer />
-      <BackToTop />
-    </div>
+    <>
+      <Helmet>
+        <title>{SEOUtils.getHomeTitle()}</title>
+        <meta name="description" content={SEOUtils.getHomeDescription()} />
+        <meta name="keywords" content={SEOUtils.getHomeKeywords().join(', ')} />
+        
+        <meta property="og:title" content={SEOUtils.getHomeTitle()} />
+        <meta property="og:description" content={SEOUtils.getHomeDescription()} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://aazhi.com" />
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={SEOUtils.getHomeTitle()} />
+        <meta name="twitter:description" content={SEOUtils.getHomeDescription()} />
+        
+        <link rel="canonical" href="https://aazhi.com" />
+      </Helmet>
+
+      <div className="min-h-screen bg-background">
+        <AnnouncementBar />
+        <Navbar />
+        <main>
+          <HeroSlideshow />
+          <FeatureStrip />
+          <ShopByAge />
+          <ShopByCollections />
+          <Bestsellers />
+          <ComboOffers />
+          <ThottilHighlight />
+          <OurStory />
+          <SocialFeed />
+          <Testimonials />
+          <Newsletter />
+        </main>
+        <Footer />
+        <BackToTop />
+      </div>
+    </>
   );
 };
 

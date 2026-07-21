@@ -1,3 +1,4 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -18,6 +19,8 @@ import { errorHandler } from './middleware/errorHandler.js';
 import shippingRoutes from './routes/shipping.js';
 import combosRoutes from './routes/combo.js';
 import blogRoutes from './routes/blog.js';
+import seoRoutes from './routes/seoRoutes.js'; // ✅ NEW: SEO Routes
+import { seoMiddleware } from './middleware/seoMiddleware.js'; // ✅ NEW: SEO Middleware
 import Product from './models/Product.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -54,8 +57,16 @@ app.use(express.json());
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// ✅ Apply SEO middleware to all routes
+app.use(seoMiddleware);
+
 // =============================================
-// ✅ SLUG-BASED API ROUTES (Case-insensitive)
+// ✅ SEO ROUTES (Sitemap & Robots)
+// =============================================
+app.use('/', seoRoutes); // Adds /sitemap.xml and /robots.txt
+
+// =============================================
+// ✅ SLUG-BASED API ROUTES (Case-insensitive) WITH SEO
 // =============================================
 
 // =============================================
@@ -82,7 +93,14 @@ app.get('/api/category/:category/:subcategory/:slug', async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    // ✅ Add SEO data to response
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL || 'https://theaazhi.com') : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product by category:', error);
     res.status(500).json({ message: error.message });
@@ -113,7 +131,14 @@ app.get('/api/product/:category/:subcategory/:slug', async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    // ✅ Add SEO data to response
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL || 'https://theaazhi.com') : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product by slug:', error);
     res.status(500).json({ message: error.message });
@@ -137,7 +162,14 @@ app.get('/api/product/:category/:slug', async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    // ✅ Add SEO data to response
+    const seoData = product.getSEOData ? product.getSEOData(process.env.BASE_URL || 'https://theaazhi.com') : null;
+    
+    res.json({
+      ...product.toObject(),
+      seo: seoData
+    });
   } catch (error) {
     console.error('Error fetching product by slug:', error);
     res.status(500).json({ message: error.message });
@@ -157,7 +189,13 @@ app.get('/api/product/:category/:subcategory', async (req, res) => {
       subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') }
     });
     
-    res.json(products);
+    // ✅ Add SEO data to each product
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL || 'https://theaazhi.com') : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).json({ message: error.message });
@@ -175,7 +213,13 @@ app.get('/api/product/:category', async (req, res) => {
       category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') }
     });
     
-    res.json(products);
+    // ✅ Add SEO data to each product
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL || 'https://theaazhi.com') : null
+    }));
+    
+    res.json(productsWithSEO);
   } catch (error) {
     console.error('Error fetching products by category:', error);
     res.status(500).json({ message: error.message });
@@ -213,7 +257,10 @@ app.get('/', (req, res) => {
       health: '/api/health',
       'debug-routes': '/api/debug-routes',
       'product-slug-routes': '/api/product/:category/:subcategory/:slug',
-      'category-slug-routes': '/api/category/:category/:subcategory/:slug'
+      'category-slug-routes': '/api/category/:category/:subcategory/:slug',
+      // ✅ SEO endpoints
+      'sitemap': '/sitemap.xml',
+      'robots': '/robots.txt'
     }
   });
 });
@@ -265,4 +312,7 @@ app.listen(PORT, () => {
   console.log(`📦 MongoDB connected - Data is now persistent!`);
   console.log(`🔗 Category route: http://localhost:${PORT}/api/category/Boys/Shorts-Sets-With-Rope/half-white-lion-zebra-shorts`);
   console.log(`🔗 Product route: http://localhost:${PORT}/api/product/Boys/Shorts-Sets-With-Rope/half-white-lion-zebra-shorts`);
+  console.log(`📍 Base URL: ${process.env.BASE_URL || 'http://localhost:5000'}`);
+  console.log(`📝 Sitemap: ${process.env.BASE_URL || 'http://localhost:5000'}/sitemap.xml`);
+  console.log(`🤖 Robots: ${process.env.BASE_URL || 'http://localhost:5000'}/robots.txt`);
 });

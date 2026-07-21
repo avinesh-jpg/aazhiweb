@@ -8,13 +8,14 @@ const ContactUs: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Contact Us | Aazhi – We're Here to Help</title>
-        <meta name="description" content="Have questions about our Tiruppur cotton clothing collections, your order, or want to partner with us? Reach out to the Aazhi team today." />
-        <meta name="keywords" content="Aazhi contact number, Tiruppur clothing store customer care, buy Tiruppur clothes online contact, wholesale kids wear Tiruppur" />
+        <title>Contact Aazhi | Premium Kids Wear Customer Care</title>
+        <meta name="description" content="Have questions about our Tiruppur cotton clothing collections? Reach out to the Aazhi team. We're here to help with orders, returns, and more." />
+        <meta name="keywords" content="Aazhi contact, customer support, kids wear help, Tiruppur clothing, Aazhi phone number" />
+        <link rel="canonical" href="https://aazhi.com/contact" />
       </Helmet>
 
       <Navbar />
-
+      
       <div className="min-h-screen bg-gradient-to-b from-[#0f0e1a] via-[#1a1a2e] to-[#16213e] pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -192,7 +193,6 @@ const ContactUs: React.FC = () => {
             <h3 className="text-white font-semibold text-lg mb-2">Frequently Asked Questions</h3>
             <p className="text-gray-400 text-sm mb-6">Before reaching out, your answer might just be a click away!</p>
             <div className="flex flex-wrap justify-center gap-3">
-              
               <a href="/ShippingPolicy" className="group px-6 py-3 bg-white/5 backdrop-blur-sm hover:bg-white/10 text-white rounded-xl text-sm transition-all duration-300 border border-white/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 flex items-center gap-2">
                 <span>🚚</span>
                 <span>Shipping & Delivery</span>

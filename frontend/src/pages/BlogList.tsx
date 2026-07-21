@@ -1,3 +1,4 @@
+// src/pages/BlogList.tsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -44,7 +45,6 @@ const BlogList: React.FC = () => {
     }
   };
 
-  // Get unique list of tags across all blogs
   const allTags = Array.from(
     new Set(blogs.flatMap(blog => blog.tags || []))
   ).filter(tag => tag && tag.trim() !== '');
@@ -60,7 +60,7 @@ const BlogList: React.FC = () => {
   });
 
   const getImageUrl = (url: string) => {
-    if (!url) return 'https://images.unsplash.com/photo-1515488042361-404e9250afef?q=80&w=600&auto=format&fit=crop'; // default baby photo
+    if (!url) return 'https://images.unsplash.com/photo-1515488042361-404e9250afef?q=80&w=600&auto=format&fit=crop';
     if (url.startsWith('http')) return url;
     return `${API_URL.replace('/api', '')}${url}`;
   };
@@ -71,6 +71,7 @@ const BlogList: React.FC = () => {
         <title>Blog | Aazhi – Baby Clothing Guides & Parenting Stories</title>
         <meta name="description" content="Explore Aazhi's blog for parenting tips, baby clothing guides, organic fabric choices, and behind-the-scenes stories from India's textile capital, Tiruppur." />
         <meta name="keywords" content="baby care, organic baby clothes, parenting blog, Tiruppur cotton, kids styling tips" />
+        <link rel="canonical" href="https://aazhi.com/blog" />
       </Helmet>
 
       <Navbar />
@@ -96,8 +97,6 @@ const BlogList: React.FC = () => {
               Your source for parenting insights, baby skin health, organic fabric guides, and direct stories from the weavers and makers of Tiruppur knitwear.
             </p>
           </div>
-
-          
 
           {/* Blog Cards Grid */}
           {loading ? (

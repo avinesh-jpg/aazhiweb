@@ -1,3 +1,4 @@
+// src/pages/BlogPost.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -27,6 +28,7 @@ const BlogPost: React.FC = () => {
   const [recentBlogs, setRecentBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+
   const fetchPostAndRecent = async () => {
     setLoading(true);
     try {
@@ -106,6 +108,16 @@ const BlogPost: React.FC = () => {
         <title>{blog.title} | Aazhi Blog</title>
         <meta name="description" content={blog.summary} />
         <meta name="keywords" content={blog.tags?.join(', ')} />
+        <meta property="og:title" content={blog.title} />
+        <meta property="og:description" content={blog.summary} />
+        <meta property="og:image" content={getImageUrl(blog.coverImage)} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={window.location.href} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={blog.title} />
+        <meta name="twitter:description" content={blog.summary} />
+        <meta name="twitter:image" content={getImageUrl(blog.coverImage)} />
+        <link rel="canonical" href={window.location.href} />
       </Helmet>
 
       <Navbar />
@@ -209,15 +221,11 @@ const BlogPost: React.FC = () => {
             Back to Articles
           </button>
 
-          {/* REMOVED max-w-4xl constraint - NOW FULL WIDTH */}
           <div className="w-full">
             <main className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6 sm:p-8 md:p-10 overflow-hidden mb-12">
               
               {/* Blog Header info */}
               <header className="mb-8">
-                {/* Tags */}
-                
-
                 {/* Title */}
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-['Cormorant_Garamond',serif] font-bold text-white mb-6 leading-tight">
                   {blog.title}
