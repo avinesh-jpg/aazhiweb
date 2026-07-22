@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import colJablas from "@/assets/towel.png";
-import colEssentials from "@/assets/girls1.png";
+import colEssentials from "@/assets/girls3.png";
 import colFrocks from "@/assets/girls.png";
 import colTowels from "@/assets/newborn.png";
 import colBooties from "@/assets/unisex.png";
@@ -11,7 +11,7 @@ const collections = [
   { label: "Girls", image: colEssentials, type: "collection", value: "Girls" },
   { label: "Frocks", image: colFrocks, type: "subcategory", value: "Casual Frocks" },
   { label: "Boys", image: colCoords, type: "collection", value: "Boys" },
-  { label: "Muslin Hooded Towels", image: colTowels, type: "collection", value: "bathing" },
+  { label: "Muslin Hooded Towels", image: colTowels, type: "collection", value: "Swaddles" },
   { label: "Unisex", image: colBooties, type: "collection", value: "UniSex" },
 ];
 
