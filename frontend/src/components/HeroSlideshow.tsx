@@ -17,14 +17,14 @@ const slides = [
     image: banner2,//https://images.unsplash.com/photo-1522771930-78848d9293e8?w=1200&h=800&fit=crop 
     heading: "No Itchy Tags, Just Happy Wiggles", 
     sub: "Comfy, breathable threads your baby will love", 
-    cta: "Shop Clothing", 
+    cta: "Shop Now", 
     link: "#collections" 
   },
   { 
     image: banner3,//https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1200&h=800&fit=crop 
     heading: "Hello Mamas! We've Got You Covered", 
     sub: "Everything your newborn needs, all in one place", 
-    cta: "Discover Now", 
+    cta: "Shop Now", 
     link: "#collections" 
   },
 ];
@@ -73,12 +73,12 @@ const HeroSlideshow = () => {
             }}>
               {slide.heading}
             </h1>
-            <a 
-              href={slide.link} 
-              className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:scale-105 hover:shadow-purple-500/30"
-            >
-              {slide.cta}
-            </a>
+            <a
+  href={slide.link}
+  className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:!text-black hover:scale-105 hover:shadow-purple-500/30"
+>
+  {slide.cta}
+</a>
           </div>
         </div>
       ))}
