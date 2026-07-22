@@ -4,7 +4,7 @@ const shopLinks = [
     { name: "Boys",             category: "Boys",   path: "/category/collection/Boys" },//bathing as boys
     { name: "UniSex",              category: "UniSex",    path: "/category/collection/UniSex" },// thottil as unisex
     //{ name: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
-    { name: "womens",category: "accessories",path: "/category/collection/accessories" },//hhere the word accessories is used for womens because we have only one subcategory under accessories which is womens and we want to show that in the navbar instead of showing accessories to women
+    { name: "Womens",category: "Womens",path: "/category/collection/womens" },//hhere the word accessories is used for womens because we have only one subcategory under accessories which is womens and we want to show that in the navbar instead of showing accessories to women
     //{ name: "Combo",                category: "",           path: "/shop/combos" },
 ];
 
@@ -15,7 +15,7 @@ const companyLinks = [
   { name: "Contact Us", path: "/contact" },
   { name: "Shipping Policy", path: "/ShippingPolicy" },
   { name: "Return Policy", path: "/help/return-policy" },
-  { name: "Blog", path: "/blog" },
+  { name: "Blogs", path: "/blog" },
 ];
 
 const Footer = () => {

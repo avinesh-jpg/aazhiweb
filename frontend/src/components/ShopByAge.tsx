@@ -5,7 +5,7 @@ import age612 from "@/assets/age-6-12.jpg";
 import age110 from "@/assets/age-1-10.jpg";
 
 const ages = [
-  { label: "0–3 onths", sub: "Newborn essentials", image: age03, ageRange: "0-24", path: "/category/collection/newborn" },
+  { label: "0–3 Months", sub: "Newborn essentials", image: age03, ageRange: "0-24", path: "/category/collection/newborn" },
   { label: "2–12 Years", sub: "Growing & exploring", image: age36, ageRange: "2-12",path: "/category/collection/boys" },
   { label: "6–12 Months", sub: "Active little ones", image: age612, ageRange: "6-12", path: "/category/collection/girls" },
   { label: "1–10 Years", sub: "Kids fashion & comfort", image: age110, ageRange: "1-10", path: "/category/collection/unisex" },
@@ -49,9 +49,9 @@ const ShopByAge = () => (
 
   {/* Content - Always Visible */}
   <div className="absolute bottom-0 left-0 w-full p-5">
-    <h3 className="inline-block -ml-5 bg-gradient-to-r from-violet-600/90 to-indigo-600/90 px-3 py-2 text-sm md:text-base font-bold text-white shadow-xl">
+    <span className="inline-block -ml-5 bg-gradient-to-r from-violet-600/90 to-indigo-600/90 px-3 py-2 text-sm md:text-base font-bold text-white shadow-xl">
       {age.label}
-    </h3>
+    </span>
 
     <div className="mt-2 flex items-center gap-2">
       <span className="text-sm -ml-5 font-medium text-white border-b border-white/50 transition-all duration-300 group-hover:border-white">
