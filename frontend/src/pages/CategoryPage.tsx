@@ -104,7 +104,7 @@ const CategoryPage = () => {
 
   const getMetaTitle = () => {
     if (type === 'age') {
-      return SEOUtils.getAgeTitle(value || '');
+      return SEOUtils.getCategoryTitle(value || '');
     }
     if (type === 'collection') {
       return SEOUtils.getCategoryTitle(value || '');

@@ -54,7 +54,7 @@ const ShopByAge = () => (
     </span>
 
     <div className="mt-2 flex items-center gap-2">
-      <span className="text-sm -ml-5 font-medium text-white border-b border-white/50 transition-all duration-300 group-hover:border-white">
+      <span className="text-sm -ml-3 font-medium text-white border-b border-white/50 transition-all duration-300 group-hover:border-white">
         {age.sub}
       </span>
 

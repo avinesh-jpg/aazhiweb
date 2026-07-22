@@ -7,17 +7,12 @@ import colBooties from "@/assets/unisex.png";
 import colCoords from "@/assets/boys.png";
 
 const collections = [
-  { label: "Newborn", image: colJablas, category: "newborn" },
-  { label: "Girls", image: colEssentials, category: "Girls" },
-  
-   {
-    label: "Frocks",
-    image: colFrocks,
-    category: "Casual Frocks" // <- send the subcategory as value
-  },
-  { label: "Boys", image: colCoords, category: "Boys" },
-  { label: "Muslin Hooded Towels", image: colTowels, category: "bathing" },
-  { label: "Unisex", image: colBooties, category: "UniSex" },
+  { label: "Newborn", image: colJablas, type: "collection", value: "newborn" },
+  { label: "Girls", image: colEssentials, type: "collection", value: "Girls" },
+  { label: "Frocks", image: colFrocks, type: "subcategory", value: "frocks" },
+  { label: "Boys", image: colCoords, type: "collection", value: "Boys" },
+  { label: "Muslin Hooded Towels", image: colTowels, type: "collection", value: "bathing" },
+  { label: "Unisex", image: colBooties, type: "collection", value: "UniSex" },
 ];
 
 const ShopByCollections = () => {
@@ -44,7 +39,7 @@ const ShopByCollections = () => {
         {collections.map((col, i) => (
           <Link
   key={i}
-  to={`/category/collection/${col.category}`}
+  to={`/category/${col.type}/${col.value}`}
   className="group relative overflow-hidden rounded-3xl bg-gray-100"
 >
   {/* Image */}
@@ -65,7 +60,7 @@ const ShopByCollections = () => {
 </h3>
 
     <div className="mt-2 flex items-center gap-2">
-      <span className="text-sm -ml-5 font-medium text-white border-b border-white/50 transition-all duration-300 group-hover:border-white">
+      <span className="text-sm -ml-3 font-medium text-white border-b border-white/50 transition-all duration-300 group-hover:border-white">
         Shop Now
       </span>
 
