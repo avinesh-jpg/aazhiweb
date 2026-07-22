@@ -9,7 +9,7 @@ import colCoords from "@/assets/boys.png";
 const collections = [
   { label: "Newborn", image: colJablas, type: "collection", value: "newborn" },
   { label: "Girls", image: colEssentials, type: "collection", value: "Girls" },
-  { label: "Frocks", image: colFrocks, type: "subcategory", value: "frocks" },
+  { label: "Frocks", image: colFrocks, type: "subcategory", value: "Casual Frocks" },
   { label: "Boys", image: colCoords, type: "collection", value: "Boys" },
   { label: "Muslin Hooded Towels", image: colTowels, type: "collection", value: "bathing" },
   { label: "Unisex", image: colBooties, type: "collection", value: "UniSex" },
