@@ -9,10 +9,15 @@ import colCoords from "@/assets/boys.png";
 const collections = [
   { label: "Newborn", image: colJablas, category: "newborn" },
   { label: "Girls", image: colEssentials, category: "Girls" },
-  { label: "Frocks", image: colFrocks, category: "Frocks" },
+  
+   {
+    label: "Frocks",
+    image: colFrocks,
+    category: "Casual Frocks" // <- send the subcategory as value
+  },
   { label: "Boys", image: colCoords, category: "Boys" },
   { label: "Muslin Hooded Towels", image: colTowels, category: "bathing" },
-  { label: "Unisex", image: colBooties, category: "accessories" },
+  { label: "Unisex", image: colBooties, category: "UniSex" },
 ];
 
 const ShopByCollections = () => {
