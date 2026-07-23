@@ -11,7 +11,7 @@ const collections = [
   { label: "Girls", image: colEssentials, type: "collection", value: "Girls" },
   { label: "Frocks", image: colFrocks, type: "subcategory", value: "Casual Frocks" },
   { label: "Boys", image: colCoords, type: "collection", value: "Boys" },
-  { label: "Muslin Hooded Towels", image: colTowels, type: "collection", value: "Swaddles" },
+  { label: "Muslin Hooded Towels", image: colTowels, type: "subcategory", value: "Swaddles" },
   { label: "Unisex", image: colBooties, type: "collection", value: "UniSex" },
 ];
 
