@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import colJablas from "@/assets/towel.png";
-import colEssentials from "@/assets/girls3.png";
-import colFrocks from "@/assets/girls.png";
-import colTowels from "@/assets/newborn.png";
-import colBooties from "@/assets/unisex.png";
-import colCoords from "@/assets/boys.png";
+import colJablas from "@/assets/towel.webp";
+import colEssentials from "@/assets/girls3.webp";
+import colFrocks from "@/assets/girls.webp";
+import colTowels from "@/assets/newborn.webp";
+import colBooties from "@/assets/unisex.webp";
+import colCoords from "@/assets/boys.webp";
 
 const collections = [
   { label: "Newborn", image: colJablas, type: "collection", value: "newborn" },
