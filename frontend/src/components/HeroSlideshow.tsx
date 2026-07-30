@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import banner1 from "../assets/banner1.png";
-import banner2 from "../assets/banner2.png";
-import banner3 from "../assets/banner3.1.png"; // Add this import for the third banner
+import banner1 from "../assets/banner1-optimized.webp";
+import banner2 from "../assets/banner2-optimized.webp";
+import banner3 from "../assets/banner3-optimized.webp"; // Add this import for the third banner
 
 // Use placeholder images from placeholder service
 const slides = [
