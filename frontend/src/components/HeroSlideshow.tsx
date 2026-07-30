@@ -86,12 +86,14 @@ const HeroSlideshow = () => {
       {/* Arrows - Updated with purple/blue theme */}
       <button 
         onClick={prev} 
+        aria-label="Previous slide"
         className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white/15 backdrop-blur-sm border border-purple-300/40 rounded-full text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent transition-all duration-300 hover:scale-110"
       >
         <ChevronLeft size={20} />
       </button>
       <button 
         onClick={next} 
+        aria-label="Next slide"
         className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white/15 backdrop-blur-sm border border-purple-300/40 rounded-full text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent transition-all duration-300 hover:scale-110"
       >
         <ChevronRight size={20} />
@@ -103,6 +105,8 @@ const HeroSlideshow = () => {
           <button
             key={i}
             onClick={() => go(i)}
+            aria-label={`Go to slide ${i + 1}`}
+            aria-current={i === current ? "true" : undefined}
             className={`rounded-full transition-all duration-300 ${
               i === current 
                 ? "w-7 h-2.5 bg-gradient-to-r from-purple-400 to-blue-400 shadow-md" 
