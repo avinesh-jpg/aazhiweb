@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import age03 from "@/assets/age-0-3.jpg";
-import age36 from "@/assets/age-3-6.jpg";
-import age612 from "@/assets/age-6-12.jpg";
-import age110 from "@/assets/age-1-10.jpg";
+import age03 from "@/assets/age-0-3.webp";
+import age36 from "@/assets/age-3-6.webp";
+import age612 from "@/assets/age-6-12.webp";
+import age110 from "@/assets/age-1-10.webp";
 
 const ages = [
   { label: "0–3 Months", sub: "Newborn essentials", image: age03, ageRange: "0-24", path: "/category/collection/newborn" },
