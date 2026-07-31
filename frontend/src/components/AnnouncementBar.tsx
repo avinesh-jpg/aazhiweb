@@ -6,19 +6,19 @@ const messages = [
 ];
 
 const AnnouncementBar = () => (
-  <div className="bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400 text-white text-center py-2.5 overflow-hidden">
+  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 text-white text-center py-2.5 overflow-hidden">
     <div className="flex items-center justify-center gap-2 flex-wrap px-4 animate-slideIn">
       {messages.map((msg, i) => (
         <span 
           key={i} 
-          className="text-[0.68rem] font-semibold tracking-[0.18em] uppercase flex items-center gap-2"
+          className="text-[0.68rem] font-semibold tracking-[0.18em] uppercase flex items-center gap-2 text-white"
         >
           {i > 0 && (
-            <span className="opacity-60 text-[8px] animate-pulse">✦</span>
+            <span className="opacity-70 text-[8px] animate-pulse text-white">✦</span>
           )}
           <span className="relative">
             {msg}
-            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-white/40 transition-all duration-300 group-hover:w-full"></span>
+            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-white/50 transition-all duration-300 group-hover:w-full"></span>
           </span>
         </span>
       ))}

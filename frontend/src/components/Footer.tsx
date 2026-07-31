@@ -65,7 +65,7 @@ const AccessibleInstagramEmbed = ({ embedId, src, postIndex }) => {
         src={src}
         title={`Instagram post ${postIndex + 1} - Aazhi Clothing`}
         allowTransparency={true}
-        allowFullScreen
+        allowFullScreen={true}
         frameBorder="0"
         height="657"
         scrolling="no"
@@ -135,17 +135,33 @@ const Footer = () => {
               nothing but the finest organic clothing and baby essentials.
             </p>
             
-            {/* Social Links with Instagram Logo */}
-            <div className="flex gap-2.5 mt-5" role="list" aria-label="Social media links">
-              <a 
-                href="https://www.instagram.com/aazhi_clothing/?hl=en"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow us on Instagram - opens in new tab"
-                className="w-9 h-9 rounded-full border border-gray-600/30 flex items-center justify-center text-gray-400 hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:text-white transition-all duration-300 hover:scale-110 group"
-              >
-                <InstagramIcon className="w-4 h-4 group-hover:text-white" />
-              </a>
+            {/* ====== FIXED: Social Links with proper ARIA list structure ====== */}
+            <div 
+              className="flex gap-2.5 mt-5" 
+              role="list" 
+              aria-label="Social media links"
+            >
+              {/* Each child must have role="listitem" */}
+              <div role="listitem">
+                <a 
+                  href="https://www.instagram.com/aazhi_clothing/?hl=en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow us on Instagram - opens in new tab"
+                  className="w-9 h-9 rounded-full border border-gray-600/30 flex items-center justify-center text-gray-400 hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:text-white transition-all duration-300 hover:scale-110 group"
+                >
+                  <InstagramIcon className="w-4 h-4 group-hover:text-white" />
+                </a>
+              </div>
+              
+              {/* Add more social links here if needed */}
+              {/* 
+              <div role="listitem">
+                <a href="https://facebook.com/aazhiclothing" aria-label="Follow us on Facebook">
+                  <FacebookIcon />
+                </a>
+              </div>
+              */}
             </div>
           </div>
           
