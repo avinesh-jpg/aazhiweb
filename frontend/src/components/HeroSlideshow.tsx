@@ -33,12 +33,32 @@ const HeroSlideshow = () => {
   const [animating, setAnimating] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
   const [firstImageLoaded, setFirstImageLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const preloadRef = useRef<HTMLImageElement | null>(null);
   const slideContainerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Preload first image immediately on mount
+  // Detect mobile for optimized loading
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // CRITICAL: Preload first image immediately on mount with high priority
+  useEffect(() => {
+    // Method 1: Preload link in head
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = slides[0].image;
+    link.fetchPriority = 'high';
+    document.head.appendChild(link);
+
+    // Method 2: Image object preload
     const img = new Image();
     img.src = slides[0].image;
     img.fetchPriority = "high";
@@ -47,6 +67,7 @@ const HeroSlideshow = () => {
       setFirstImageLoaded(true);
     };
     img.onerror = () => {
+      // Fallback: mark as loaded even if error to prevent blocking
       setImagesLoaded(prev => ({ ...prev, [0]: true }));
       setFirstImageLoaded(true);
     };
@@ -59,6 +80,9 @@ const HeroSlideshow = () => {
       }
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
       }
     };
   }, []);
@@ -148,32 +172,43 @@ const HeroSlideshow = () => {
       style={{ 
         height: "calc(100vh - 112px)", 
         minHeight: 480,
-        // CLS FIX: Reserve space to prevent layout shift
-        backgroundColor: "#1a1a2e"
+        backgroundColor: "#1a1a2e",
+        // Mobile optimization
+        willChange: 'transform',
+        backfaceVisibility: 'hidden'
       }}
     >
       {slides.map((slide, i) => {
         const isActive = i === current;
         const isLoaded = imagesLoaded[i] || (i === 0 && firstImageLoaded);
+        
+        // CRITICAL FIX: First slide is ALWAYS visible initially
+        // This ensures LCP image is painted immediately
         const shouldBeVisible = isActive || (i === 0 && !firstImageLoaded);
-        const opacity = shouldBeVisible ? 1 : 0;
+        
+        // For first slide, always show with opacity 1
+        // For other slides, control with opacity
+        const imageOpacity = (i === 0 && !firstImageLoaded) ? 1 : (isActive ? 1 : 0);
+        const contentOpacity = (i === 0 && !firstImageLoaded) ? 1 : (isActive && isLoaded ? 1 : 0);
+        const contentTransform = (i === 0 && !firstImageLoaded) ? 'translateY(0)' : (isActive && isLoaded ? 'translateY(0)' : 'translateY(8px)');
         
         return (
           <div
             key={i}
             className="absolute inset-0"
             style={{ 
-              opacity: opacity,
+              opacity: shouldBeVisible ? 1 : 0,
               zIndex: isActive ? 10 : 1,
-              transition: 'opacity 700ms ease-in-out',
+              transition: i === 0 && !firstImageLoaded ? 'none' : 'opacity 700ms ease-in-out',
               visibility: 'visible',
               pointerEvents: isActive ? 'auto' : 'none',
-              // CLS FIX: Ensure consistent sizing
               width: '100%',
-              height: '100%'
+              height: '100%',
+              // Mobile optimization
+              willChange: 'opacity'
             }}
           >
-            {/* CLS FIX: Image with explicit dimensions */}
+            {/* LCP IMAGE - Always rendered with correct opacity */}
             <img
               src={slide.image}
               alt={slide.heading}
@@ -181,18 +216,19 @@ const HeroSlideshow = () => {
               loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : "low"}
               decoding="async"
-              // CLS FIX: Image has fixed dimensions
-              width="100%"
-              height="100%"
+              // CRITICAL: First image starts with opacity 1, NOT 0
               style={{
-                opacity: shouldBeVisible ? 1 : 0,
-                transition: 'opacity 700ms ease-in-out',
-                // CLS FIX: Prevent image from causing shift
+                opacity: imageOpacity,
+                transition: i === 0 && !firstImageLoaded ? 'none' : 'opacity 700ms ease-in-out',
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 right: 0,
-                bottom: 0
+                bottom: 0,
+                // Mobile optimization
+                willChange: 'opacity',
+                // Prevent FOUC
+                backgroundColor: '#1a1a2e'
               }}
               onLoad={() => {
                 if (!imagesLoaded[i]) {
@@ -206,80 +242,76 @@ const HeroSlideshow = () => {
               }}
             />
 
-            {/* Gradient Overlay */}
+            {/* Gradient Overlay - Optimized for mobile */}
             <div 
               className="absolute inset-0" 
               style={{ 
-                background: "linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(96, 165, 250, 0.2) 50%, rgba(0, 0, 0, 0.3) 100%)",
-                opacity: shouldBeVisible ? 1 : 0,
-                transition: 'opacity 700ms ease-in-out'
+                background: isMobile 
+                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(96, 165, 250, 0.25) 50%, rgba(0, 0, 0, 0.4) 100%)"
+                  : "linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(96, 165, 250, 0.2) 50%, rgba(0, 0, 0, 0.3) 100%)",
+                opacity: imageOpacity,
+                transition: i === 0 && !firstImageLoaded ? 'none' : 'opacity 700ms ease-in-out'
               }} 
             />
             
-            {/* CLS FIX: Content with fixed positioning */}
+            {/* Content - Optimized for mobile */}
             <div 
-              className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6"
+              className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 md:px-6"
               style={{
-                opacity: shouldBeVisible && (i === 0 ? true : isLoaded) ? 1 : 0,
-                transform: shouldBeVisible && (i === 0 ? true : isLoaded) ? 'translateY(0)' : 'translateY(8px)',
-                transition: 'opacity 700ms ease-in-out, transform 700ms ease-in-out',
-                // CLS FIX: Prevent content from causing shift
+                opacity: contentOpacity,
+                transform: contentTransform,
+                transition: i === 0 && !firstImageLoaded ? 'none' : 'opacity 700ms ease-in-out, transform 700ms ease-in-out',
                 position: 'relative',
                 width: '100%',
-                height: '100%'
+                height: '100%',
+                // Mobile optimization
+                willChange: 'opacity, transform'
               }}
             >
-              <p className="text-purple-200/90 text-xs font-semibold uppercase tracking-[0.22em] mb-4 animate-pulse-slow">
+              <p className="text-purple-200/90 text-[10px] md:text-xs font-semibold uppercase tracking-[0.22em] mb-3 md:mb-4 animate-pulse-slow">
                 {slide.sub}
               </p>
               <h1 
-                className="text-white font-light max-w-3xl drop-shadow-lg" 
+                className="text-white font-light max-w-3xl drop-shadow-lg px-2" 
                 style={{ 
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "clamp(2.2rem, 6vw, 5rem)",
+                  fontSize: isMobile ? "clamp(1.8rem, 8vw, 2.8rem)" : "clamp(2.2rem, 6vw, 5rem)",
                   lineHeight: 1.1,
                   textShadow: "0 2px 24px rgba(139, 92, 246, 0.2)",
-                  // CLS FIX: Prevent text from causing shift
                   wordBreak: 'break-word'
                 }}
               >
                 {slide.heading}
               </h1>
-              <a
-  href={slide.link}
-  className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:text-black hover:scale-105 hover:shadow-purple-500/30"
-  // CLS FIX: Prevent link from causing shift
-  style={{
-    display: 'inline-block',
-    minWidth: '120px',
-    textAlign: 'center',
-    // Ensure text color changes on hover
-    color: 'white',
-    transition: 'all 300ms ease-in-out'
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.color = 'black';
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.color = 'white';
-  }}
->
-  {slide.cta}
-</a>
               
+              <a
+                href={slide.link}
+                className="group mt-6 md:mt-8 px-6 md:px-10 py-2.5 md:py-3.5 border-2 border-white/80 text-white text-[0.65rem] md:text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:scale-105 hover:shadow-purple-500/30"
+                style={{
+                  display: 'inline-block',
+                  minWidth: isMobile ? '100px' : '120px',
+                  textAlign: 'center',
+                  transition: 'all 300ms ease-in-out',
+                  // Mobile optimization
+                  touchAction: 'manipulation'
+                }}
+              >
+                <span className="transition-colors duration-300 group-hover:text-black">
+                  {slide.cta}
+                </span>
+              </a>
             </div>
           </div>
         );
       })}
 
-      {/* Navigation Arrows - CLS Optimized */}
-      {firstImageLoaded && (
+      {/* Navigation Arrows - Hide on mobile */}
+      {firstImageLoaded && !isMobile && (
         <>
           <button 
             onClick={prev} 
             aria-label="Previous slide"
             className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white/15 backdrop-blur-sm border border-purple-300/40 rounded-full text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent transition-all duration-300 hover:scale-110"
-            // CLS FIX: Fixed position, won't shift
             style={{
               position: 'absolute',
               top: '50%',
@@ -305,20 +337,19 @@ const HeroSlideshow = () => {
         </>
       )}
 
-      {/* Dots - CLS Optimized */}
+      {/* Dots - Optimized for mobile */}
       {firstImageLoaded && (
         <div 
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5"
+          className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 md:gap-2.5"
           style={{
             position: 'absolute',
-            bottom: '24px',
+            bottom: isMobile ? '16px' : '24px',
             left: '50%',
             transform: 'translateX(-50%)',
-            // CLS FIX: Fixed height to prevent shift
-            height: '16px',
+            height: isMobile ? '12px' : '16px',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px'
+            gap: isMobile ? '6px' : '10px'
           }}
         >
           {slides.map((_, i) => (
@@ -329,17 +360,16 @@ const HeroSlideshow = () => {
               aria-current={i === current ? "true" : undefined}
               className={`rounded-full transition-all duration-300 ${
                 i === current 
-                  ? "w-7 h-2.5 bg-gradient-to-r from-purple-400 to-blue-400 shadow-md" 
-                  : "w-2.5 h-2.5 bg-white/40 hover:bg-purple-300/60"
+                  ? "bg-gradient-to-r from-purple-400 to-blue-400 shadow-md" 
+                  : "bg-white/40 hover:bg-purple-300/60"
               }`}
-              // CLS FIX: Fixed dimensions to prevent shift
               style={{
                 transition: 'all 300ms',
                 flexShrink: 0,
-                // CLS FIX: Prevent size changes from causing shift
-                minWidth: i === current ? '28px' : '10px',
-                height: '10px',
-                borderRadius: '9999px'
+                width: i === current ? (isMobile ? '20px' : '28px') : (isMobile ? '6px' : '10px'),
+                height: isMobile ? '6px' : '10px',
+                borderRadius: '9999px',
+                minWidth: i === current ? (isMobile ? '20px' : '28px') : (isMobile ? '6px' : '10px')
               }}
             />
           ))}
@@ -348,19 +378,14 @@ const HeroSlideshow = () => {
 
       <style>{`
         @keyframes pulse-slow {
-          0%, 100% {
-            opacity: 0.9;
-          }
-          50% {
-            opacity: 0.6;
-          }
+          0%, 100% { opacity: 0.9; }
+          50% { opacity: 0.6; }
         }
         
         .animate-pulse-slow {
           animation: pulse-slow 3s ease-in-out infinite;
         }
 
-        // CLS FIX: Prevent font from causing layout shift
         @font-face {
           font-family: 'Cormorant Garamond';
           font-display: swap;
@@ -374,11 +399,25 @@ const HeroSlideshow = () => {
           }
         }
 
-        // CLS FIX: Prevent images from causing layout shift
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+          .hero-title {
+            font-size: clamp(1.8rem, 8vw, 2.8rem) !important;
+          }
+          
+          .hero-cta {
+            min-width: 100px !important;
+            padding: 0.625rem 1.5rem !important;
+            font-size: 0.65rem !important;
+          }
+        }
+
+        /* Prevent white flash */
         img {
           display: block;
           max-width: 100%;
           height: auto;
+          background-color: #1a1a2e;
         }
       `}</style>
     </div>
