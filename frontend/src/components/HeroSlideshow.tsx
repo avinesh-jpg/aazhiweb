@@ -305,46 +305,59 @@ const HeroSlideshow = () => {
         </>
       )}
 
-      {/* Dots - CLS Optimized */}
-      {firstImageLoaded && (
-        <div 
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5"
+      {/* Dots - CLS & Animation Optimized */}
+{firstImageLoaded && (
+  <div 
+    className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5"
+    style={{
+      position: 'absolute',
+      bottom: '24px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      height: '16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      // CLS FIX: Prevent dot container from shifting
+      pointerEvents: 'none'
+    }}
+  >
+    {slides.map((_, i) => {
+      const isActive = i === current;
+      return (
+        <button
+          key={i}
+          onClick={() => go(i)}
+          aria-label={`Go to slide ${i + 1}`}
+          aria-current={isActive ? "true" : undefined}
+          className="rounded-full transition-all duration-300"
+          // CLS FIX: Use fixed size, animate with transform + opacity
           style={{
-            position: 'absolute',
-            bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            // CLS FIX: Fixed height to prevent shift
-            height: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
+            width: '10px',
+            height: '10px',
+            minWidth: '10px', // Keep consistent size
+            flexShrink: 0,
+            borderRadius: '9999px',
+            // Use transform for width changes (composited)
+            transform: isActive ? 'scaleX(2.8)' : 'scaleX(1)',
+            // Use opacity for active state (composited)
+            opacity: isActive ? 1 : 0.4,
+            // Use background gradient for active (composited)
+            background: isActive 
+              ? 'linear-gradient(135deg, #a78bfa, #60a5fa)' 
+              : 'rgba(255, 255, 255, 0.4)',
+            // Composited transition
+            transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), background 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+            // Pointer events only for buttons
+            pointerEvents: 'auto',
+            // CLS FIX: No box-shadow animation
+            boxShadow: isActive ? '0 0 20px rgba(167, 139, 250, 0.3)' : 'none',
           }}
-        >
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => go(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              aria-current={i === current ? "true" : undefined}
-              className={`rounded-full transition-all duration-300 ${
-                i === current 
-                  ? "w-7 h-2.5 bg-gradient-to-r from-purple-400 to-blue-400 shadow-md" 
-                  : "w-2.5 h-2.5 bg-white/40 hover:bg-purple-300/60"
-              }`}
-              // CLS FIX: Fixed dimensions to prevent shift
-              style={{
-                transition: 'all 300ms',
-                flexShrink: 0,
-                // CLS FIX: Prevent size changes from causing shift
-                minWidth: i === current ? '28px' : '10px',
-                height: '10px',
-                borderRadius: '9999px'
-              }}
-            />
-          ))}
-        </div>
-      )}
+        />
+      );
+    })}
+  </div>
+)}
 
       <style>{`
         @keyframes pulse-slow {
