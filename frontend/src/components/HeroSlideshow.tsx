@@ -111,7 +111,6 @@ const HeroSlideshow = () => {
       }
     });
     
-    // Change current after a small delay to ensure smooth transition
     timeoutRef.current = setTimeout(() => {
       setCurrent(newIndex);
       setTimeout(() => setAnimating(false), 700);
@@ -145,28 +144,36 @@ const HeroSlideshow = () => {
   return (
     <div 
       ref={slideContainerRef}
-      className="relative w-full overflow-hidden bg-purple-900/5" 
-      style={{ height: "calc(100vh - 112px)", minHeight: 480 }}
+      className="relative w-full overflow-hidden" 
+      style={{ 
+        height: "calc(100vh - 112px)", 
+        minHeight: 480,
+        // CLS FIX: Reserve space to prevent layout shift
+        backgroundColor: "#1a1a2e"
+      }}
     >
       {slides.map((slide, i) => {
         const isActive = i === current;
         const isLoaded = imagesLoaded[i] || (i === 0 && firstImageLoaded);
-        const shouldRender = isActive || i === current || i === (current + 1) % slides.length || i === (current - 1 + slides.length) % slides.length;
+        const shouldBeVisible = isActive || (i === 0 && !firstImageLoaded);
+        const opacity = shouldBeVisible ? 1 : 0;
         
         return (
           <div
             key={i}
-            className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+            className="absolute inset-0"
             style={{ 
-              opacity: isActive ? 1 : 0,
+              opacity: opacity,
               zIndex: isActive ? 10 : 1,
               transition: 'opacity 700ms ease-in-out',
-              // CRITICAL FIX: Don't hide the element, just make it transparent
               visibility: 'visible',
-              pointerEvents: isActive ? 'auto' : 'none'
+              pointerEvents: isActive ? 'auto' : 'none',
+              // CLS FIX: Ensure consistent sizing
+              width: '100%',
+              height: '100%'
             }}
           >
-            {/* Image - Always render, control visibility with opacity only */}
+            {/* CLS FIX: Image with explicit dimensions */}
             <img
               src={slide.image}
               alt={slide.heading}
@@ -174,10 +181,18 @@ const HeroSlideshow = () => {
               loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : "low"}
               decoding="async"
+              // CLS FIX: Image has fixed dimensions
+              width="100%"
+              height="100%"
               style={{
-                // CRITICAL FIX: Never use display:none, just control visibility
-                opacity: isActive ? 1 : 0,
-                transition: 'opacity 700ms ease-in-out'
+                opacity: shouldBeVisible ? 1 : 0,
+                transition: 'opacity 700ms ease-in-out',
+                // CLS FIX: Prevent image from causing shift
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0
               }}
               onLoad={() => {
                 if (!imagesLoaded[i]) {
@@ -196,18 +211,22 @@ const HeroSlideshow = () => {
               className="absolute inset-0" 
               style={{ 
                 background: "linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(96, 165, 250, 0.2) 50%, rgba(0, 0, 0, 0.3) 100%)",
-                opacity: isActive ? 1 : 0,
+                opacity: shouldBeVisible ? 1 : 0,
                 transition: 'opacity 700ms ease-in-out'
               }} 
             />
             
-            {/* Content */}
+            {/* CLS FIX: Content with fixed positioning */}
             <div 
               className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6"
               style={{
-                opacity: isActive && isLoaded ? 1 : 0,
-                transform: isActive && isLoaded ? 'translateY(0)' : 'translateY(8px)',
-                transition: 'opacity 700ms ease-in-out, transform 700ms ease-in-out'
+                opacity: shouldBeVisible && (i === 0 ? true : isLoaded) ? 1 : 0,
+                transform: shouldBeVisible && (i === 0 ? true : isLoaded) ? 'translateY(0)' : 'translateY(8px)',
+                transition: 'opacity 700ms ease-in-out, transform 700ms ease-in-out',
+                // CLS FIX: Prevent content from causing shift
+                position: 'relative',
+                width: '100%',
+                height: '100%'
               }}
             >
               <p className="text-purple-200/90 text-xs font-semibold uppercase tracking-[0.22em] mb-4 animate-pulse-slow">
@@ -219,29 +238,54 @@ const HeroSlideshow = () => {
                   fontFamily: "'Cormorant Garamond', serif",
                   fontSize: "clamp(2.2rem, 6vw, 5rem)",
                   lineHeight: 1.1,
-                  textShadow: "0 2px 24px rgba(139, 92, 246, 0.2)"
+                  textShadow: "0 2px 24px rgba(139, 92, 246, 0.2)",
+                  // CLS FIX: Prevent text from causing shift
+                  wordBreak: 'break-word'
                 }}
               >
                 {slide.heading}
               </h1>
               <a
-                href={slide.link}
-                className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:text-black hover:scale-105 hover:shadow-purple-500/30"
-              >
-                {slide.cta}
-              </a>
+  href={slide.link}
+  className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:text-black hover:scale-105 hover:shadow-purple-500/30"
+  // CLS FIX: Prevent link from causing shift
+  style={{
+    display: 'inline-block',
+    minWidth: '120px',
+    textAlign: 'center',
+    // Ensure text color changes on hover
+    color: 'white',
+    transition: 'all 300ms ease-in-out'
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.color = 'black';
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.color = 'white';
+  }}
+>
+  {slide.cta}
+</a>
+              
             </div>
           </div>
         );
       })}
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - CLS Optimized */}
       {firstImageLoaded && (
         <>
           <button 
             onClick={prev} 
             aria-label="Previous slide"
             className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white/15 backdrop-blur-sm border border-purple-300/40 rounded-full text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent transition-all duration-300 hover:scale-110"
+            // CLS FIX: Fixed position, won't shift
+            style={{
+              position: 'absolute',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              margin: 0
+            }}
           >
             <ChevronLeft size={20} strokeWidth={2.5} />
           </button>
@@ -249,15 +293,34 @@ const HeroSlideshow = () => {
             onClick={next} 
             aria-label="Next slide"
             className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white/15 backdrop-blur-sm border border-purple-300/40 rounded-full text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent transition-all duration-300 hover:scale-110"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              margin: 0
+            }}
           >
             <ChevronRight size={20} strokeWidth={2.5} />
           </button>
         </>
       )}
 
-      {/* Dots */}
+      {/* Dots - CLS Optimized */}
       {firstImageLoaded && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5">
+        <div 
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5"
+          style={{
+            position: 'absolute',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            // CLS FIX: Fixed height to prevent shift
+            height: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
           {slides.map((_, i) => (
             <button
               key={i}
@@ -269,6 +332,15 @@ const HeroSlideshow = () => {
                   ? "w-7 h-2.5 bg-gradient-to-r from-purple-400 to-blue-400 shadow-md" 
                   : "w-2.5 h-2.5 bg-white/40 hover:bg-purple-300/60"
               }`}
+              // CLS FIX: Fixed dimensions to prevent shift
+              style={{
+                transition: 'all 300ms',
+                flexShrink: 0,
+                // CLS FIX: Prevent size changes from causing shift
+                minWidth: i === current ? '28px' : '10px',
+                height: '10px',
+                borderRadius: '9999px'
+              }}
             />
           ))}
         </div>
@@ -288,12 +360,25 @@ const HeroSlideshow = () => {
           animation: pulse-slow 3s ease-in-out infinite;
         }
 
+        // CLS FIX: Prevent font from causing layout shift
+        @font-face {
+          font-family: 'Cormorant Garamond';
+          font-display: swap;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           * {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
           }
+        }
+
+        // CLS FIX: Prevent images from causing layout shift
+        img {
+          display: block;
+          max-width: 100%;
+          height: auto;
         }
       `}</style>
     </div>
