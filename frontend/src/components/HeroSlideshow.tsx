@@ -33,35 +33,8 @@ const HeroSlideshow = () => {
   const [animating, setAnimating] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
   const [firstImageLoaded, setFirstImageLoaded] = useState(false);
-  const preloadRef = useRef<HTMLImageElement | null>(null);
   const slideContainerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Preload first image immediately on mount
-  useEffect(() => {
-    const img = new Image();
-    img.src = slides[0].image;
-    img.fetchPriority = "high";
-    img.onload = () => {
-      setImagesLoaded(prev => ({ ...prev, [0]: true }));
-      setFirstImageLoaded(true);
-    };
-    img.onerror = () => {
-      setImagesLoaded(prev => ({ ...prev, [0]: true }));
-      setFirstImageLoaded(true);
-    };
-    preloadRef.current = img;
-
-    return () => {
-      if (preloadRef.current) {
-        preloadRef.current.onload = null;
-        preloadRef.current.onerror = null;
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   // Preload adjacent images
   useEffect(() => {
@@ -148,61 +121,149 @@ const HeroSlideshow = () => {
       style={{ 
         height: "calc(100vh - 112px)", 
         minHeight: 480,
-        // CLS FIX: Reserve space to prevent layout shift
         backgroundColor: "#1a1a2e"
       }}
     >
-      {slides.map((slide, i) => {
-        const isActive = i === current;
-        const isLoaded = imagesLoaded[i] || (i === 0 && firstImageLoaded);
-        const shouldBeVisible = isActive || (i === 0 && !firstImageLoaded);
-        const opacity = shouldBeVisible ? 1 : 0;
+      {/* ⭐⭐⭐ LCP FIX: STATIC FIRST SLIDE - Always in HTML for immediate discovery ⭐⭐⭐ */}
+      <div 
+        className="absolute inset-0" 
+        style={{ 
+          zIndex: current === 0 ? 10 : 0,
+          opacity: current === 0 ? 1 : 0,
+          transition: 'opacity 700ms ease-in-out',
+          pointerEvents: current === 0 ? 'auto' : 'none'
+        }}
+      >
+        {/* LCP Image - Discoverable immediately in HTML */}
+        <img
+          src={slides[0].image}
+          alt={slides[0].heading}
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0,
+            opacity: 1
+          }}
+          width="100%"
+          height="100%"
+          onLoad={() => {
+            setImagesLoaded(prev => ({ ...prev, [0]: true }));
+            setFirstImageLoaded(true);
+          }}
+          onError={() => {
+            setImagesLoaded(prev => ({ ...prev, [0]: true }));
+            setFirstImageLoaded(true);
+          }}
+        />
+
+        {/* Gradient Overlay */}
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            background: "linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(96, 165, 250, 0.2) 50%, rgba(0, 0, 0, 0.3) 100%)",
+            opacity: 1,
+            transition: 'opacity 700ms ease-in-out'
+          }} 
+        />
+        
+        {/* Content */}
+        <div 
+          className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6"
+          style={{
+            opacity: current === 0 ? 1 : 0,
+            transform: current === 0 ? 'translateY(0)' : 'translateY(8px)',
+            transition: 'opacity 700ms ease-in-out, transform 700ms ease-in-out',
+            position: 'relative',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          <p className="text-purple-200/90 text-xs font-semibold uppercase tracking-[0.22em] mb-4 animate-pulse-slow">
+            {slides[0].sub}
+          </p>
+          <h1 
+            className="text-white font-light max-w-3xl drop-shadow-lg" 
+            style={{ 
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(2.2rem, 6vw, 5rem)",
+              lineHeight: 1.1,
+              textShadow: "0 2px 24px rgba(139, 92, 246, 0.2)",
+              wordBreak: 'break-word'
+            }}
+          >
+            {slides[0].heading}
+          </h1>
+          <a
+            href={slides[0].link}
+            className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:text-black hover:scale-105 hover:shadow-purple-500/30"
+            style={{
+              display: 'inline-block',
+              minWidth: '120px',
+              textAlign: 'center',
+              color: 'white',
+              transition: 'all 300ms ease-in-out'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'black';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'white';
+            }}
+          >
+            {slides[0].cta}
+          </a>
+        </div>
+      </div>
+
+      {/* Dynamic Slides (2 & 3) */}
+      {slides.slice(1).map((slide, i) => {
+        const slideIndex = i + 1;
+        const isActive = current === slideIndex;
+        const isLoaded = imagesLoaded[slideIndex] || false;
         
         return (
           <div
-            key={i}
+            key={slideIndex}
             className="absolute inset-0"
             style={{ 
-              opacity: opacity,
+              opacity: isActive ? 1 : 0,
               zIndex: isActive ? 10 : 1,
               transition: 'opacity 700ms ease-in-out',
               visibility: 'visible',
               pointerEvents: isActive ? 'auto' : 'none',
-              // CLS FIX: Ensure consistent sizing
               width: '100%',
               height: '100%'
             }}
           >
-            {/* CLS FIX: Image with explicit dimensions */}
             <img
               src={slide.image}
               alt={slide.heading}
               className="absolute inset-0 w-full h-full object-cover"
-              loading={i === 0 ? "eager" : "lazy"}
-              fetchPriority={i === 0 ? "high" : "low"}
+              loading="lazy"
+              fetchPriority="low"
               decoding="async"
-              // CLS FIX: Image has fixed dimensions
-              width="100%"
-              height="100%"
               style={{
-                opacity: shouldBeVisible ? 1 : 0,
+                opacity: isActive ? 1 : 0,
                 transition: 'opacity 700ms ease-in-out',
-                // CLS FIX: Prevent image from causing shift
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 right: 0,
                 bottom: 0
               }}
+              width="100%"
+              height="100%"
               onLoad={() => {
-                if (!imagesLoaded[i]) {
-                  setImagesLoaded(prev => ({ ...prev, [i]: true }));
-                  if (i === 0) setFirstImageLoaded(true);
-                }
+                setImagesLoaded(prev => ({ ...prev, [slideIndex]: true }));
               }}
               onError={() => {
-                setImagesLoaded(prev => ({ ...prev, [i]: true }));
-                if (i === 0) setFirstImageLoaded(true);
+                setImagesLoaded(prev => ({ ...prev, [slideIndex]: true }));
               }}
             />
 
@@ -211,19 +272,18 @@ const HeroSlideshow = () => {
               className="absolute inset-0" 
               style={{ 
                 background: "linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(96, 165, 250, 0.2) 50%, rgba(0, 0, 0, 0.3) 100%)",
-                opacity: shouldBeVisible ? 1 : 0,
+                opacity: isActive ? 1 : 0,
                 transition: 'opacity 700ms ease-in-out'
               }} 
             />
             
-            {/* CLS FIX: Content with fixed positioning */}
+            {/* Content */}
             <div 
               className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6"
               style={{
-                opacity: shouldBeVisible && (i === 0 ? true : isLoaded) ? 1 : 0,
-                transform: shouldBeVisible && (i === 0 ? true : isLoaded) ? 'translateY(0)' : 'translateY(8px)',
+                opacity: isActive && isLoaded ? 1 : 0,
+                transform: isActive && isLoaded ? 'translateY(0)' : 'translateY(8px)',
                 transition: 'opacity 700ms ease-in-out, transform 700ms ease-in-out',
-                // CLS FIX: Prevent content from causing shift
                 position: 'relative',
                 width: '100%',
                 height: '100%'
@@ -239,47 +299,42 @@ const HeroSlideshow = () => {
                   fontSize: "clamp(2.2rem, 6vw, 5rem)",
                   lineHeight: 1.1,
                   textShadow: "0 2px 24px rgba(139, 92, 246, 0.2)",
-                  // CLS FIX: Prevent text from causing shift
                   wordBreak: 'break-word'
                 }}
               >
                 {slide.heading}
               </h1>
               <a
-  href={slide.link}
-  className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:text-black hover:scale-105 hover:shadow-purple-500/30"
-  // CLS FIX: Prevent link from causing shift
-  style={{
-    display: 'inline-block',
-    minWidth: '120px',
-    textAlign: 'center',
-    // Ensure text color changes on hover
-    color: 'white',
-    transition: 'all 300ms ease-in-out'
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.color = 'black';
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.color = 'white';
-  }}
->
-  {slide.cta}
-</a>
-              
+                href={slide.link}
+                className="mt-8 px-10 py-3.5 border-2 border-white/80 text-white text-[0.72rem] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent hover:text-black hover:scale-105 hover:shadow-purple-500/30"
+                style={{
+                  display: 'inline-block',
+                  minWidth: '120px',
+                  textAlign: 'center',
+                  color: 'white',
+                  transition: 'all 300ms ease-in-out'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'black';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+              >
+                {slide.cta}
+              </a>
             </div>
           </div>
         );
       })}
 
-      {/* Navigation Arrows - CLS Optimized */}
+      {/* Navigation Arrows - Only show after first image loads */}
       {firstImageLoaded && (
         <>
           <button 
             onClick={prev} 
             aria-label="Previous slide"
             className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center bg-white/15 backdrop-blur-sm border border-purple-300/40 rounded-full text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-500 hover:border-transparent transition-all duration-300 hover:scale-110"
-            // CLS FIX: Fixed position, won't shift
             style={{
               position: 'absolute',
               top: '50%',
@@ -305,7 +360,7 @@ const HeroSlideshow = () => {
         </>
       )}
 
-      {/* Dots - CLS Optimized */}
+      {/* Dots */}
       {firstImageLoaded && (
         <div 
           className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5"
@@ -314,7 +369,6 @@ const HeroSlideshow = () => {
             bottom: '24px',
             left: '50%',
             transform: 'translateX(-50%)',
-            // CLS FIX: Fixed height to prevent shift
             height: '16px',
             display: 'flex',
             alignItems: 'center',
@@ -332,11 +386,9 @@ const HeroSlideshow = () => {
                   ? "w-7 h-2.5 bg-gradient-to-r from-purple-400 to-blue-400 shadow-md" 
                   : "w-2.5 h-2.5 bg-white/40 hover:bg-purple-300/60"
               }`}
-              // CLS FIX: Fixed dimensions to prevent shift
               style={{
                 transition: 'all 300ms',
                 flexShrink: 0,
-                // CLS FIX: Prevent size changes from causing shift
                 minWidth: i === current ? '28px' : '10px',
                 height: '10px',
                 borderRadius: '9999px'
@@ -360,7 +412,6 @@ const HeroSlideshow = () => {
           animation: pulse-slow 3s ease-in-out infinite;
         }
 
-        // CLS FIX: Prevent font from causing layout shift
         @font-face {
           font-family: 'Cormorant Garamond';
           font-display: swap;
@@ -374,7 +425,6 @@ const HeroSlideshow = () => {
           }
         }
 
-        // CLS FIX: Prevent images from causing layout shift
         img {
           display: block;
           max-width: 100%;
