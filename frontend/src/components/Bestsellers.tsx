@@ -233,7 +233,7 @@
                     Rs. {product.price.toLocaleString()}
                   </span>
                   {product.originalPrice && (
-                    <span className="text-[0.78rem] text-gray-400 line-through">
+                    <span className="text-[0.78rem] text-gray-800 line-through">
                       Rs. {product.originalPrice.toLocaleString()}
                     </span>
                   )}
