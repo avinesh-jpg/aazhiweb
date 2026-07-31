@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
     <!-- TODO: Set the document title to the name of your application -->
     <title>Aazhi</title>
     <meta name="description" content="Explore Aazhi organic, comfortable baby and toddler clothing for ages 0-10." />
@@ -16,10 +17,121 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
     <meta name="twitter:image" content="#" />
+
+    <!-- ============================================ -->
+    <!-- 🚀 PERFORMANCE OPTIMIZATIONS FOR MOBILE      -->
+    <!-- ============================================ -->
+    
+    <!-- 1. Preconnect to Google Fonts (saves DNS lookup time) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- 2. Critical CSS Inlined (above-the-fold content) -->
+    <style>
+      /* Critical CSS for above-the-fold content */
+      /* This prevents layout shift and flash of unstyled content */
+      
+      /* Base reset for above-the-fold */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      /* Preload font fallback */
+      body {
+        font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: radial-gradient(ellipse at 20% 25%, #f5efff 0%, #e8f0fe 45%, #faf5ff 70%, #ffffff 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        /* Text will be visible while fonts load */
+        color: #1e1b4b;
+      }
+      
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      
+      /* Critical layout - prevent CLS */
+      #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Mobile-first critical styles */
+      @media (max-width: 768px) {
+        body {
+          background: radial-gradient(ellipse at 20% 25%, #f5efff 0%, #e8f0fe 45%, #faf5ff 70%, #ffffff 100%);
+          background-attachment: fixed;
+        }
+      }
+      
+      /* Loading state placeholder */
+      .app-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: 'Nunito Sans', sans-serif;
+        color: #6d28d9;
+        opacity: 0;
+        animation: fadeIn 0.3s ease-in forwards;
+      }
+      
+      @keyframes fadeIn {
+        to { opacity: 1; }
+      }
+    </style>
+    
+    <!-- 3. Load Google Fonts asynchronously (non-blocking) -->
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Nunito+Sans:wght@300;400;500;600;700;800&display=swap" 
+      rel="stylesheet" 
+      media="print" 
+      onload="this.media='all'; this.onload=null;"
+    />
+    <noscript>
+      <link 
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Nunito+Sans:wght@300;400;500;600;700;800&display=swap" 
+        rel="stylesheet"
+      />
+    </noscript>
+    
+    <!-- 4. Preload main CSS (loaded async) -->
+    <link 
+      rel="preload" 
+      href="/assets/index-C7BuFRvr.css" 
+      as="style" 
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="/assets/index-C7BuFRvr.css" />
+    </noscript>
+    
+    <!-- 5. Fallback if CSS fails to load -->
+    <noscript>
+      <style>
+        /* Fallback styles if CSS doesn't load */
+        body { background: #f5efff; }
+      </style>
+    </noscript>
+    
+    <!-- ============================================ -->
+    <!-- END PERFORMANCE OPTIMIZATIONS                -->
+    <!-- ============================================ -->
   </head>
 
   <body>
-    <div id="root"></div>
+    <!-- Loading indicator (visible while app loads) -->
+    <div id="root">
+      <div class="app-loading">
+        <span>Loading Aazhi...</span>
+      </div>
+    </div>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
