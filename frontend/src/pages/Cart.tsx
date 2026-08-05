@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCart } from "@/context/useCart";
 import { useNavigate } from "react-router-dom";
-import { Trash2, ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
+import { Trash2, ArrowLeft, Minus, Plus, ShoppingBag, Copy, Check, Lock, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,6 +27,59 @@ const Cart = () => {
   const token = localStorage.getItem('tiinyberry_token');
   const [stockInfo, setStockInfo] = useState<Map<string, number>>(new Map());
   const [checkingStock, setCheckingStock] = useState(false);
+  
+  const [shippingSettings, setShippingSettings] = useState({
+    freeShippingThreshold: 3000,
+    standardShippingRate: 100
+  });
+  
+  interface CouponTier {
+    code: string;
+    threshold: number;
+    discount: number;
+  }
+  const [couponTiers, setCouponTiers] = useState<CouponTier[]>([]);
+  const [showTiersModal, setShowTiersModal] = useState(false);
+
+  // Fetch shipping settings
+  useEffect(() => {
+    const fetchShippingSettings = async () => {
+      try {
+        const res = await fetch(`${API_URL}/shipping/settings`);
+        const data = await res.json();
+        if (data.success && data.settings) {
+          setShippingSettings({
+            freeShippingThreshold: data.settings.freeShippingThreshold,
+            standardShippingRate: data.settings.standardShippingRate
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching shipping settings:", err);
+      }
+    };
+    fetchShippingSettings();
+  }, []);
+
+  // Fetch coupon tiers
+  useEffect(() => {
+    const fetchCouponTiers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/coupons/tiers`);
+        const data = await res.json();
+        if (data.success && data.tiers) {
+          setCouponTiers(data.tiers);
+        }
+      } catch (err) {
+        console.error("Error fetching coupon tiers:", err);
+      }
+    };
+    fetchCouponTiers();
+  }, []);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`Copied coupon code: ${text}`);
+  };
 
   // Fetch stock info for all cart items
   useEffect(() => {
@@ -70,8 +123,44 @@ const Cart = () => {
   }, [cartItems]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = subtotal > 2000 ? 0 : 70;
+  const shippingThreshold = shippingSettings.freeShippingThreshold;
+  const shippingRate = shippingSettings.standardShippingRate;
+  const shipping = subtotal >= shippingThreshold ? 0 : shippingRate;
   const total = subtotal + shipping;
+
+  const getCouponLadderState = () => {
+    if (couponTiers.length === 0) return null;
+    
+    const nextLocked = couponTiers.find(tier => subtotal < tier.threshold);
+    const unlockedTiers = [...couponTiers].reverse().filter(tier => subtotal >= tier.threshold);
+    const bestUnlocked = unlockedTiers[0] || null;
+    const maxThreshold = couponTiers[couponTiers.length - 1].threshold;
+    
+    if (nextLocked) {
+      const remaining = nextLocked.threshold - subtotal;
+      const progress = (subtotal / nextLocked.threshold) * 100;
+      return {
+        isMaxed: false,
+        nextTier: nextLocked,
+        remaining,
+        progress,
+        bestUnlocked,
+        maxThreshold
+      };
+    } else {
+      const highestTier = couponTiers[couponTiers.length - 1];
+      return {
+        isMaxed: true,
+        nextTier: null,
+        remaining: 0,
+        progress: 100,
+        bestUnlocked: highestTier,
+        maxThreshold
+      };
+    }
+  };
+
+  const couponState = getCouponLadderState();
 
   // Get available stock for an item
   const getAvailableStock = (item: CartItem): number => {
@@ -291,6 +380,67 @@ const Cart = () => {
                   Order Summary
                 </h2>
                 
+                {/* Progress Indicators */}
+                <div className="space-y-4 mb-6">
+                  {/* FREE DELIVERY CARD */}
+                  <div className="bg-[#fcfaff]/80 border border-purple-100 rounded-xl p-4 shadow-sm">
+                    <div className="flex justify-between text-xs font-semibold text-[#1e1b4b] uppercase tracking-wider mb-1">
+                      <span>Free Delivery</span>
+                      <span>Rs. {shippingThreshold.toLocaleString()}</span>
+                    </div>
+                    {subtotal >= shippingThreshold ? (
+                      <p className="text-xs text-green-600 font-medium">🎉 You've unlocked FREE delivery!</p>
+                    ) : (
+                      <p className="text-xs text-gray-600">
+                        Add <strong className="text-purple-600">Rs. {(shippingThreshold - subtotal).toLocaleString()}</strong> more for free delivery.
+                      </p>
+                    )}
+                    <div className="mt-2 h-1.5 bg-purple-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, (subtotal / shippingThreshold) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* COUPON LADDER CARD */}
+                  {couponState && (
+                    <div className="bg-[#fcfaff]/80 border border-purple-100 rounded-xl p-4 shadow-sm">
+                      <div className="flex justify-between text-xs font-semibold text-[#1e1b4b] uppercase tracking-wider mb-1">
+                        <span>Launch Coupon Ladder</span>
+                        <span>Rs. {couponState.maxThreshold.toLocaleString()}</span>
+                      </div>
+                      
+                      {couponState.isMaxed ? (
+                        <p className="text-xs text-green-600 font-medium">
+                          🎉 Max discount unlocked! Copy code <strong className="cursor-pointer text-purple-700 underline font-mono bg-purple-50 px-1 py-0.5 rounded border border-purple-200" onClick={() => copyToClipboard(couponState.bestUnlocked!.code)}>{couponState.bestUnlocked!.code}</strong> to get Rs. {couponState.bestUnlocked!.discount} off.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-600 leading-relaxed">
+                          Add <strong className="text-purple-600">Rs. {couponState.remaining.toLocaleString()}</strong> more to unlock <strong className="text-purple-600">Rs. {couponState.nextTier!.discount} off</strong> with code <strong className="cursor-pointer text-purple-700 hover:text-purple-900 underline font-mono bg-purple-50 px-1 py-0.5 rounded border border-purple-200" onClick={() => copyToClipboard(couponState.nextTier!.code)}>{couponState.nextTier!.code}</strong>.
+                        </p>
+                      )}
+                      
+                      <div className="mt-2 h-1.5 bg-purple-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, couponState.progress)}%` }}
+                        />
+                      </div>
+                      
+                      <p className="text-[10px] text-gray-400 mt-2 leading-tight">
+                        Only one coupon applies per order. Copy your best unlocked code and enter it at checkout.
+                      </p>
+                      <button 
+                        onClick={() => setShowTiersModal(true)}
+                        className="text-xs text-purple-600 hover:text-purple-800 hover:underline mt-2 font-medium block text-left"
+                      >
+                        View all launch coupon tiers
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between py-2">
                     <span className="text-gray-500">Subtotal ({cartCount} items)</span>
@@ -302,9 +452,9 @@ const Cart = () => {
                       {shipping === 0 ? 'Free' : `Rs. ${shipping.toLocaleString()}`}
                     </span>
                   </div>
-                  {shipping > 0 && subtotal < 2000 && (
+                  {shipping > 0 && subtotal < shippingThreshold && (
                     <p className="text-xs text-green-600">
-                      Add Rs. {(2000 - subtotal).toLocaleString()} more for free shipping
+                      Add Rs. {(shippingThreshold - subtotal).toLocaleString()} more for free shipping
                     </p>
                   )}
                   <div className="border-t border-purple-200 pt-3 mt-3">
@@ -343,6 +493,110 @@ const Cart = () => {
       </main>
       <Footer />
       <BackToTop />
+
+      {/* Tiers Modal */}
+      {showTiersModal && (
+        <div className="fixed inset-0 bg-[#000]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-purple-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4 border-b border-purple-100 pb-3">
+              <h3 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                Launch Coupon Ladder Tiers
+              </h3>
+              <button 
+                onClick={() => setShowTiersModal(false)}
+                className="text-gray-400 hover:text-purple-600 transition-colors p-1 rounded-full hover:bg-purple-50"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <p className="text-xs text-gray-500 mb-4">
+              Unlock higher discount tiers by adding more items to your cart! Copy your best unlocked code to use at checkout.
+            </p>
+            
+            <div className="space-y-3">
+              {couponTiers.map((tier, idx) => {
+                const isUnlocked = subtotal >= tier.threshold;
+                const progressToTier = Math.min(100, (subtotal / tier.threshold) * 100);
+                
+                return (
+                  <div 
+                    key={idx}
+                    className={`border rounded-xl p-4 transition-all duration-300 ${
+                      isUnlocked 
+                        ? 'border-green-200 bg-green-50/20' 
+                        : 'border-purple-100 bg-purple-50/5'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {isUnlocked ? (
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                            <Check size={16} />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-purple-100/50 flex items-center justify-center text-purple-400">
+                            <Lock size={14} />
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm text-[#1e1b4b]">
+                              Rs. {tier.discount} Off
+                            </span>
+                            <span className="text-[10px] text-gray-400">
+                              (Min. spend Rs. {tier.threshold})
+                            </span>
+                          </div>
+                          <span 
+                            onClick={() => isUnlocked && copyToClipboard(tier.code)}
+                            className={`inline-flex items-center gap-1 text-xs font-mono font-bold mt-1 px-2 py-0.5 rounded border transition-all ${
+                              isUnlocked 
+                                ? 'bg-green-100/80 border-green-200 text-green-700 cursor-pointer hover:bg-green-200/80' 
+                                : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                            }`}
+                          >
+                            {tier.code}
+                            {isUnlocked && <Copy size={10} />}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        {isUnlocked ? (
+                          <span className="text-xs font-semibold text-green-600">Unlocked</span>
+                        ) : (
+                          <span className="text-xs text-purple-500 font-medium">
+                            Add Rs. {(tier.threshold - subtotal).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {!isUnlocked && (
+                      <div className="mt-3">
+                        <div className="h-1 bg-purple-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-purple-400 to-purple-300 rounded-full transition-all duration-300"
+                            style={{ width: `${progressToTier}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            
+            <button
+              onClick={() => setShowTiersModal(false)}
+              className="w-full mt-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-md transition-all duration-300"
+            >
+              Back to Cart
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

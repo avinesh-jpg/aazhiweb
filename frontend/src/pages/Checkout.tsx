@@ -24,6 +24,49 @@ const Checkout = () => {
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(3000);
   const [remainingForFree, setRemainingForFree] = useState(0);
   
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    
+    try {
+      const response = await fetch(`${API_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput, subtotal })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setAppliedCoupon({
+          code: data.code,
+          discount: data.discount
+        });
+        setCouponInput(data.code);
+      } else {
+        setCouponError(data.message || 'Invalid coupon code');
+        setAppliedCoupon(null);
+      }
+    } catch (err) {
+      console.error('Error applying coupon:', err);
+      setCouponError('Failed to validate coupon code. Please try again.');
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+  };
+  
   const token = localStorage.getItem('tiinyberry_token');
   const user = JSON.parse(localStorage.getItem('tiinyberry_user') || 'null');
   
@@ -110,7 +153,7 @@ const Checkout = () => {
   }, [cartItems, shippingMethod]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const total = subtotal + shippingCost;
+  const total = subtotal - (appliedCoupon?.discount || 0) + shippingCost;
 
   // Create pending order before payment
   const createPendingOrder = async () => {
@@ -151,7 +194,8 @@ const Checkout = () => {
           email: formData.email
         },
         shippingMethod,
-        shippingCost
+        shippingCost,
+        couponCode: appliedCoupon?.code || null
       })
     });
     
@@ -440,12 +484,60 @@ const Checkout = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Coupon Code Input */}
+              <div className="py-4 border-t border-b border-purple-100 my-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    placeholder="Enter Coupon Code"
+                    disabled={couponLoading || !!appliedCoupon}
+                    className="flex-1 px-3 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm uppercase bg-white/80"
+                  />
+                  {appliedCoupon ? (
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !couponInput.trim()}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all animate-pulse-once"
+                    >
+                      {couponLoading ? 'Applying...' : 'Apply'}
+                    </button>
+                  )}
+                </div>
+                {appliedCoupon && (
+                  <p className="text-xs text-green-600 mt-2 font-medium">
+                    ✓ Coupon <strong>{appliedCoupon.code}</strong> applied successfully! You saved ₹{appliedCoupon.discount.toLocaleString()}.
+                  </p>
+                )}
+                {couponError && (
+                  <p className="text-xs text-red-500 mt-2 font-medium">
+                    ✗ {couponError}
+                  </p>
+                )}
+              </div>
               
-              <div className="space-y-2 pt-3 border-t border-purple-200">
+              <div className="space-y-2 pt-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Subtotal ({cartCount} items)</span>
                   <span className="text-[#1e1b4b]">₹{subtotal.toLocaleString()}</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm text-green-600 font-medium">
+                    <span>Discount ({appliedCoupon.code})</span>
+                    <span>-₹{appliedCoupon.discount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Shipping</span>
                   <span className="text-[#1e1b4b]">{isFreeShipping ? 'FREE' : `₹${shippingCost.toLocaleString()}`}</span>

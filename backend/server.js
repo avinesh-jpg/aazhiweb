@@ -17,6 +17,7 @@ import uploadRoutes from './routes/upload.js';
 import subcategoryRoutes from './routes/subcategories.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import shippingRoutes from './routes/shipping.js';
+import couponRoutes from './routes/coupons.js';
 import combosRoutes from './routes/combo.js';
 import blogRoutes from './routes/blog.js';
 import seoRoutes from './routes/seoRoutes.js'; // ✅ NEW: SEO Routes
@@ -277,6 +278,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/subcategories', subcategoryRoutes);
 app.use('/api/shipping', shippingRoutes);
+app.use('/api/coupons', couponRoutes);
 app.use('/api/combos', combosRoutes);
 app.use('/api/blog', blogRoutes);
 

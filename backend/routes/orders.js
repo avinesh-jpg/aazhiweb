@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import User from '../models/User.js';
+import Coupon from '../models/Coupon.js';
+import ShippingSetting from '../models/ShippingSetting.js';
 import { sendOrderConfirmation } from '../config/email.js';
 
 const router = express.Router();
@@ -11,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'tiinyberry_secret_key_2024';
 // Create pending order
 router.post('/create-pending', async (req, res) => {
   try {
-    const { shippingAddress } = req.body;
+    const { shippingAddress, couponCode } = req.body;
     
     console.log('Creating pending order for email:', shippingAddress?.email);
     
@@ -70,8 +72,34 @@ router.post('/create-pending', async (req, res) => {
     
     // Calculate totals
     const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal > 3000 ? 0 : 100;
-    const total = subtotal + shipping;
+    
+    // Fetch shipping rate dynamically from DB settings
+    let shipping = 100;
+    try {
+      const settings = await ShippingSetting.findOne();
+      if (settings) {
+        shipping = subtotal >= settings.freeShippingThreshold ? 0 : settings.standardShippingRate;
+      } else {
+        shipping = subtotal >= 3000 ? 0 : 100;
+      }
+    } catch (e) {
+      console.error('Error fetching shipping setting:', e);
+      shipping = subtotal >= 3000 ? 0 : 100;
+    }
+    
+    // Calculate coupon discount
+    let discount = 0;
+    let validatedCouponCode = null;
+    if (couponCode) {
+      const uppercaseCode = couponCode.toUpperCase().trim();
+      const coupon = await Coupon.findOne({ code: uppercaseCode, isActive: true });
+      if (coupon && subtotal >= coupon.threshold) {
+        discount = coupon.discount;
+        validatedCouponCode = coupon.code;
+      }
+    }
+    
+    const total = subtotal - discount + shipping;
     
     // Create order
     const order = new Order({
@@ -91,6 +119,8 @@ router.post('/create-pending', async (req, res) => {
       })),
       subtotal,
       shipping,
+      discount,
+      couponCode: validatedCouponCode,
       total,
       paymentMethod: 'razorpay',
       paymentStatus: 'pending',
