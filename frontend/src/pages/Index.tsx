@@ -4,7 +4,6 @@ import AnnouncementBar from "@/components/AnnouncementBar";
 import Navbar from "@/components/Navbar";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import FeatureStrip from "@/components/FeatureStrip";
-import ShopByAge from "@/components/ShopByAge";
 import ShopByCollections from "@/components/ShopByCollections";
 import Bestsellers from "@/components/Bestsellers";
 import ComboOffers from "@/components/ComboOffers";
@@ -46,7 +45,6 @@ const Index = () => {
         <main>
           <HeroSlideshow />
           <FeatureStrip />
-          <ShopByAge />
           <ShopByCollections />
           <Bestsellers />
           <ComboOffers />

@@ -8,21 +8,18 @@ const slides = [
   { 
     image: banner1,
     heading: "Premium Tiruppur Cotton Kids Wear. Made for Play, Priced for Parents.", 
-    sub: "Direct from the textile capital of India to your doorstep. Discover unbeatable value-for-money clothing from Tiruppur's finest hidden brands.", 
     cta: "Shop Now", 
     link: "#collections" 
   },
   { 
     image: banner2,
-    heading: "No Itchy Tags, Just Happy Wiggles", 
-    sub: "Comfy, breathable threads your baby will love", 
+    heading: "No Itchy Tags, Just Happy Wiggles",  
     cta: "Shop Now", 
     link: "#collections" 
   },
   { 
     image: banner3,
-    heading: "Hello Mamas! We've Got You Covered", 
-    sub: "Everything your newborn needs, all in one place", 
+    heading: "Hello Mamas! We've Got You Covered",  
     cta: "Shop Now", 
     link: "#collections" 
   },
@@ -184,9 +181,7 @@ const HeroSlideshow = () => {
             height: '100%'
           }}
         >
-          <p className="text-purple-200/90 text-xs font-semibold uppercase tracking-[0.22em] mb-4 animate-pulse-slow">
-            {slides[0].sub}
-          </p>
+        
           <h1 
             className="text-white font-light max-w-3xl drop-shadow-lg" 
             style={{ 
@@ -289,9 +284,7 @@ const HeroSlideshow = () => {
                 height: '100%'
               }}
             >
-              <p className="text-purple-200/90 text-xs font-semibold uppercase tracking-[0.22em] mb-4 animate-pulse-slow">
-                {slide.sub}
-              </p>
+          
               <h1 
                 className="text-white font-light max-w-3xl drop-shadow-lg" 
                 style={{ 

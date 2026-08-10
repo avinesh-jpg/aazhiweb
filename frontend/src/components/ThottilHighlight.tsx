@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import colSwaddles from "@/assets/col-swaddles.jpg";
-import colBooties from "@/assets/col-booties.webp";
+import colSwaddles from "@/assets/img1.jpeg";
+import colBooties from "@/assets/img2.jpeg";
 
 const ThottilHighlight = () => (
   <section className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] py-20 md:py-28 px-4 sm:px-8 relative overflow-hidden">

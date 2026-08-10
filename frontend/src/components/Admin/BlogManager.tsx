@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit, Trash2, X, Eye, EyeOff, Sparkles, FileText, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Eye, EyeOff, Sparkles, FileText, Image as ImageIcon, Link2, Upload, ExternalLink } from 'lucide-react';
 import ImageUpload from './ImageUpload';
 
 interface Blog {
@@ -23,6 +23,7 @@ const BlogManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
+  const [imageInputMode, setImageInputMode] = useState<'link' | 'upload'>('link');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [formData, setFormData] = useState({
@@ -69,6 +70,7 @@ const BlogManager: React.FC = () => {
       author: blog.author || 'Admin',
       status: blog.status || 'published'
     });
+    setImageInputMode('link');
     setShowModal(true);
   };
 
@@ -147,6 +149,7 @@ const BlogManager: React.FC = () => {
       author: 'Admin',
       status: 'published'
     });
+    setImageInputMode('link');
   };
 
   // Helper to insert HTML tags at textarea selection
@@ -174,7 +177,7 @@ const BlogManager: React.FC = () => {
 
   const getImageUrl = (url: string) => {
     if (!url) return '';
-    if (url.startsWith('http')) return url;
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
     return `${API_URL.replace('/api', '')}${url}`;
   };
 
@@ -219,7 +222,15 @@ const BlogManager: React.FC = () => {
                 <tr key={blog._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     {blog.coverImage ? (
-                      <img src={getImageUrl(blog.coverImage)} alt={blog.title} className="w-12 h-12 object-cover rounded" />
+                      <img 
+                        src={getImageUrl(blog.coverImage)} 
+                        alt={blog.title} 
+                        className="w-12 h-12 object-cover rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://images.unsplash.com/photo-1515488042361-404e9250afef?q=80&w=200&auto=format&fit=crop';
+                        }}
+                      />
                     ) : (
                       <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400">
                         <ImageIcon size={18} />
@@ -368,15 +379,117 @@ const BlogManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Row 3: Cover Image Upload */}
+              {/* Row 3: Cover Image (Image Link / URL or File Upload) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image</label>
-                <ImageUpload 
-                  onUpload={(url) => setFormData({ ...formData, coverImage: url })}
-                  onRemove={() => setFormData({ ...formData, coverImage: '' })}
-                  multiple={false}
-                  existingImages={formData.coverImage ? [formData.coverImage] : []}
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Cover Image</label>
+                  <div className="flex items-center bg-gray-100 p-0.5 rounded-lg text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setImageInputMode('link')}
+                      className={`px-3 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
+                        imageInputMode === 'link'
+                          ? 'bg-white text-primary shadow-sm font-semibold'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Link2 size={13} />
+                      Image Link (URL)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageInputMode('upload')}
+                      className={`px-3 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
+                        imageInputMode === 'upload'
+                          ? 'bg-white text-primary shadow-sm font-semibold'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Upload size={13} />
+                      Upload File
+                    </button>
+                  </div>
+                </div>
+
+                {imageInputMode === 'link' ? (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <Link2 size={16} />
+                      </div>
+                      <input
+                        type="url"
+                        value={formData.coverImage}
+                        onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                        className="w-full pl-9 pr-10 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm font-mono"
+                        placeholder="Paste image URL (e.g. https://images.unsplash.com/... or any online image URL)"
+                      />
+                      {formData.coverImage && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, coverImage: '' })}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                          title="Clear link"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Paste a direct image link from Unsplash, Pinterest, Cloudinary, Imgur, or any image hosting service.
+                    </p>
+                  </div>
+                ) : (
+                  <ImageUpload 
+                    onUpload={(url) => setFormData({ ...formData, coverImage: url })}
+                    onRemove={() => setFormData({ ...formData, coverImage: '' })}
+                    multiple={false}
+                    existingImages={formData.coverImage ? [formData.coverImage] : []}
+                  />
+                )}
+
+                {/* Live Image Preview */}
+                {formData.coverImage && (
+                  <div className="mt-3 p-3 bg-gray-50 border rounded-xl flex items-center gap-4">
+                    <div className="relative w-20 h-16 rounded-lg overflow-hidden border bg-gray-100 flex-shrink-0">
+                      <img 
+                        src={getImageUrl(formData.coverImage)} 
+                        alt="Cover Preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://images.unsplash.com/photo-1515488042361-404e9250afef?q=80&w=200&auto=format&fit=crop';
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                          Active Cover Preview
+                        </span>
+                        <a 
+                          href={getImageUrl(formData.coverImage)} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
+                        >
+                          Open Link <ExternalLink size={12} />
+                        </a>
+                      </div>
+                      <p className="text-xs text-gray-500 truncate mt-1 font-mono">
+                        {formData.coverImage}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, coverImage: '' })}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition"
+                      title="Remove Cover Image"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Row 4: Summary */}
@@ -441,6 +554,22 @@ const BlogManager: React.FC = () => {
                     </button>
                     <button
                       type="button"
+                      onClick={() => {
+                        const url = prompt('Enter Image URL / Link:');
+                        if (url) {
+                          const alt = prompt('Enter Image Description/Alt (optional):') || 'Blog illustration';
+                          const imgTag = `\n<img src="${url}" alt="${alt}" class="w-full rounded-xl my-4" />\n`;
+                          insertHTMLTag(imgTag, '');
+                        }
+                      }}
+                      className="px-2 py-0.5 text-xs text-purple-600 bg-white border rounded hover:bg-gray-100 transition flex items-center gap-1"
+                      title="Insert Image by Link"
+                    >
+                      <ImageIcon size={12} />
+                      Img Link
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => insertHTMLTag('<blockquote>', '</blockquote>')}
                       className="px-2 py-0.5 text-xs font-serif bg-white border rounded hover:bg-gray-100 transition"
                       title="Quote"
@@ -473,11 +602,11 @@ const BlogManager: React.FC = () => {
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
-                  placeholder="Write your blog post content here. Use the toolbar buttons above to apply formatting."
+                  placeholder="Write your blog post content here. Use the toolbar buttons above to apply formatting or insert image links."
                 />
                 <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                   <Sparkles size={12} className="text-purple-500" />
-                  Supports standard HTML tags. Select text and click the buttons above to format instantly.
+                  Supports standard HTML tags and image links. Select text and click the buttons above to format instantly.
                 </p>
               </div>
 
