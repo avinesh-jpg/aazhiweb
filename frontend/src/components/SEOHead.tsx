@@ -6,8 +6,8 @@ const SEOHead = ({
   title, 
   description, 
   keywords = [], 
-  image = 'https://aazhi.com/og-image.jpg', 
-  url = typeof window !== 'undefined' ? window.location.href : 'https://aazhi.com',
+  image = 'https://theaazhi.com/og-image.jpg', 
+  url = typeof window !== 'undefined' ? window.location.href : 'https://theaazhi.com',
   type = 'website'
 }: SEOProps) => {
   const siteName = 'Aazhi';
