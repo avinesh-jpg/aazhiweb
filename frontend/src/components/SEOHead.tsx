@@ -47,8 +47,8 @@ const SEOHead = ({
       <meta name="author" content="Aazhi Clothing" />
       
       {/* Favicon */}
-      <link rel="icon" href="/favicon.ico" />
-      <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" href="/favicon-32x32.png" />
+      <link rel="apple-touch-icon" href="/favicon-32x32.png" />
     </Helmet>
   );
 };
