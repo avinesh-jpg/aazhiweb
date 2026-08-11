@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search, User, ShoppingBag, Menu, X, ChevronDown, LogOut, Package } from 'lucide-react';
 import { useCart } from '@/context/useCart';
 import EmailOTPLogin from './EmailOTPLogin';
 import SearchModal from './SearchModal';
+import logo from '@/assets/logo.png';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -248,14 +249,17 @@ const Navbar = () => {
             </button>
 
             {/* Logo */}
-            <a
-              href="/"
-              onClick={(e) => { e.preventDefault(); navigate('/'); }}
-              className="nav-logo font-heading text-2xl md:text-3xl font-semibold tracking-tight flex-shrink-0 cursor-pointer"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            <Link
+              to="/"
+              className="flex items-center flex-shrink-0 transition-opacity hover:opacity-90 py-1"
+              aria-label="Aazhi Home"
             >
-              Aazhi
-            </a>
+              <img
+                src={logo}
+                alt="Aazhi - Organic Baby & Toddler Clothing"
+                className="h-16 w-30"
+              />
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-1">
@@ -355,13 +359,19 @@ const Navbar = () => {
         <div className="fixed inset-0 z-[200] flex">
           <div className="overlay-bg fixed inset-0 transition-opacity" onClick={() => setMobileOpen(false)} />
           <aside className="mobile-sidebar relative z-10 w-80 h-full overflow-y-auto shadow-2xl flex flex-col animate-slide-in-right">
-            <div className="mobile-sidebar-header flex items-center justify-between p-5 sticky top-0">
-              <span
-                className="nav-logo text-xl font-semibold"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            <div className="mobile-sidebar-header flex items-center justify-between p-4 px-5 sticky top-0 z-20">
+              <Link
+                to="/"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center"
+                aria-label="Aazhi Home"
               >
-                Aazhi
-              </span>
+                <img
+                  src={logo}
+                  alt="Aazhi - Organic Baby & Toddler Clothing"
+                  className="h-9 w-auto object-contain"
+                />
+              </Link>
               <button
                 onClick={() => setMobileOpen(false)}
                 className="icon-btn"
