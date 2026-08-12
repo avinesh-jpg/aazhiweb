@@ -7,19 +7,19 @@ import banner3 from "../assets/banner3-optimized.webp";
 const slides = [
   { 
     image: banner1,
-    heading: "Premium Tiruppur Cotton Kids Wear. Made for Play, Priced for Parents.", 
+    heading: "Premium Tiruppur Cotton Kids Wear.", 
     cta: "Shop Now", 
     link: "#collections" 
   },
   { 
     image: banner2,
-    heading: "No Itchy Tags, Just Happy Wiggles",  
+    heading: "Made for Play, Priced for Parents.",  
     cta: "Shop Now", 
     link: "#collections" 
   },
   { 
     image: banner3,
-    heading: "Hello Mamas! We've Got You Covered",  
+    heading: "No Itchy Tags, Just Happy Wiggles.",  
     cta: "Shop Now", 
     link: "#collections" 
   },

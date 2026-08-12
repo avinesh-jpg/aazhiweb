@@ -17,7 +17,7 @@ const createAdmin = async () => {
     console.log('Deleted existing admin');
     
     // Hash password with bcrypt
-    const plainPassword = 'admin123';
+    const plainPassword = 'JulyAugust@26';
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
     
