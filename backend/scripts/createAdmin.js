@@ -1,19 +1,21 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import dns from 'dns';
 
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 dotenv.config();
 
 const createAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/tiinyberry');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/aazhi');
     console.log('Connected to MongoDB');
     
     const db = mongoose.connection.db;
     const adminsCollection = db.collection('admins');
     
     // Delete existing admin
-    await adminsCollection.deleteMany({ email: 'admin@tiinyberry.com' });
+    await adminsCollection.deleteMany({ email: 'admin@aazhi.com' });
     console.log('Deleted existing admin');
     
     // Hash password with bcrypt
@@ -21,13 +23,10 @@ const createAdmin = async () => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
     
-    console.log('Plain password:', plainPassword);
-    console.log('Hashed password:', hashedPassword);
-    
     // Insert new admin
     const admin = {
       name: 'Super Admin',
-      email: 'admin@tiinyberry.com',
+      email: 'admin@aazhi.com',
       password: hashedPassword,
       role: 'super_admin',
       createdAt: new Date()
@@ -35,12 +34,12 @@ const createAdmin = async () => {
     
     const result = await adminsCollection.insertOne(admin);
     console.log('✅ Admin user created successfully!');
-    console.log('📧 Email: admin@tiinyberry.com');
-    console.log('🔑 Password: admin123');
+    console.log('📧 Email: admin@aazhi.com');
+    console.log('🔑 Password: JulyAugust@26');
     console.log('Inserted ID:', result.insertedId);
     
     // Verify by testing password
-    const savedAdmin = await adminsCollection.findOne({ email: 'admin@tiinyberry.com' });
+    const savedAdmin = await adminsCollection.findOne({ email: 'admin@aazhi.com' });
     const isValid = await bcrypt.compare(plainPassword, savedAdmin.password);
     console.log('Password verification test:', isValid ? '✅ PASSED' : '❌ FAILED');
     
