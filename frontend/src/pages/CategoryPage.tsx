@@ -77,7 +77,8 @@ const CategoryPage = () => {
         '0-24': '0-3 Months',
         '2-12': '2-12 Years',
         '6-12': '6-12 Months',
-        '1-10': '1-10 Years'
+        '1-10': '1-10 Years',
+        '2-10': '2-10 Years'
       };
       return ageMap[value || ''] || 'Shop by Age';
     }

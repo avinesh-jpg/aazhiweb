@@ -3,12 +3,14 @@ import age03 from "@/assets/age-0-3.webp";
 import age36 from "@/assets/age-3-6.webp";
 import age612 from "@/assets/age-6-12.webp";
 import age110 from "@/assets/age-1-10.webp";
+import age210 from "@/assets/age-2-10.jpg";
 
 const ages = [
   { label: "0–3 Months", sub: "Newborn essentials", image: age03, ageRange: "0-24", path: "/category/collection/newborn" },
-  { label: "2–12 Years", sub: "Growing & exploring", image: age36, ageRange: "2-12",path: "/category/collection/boys" },
   { label: "6–12 Months", sub: "Active little ones", image: age612, ageRange: "6-12", path: "/category/collection/girls" },
   { label: "1–10 Years", sub: "Kids fashion & comfort", image: age110, ageRange: "1-10", path: "/category/collection/unisex" },
+  { label: "2–10 Years", sub: "Premium style & play", image: age210, ageRange: "2-10", path: "/category/collection/unisex" },
+  { label: "2–12 Years", sub: "Growing & exploring", image: age36, ageRange: "2-12", path: "/category/collection/boys" },
 ];
 
 const ShopByAge = () => (
@@ -28,7 +30,7 @@ const ShopByAge = () => (
       </h2>
     </div>
     
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-5">
       {ages.map((age, i) => (
         <Link
   key={age.label}
