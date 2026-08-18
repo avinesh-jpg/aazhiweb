@@ -1,7 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
 import { CartProvider } from "@/context/CartProvider";
 import { HelmetProvider } from 'react-helmet-async';
+import ReactGA from "react-ga4";
 
 // 🚀 LAZY LOAD - Pages load only when needed
 const Index = lazy(() => import("@/pages/Index"));
@@ -34,11 +35,23 @@ function LoadingSpinner() {
   );
 }
 
+// 📊 Route pageview tracker for Google Analytics
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    ReactGA.send({ hitType: "pageview", page: location.pathname + location.search });
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   return (
     <HelmetProvider>
       <CartProvider>
         <Router>
+          <AnalyticsTracker />
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Index />} />
