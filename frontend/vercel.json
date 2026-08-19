@@ -1,6 +1,16 @@
 {
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "https://aazhiweb.onrender.com/sitemap.xml" },
+    
+    { "source": "/cart", "destination": "/" },
+    { "source": "/checkout", "destination": "/" },
+    { "source": "/orders", "destination": "/" },
+    { "source": "/profile", "destination": "/" },
+    { "source": "/admin/:path*", "destination": "/" },
+    { "source": "/search", "destination": "/" },
+    { "source": "/blog/:path*", "destination": "/" },
+    { "source": "/combo/:path*", "destination": "/" },
+    
     {
       "source": "/product/:id",
       "has": [
@@ -13,7 +23,7 @@
       "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/product-by-id/:id"
     },
     {
-      "source": "/:category((?!cart|checkout|orders|profile|admin|search|blog|combo|assets|uploads|favicon|logo).+)/:subcategory/:slug",
+      "source": "/:category/:subcategory/:slug",
       "has": [
         {
           "type": "header",
@@ -35,7 +45,7 @@
       "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/category/:category"
     },
     {
-      "source": "/:slug((?!cart|checkout|orders|profile|admin|search|blog|combo|assets|uploads|favicon|logo).+)",
+      "source": "/:slug",
       "has": [
         {
           "type": "header",
