@@ -394,7 +394,7 @@ const AdminDashboard = () => {
               activeTab === 'combos' ? 'bg-primary text-white' : 'hover:bg-gray-100'
             }`}
           >
-            {/*                          //if we need  combos and icon we can use this code to view on the admin dash board 
+            {/*                          //if we need  combos and icon we can use this code to view on the admin dash board ok
             <Gift size={18} />
             Combos
           </button>
