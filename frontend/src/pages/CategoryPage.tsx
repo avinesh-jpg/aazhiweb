@@ -347,6 +347,20 @@ const CategoryPage = () => {
         <meta name="description" content={getMetaDescription()} />
         <meta name="keywords" content={getMetaKeywords()} />
         <link rel="canonical" href={window.location.href} />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={getMetaTitle()} />
+        <meta property="og:description" content={getMetaDescription()} />
+        <meta property="og:image" content={products[0]?.image || "https://theaazhi.com/logo.png"} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:site_name" content="Aazhi Premium" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={getMetaTitle()} />
+        <meta name="twitter:description" content={getMetaDescription()} />
+        <meta name="twitter:image" content={products[0]?.image || "https://theaazhi.com/logo.png"} />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
