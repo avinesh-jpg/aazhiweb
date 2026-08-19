@@ -797,15 +797,16 @@ const AdminDashboard = () => {
                       const lowStockItems: any[] = [];
                       products.forEach((product) => {
                         if (product.sizes && product.sizes.length > 0) {
-                          product.sizes.forEach((size: any) => {
-                            if (size.stock <= 5) {
-                              lowStockItems.push({
-                                ...product,
-                                alertSize: size.name,
-                                alertStock: size.stock
-                              });
-                            }
-                          });
+                          const allSizesOutOfStock = product.sizes.every((size: any) => size.stock === 0);
+                          const lowStockSizes = product.sizes.filter((size: any) => size.stock <= 5);
+                          
+                          if (allSizesOutOfStock || lowStockSizes.length > 0) {
+                            lowStockItems.push({
+                              ...product,
+                              allSizesOutOfStock,
+                              lowStockSizes
+                            });
+                          }
                         }
                       });
 
@@ -820,21 +821,32 @@ const AdminDashboard = () => {
                       }
 
                       return lowStockItems.map((item, idx) => (
-                        <tr key={`${item._id}-${item.alertSize}-${idx}`} className="hover:bg-gray-50">
+                        <tr key={`${item._id}-${idx}`} className="hover:bg-gray-50">
                           <td className="px-6 py-4">
                             <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
                           </td>
                           <td className="px-6 py-4 text-sm font-medium">{item.name}</td>
-                          <td className="px-6 py-4 text-sm font-semibold text-gray-700">{item.alertSize}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="space-y-1">
+                              {item.lowStockSizes.map((size: any, sIdx: number) => (
+                                <div key={sIdx} className="text-xs">
+                                  <span className="font-semibold text-gray-700">{size.name}:</span>{' '}
+                                  <span className={size.stock === 0 ? 'text-red-600 font-medium' : 'text-orange-600 font-medium'}>
+                                    {size.stock} left
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
                           <td className="px-6 py-4 text-sm capitalize">{item.category}</td>
                           <td className="px-6 py-4 text-sm">
-                            {item.alertStock === 0 ? (
+                            {item.allSizesOutOfStock ? (
                               <span className="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-full bg-red-100 text-red-800">
                                 🚫 Out of Stock
                               </span>
                             ) : (
                               <span className="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-full bg-orange-100 text-orange-800 animate-pulse">
-                                ⚠️ Only {item.alertStock} left
+                                ⚠️ Low Stock (Some Sizes)
                               </span>
                             )}
                           </td>
