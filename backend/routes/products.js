@@ -11,7 +11,7 @@ router.use(seoMiddleware);
 // Get all products with SEO
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find({ inStock: { $ne: false } }).sort({ createdAt: -1 });
     
     const productsWithSEO = products.map(product => ({
       ...product.toObject(),
@@ -37,11 +37,16 @@ router.get('/search', async (req, res) => {
     const searchRegex = new RegExp(searchTerm, 'i');
     
     const products = await Product.find({
-      $or: [
-        { name: searchRegex },
-        { category: searchRegex },
-        { subcategory: searchRegex },
-        { description: searchRegex }
+      $and: [
+        {
+          $or: [
+            { name: searchRegex },
+            { category: searchRegex },
+            { subcategory: searchRegex },
+            { description: searchRegex }
+          ]
+        },
+        { inStock: { $ne: false } }
       ]
     }).limit(20);
     
@@ -61,7 +66,7 @@ router.get('/search', async (req, res) => {
 router.get('/age/:age', async (req, res) => {
   try {
     const { age } = req.params;
-    const products = await Product.find({ age }).sort({ createdAt: -1 });
+    const products = await Product.find({ age, inStock: { $ne: false } }).sort({ createdAt: -1 });
     
     const productsWithSEO = products.map(product => ({
       ...product.toObject(),
@@ -78,7 +83,7 @@ router.get('/age/:age', async (req, res) => {
 router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
-    const products = await Product.find({ category }).sort({ createdAt: -1 });
+    const products = await Product.find({ category, inStock: { $ne: false } }).sort({ createdAt: -1 });
     
     const productsWithSEO = products.map(product => ({
       ...product.toObject(),
@@ -96,7 +101,7 @@ router.get('/subcategory/:subcategoryName', async (req, res) => {
   try {
     const { subcategoryName } = req.params;
     const decodedSubcategory = decodeURIComponent(subcategoryName);
-    const products = await Product.find({ subcategory: decodedSubcategory }).sort({ createdAt: -1 });
+    const products = await Product.find({ subcategory: decodedSubcategory, inStock: { $ne: false } }).sort({ createdAt: -1 });
     
     const productsWithSEO = products.map(product => ({
       ...product.toObject(),
@@ -246,7 +251,7 @@ router.get('/product/:id', async (req, res) => {
 // Get bestsellers
 router.get('/bestsellers', async (req, res) => {
   try {
-    const products = await Product.find({ badge: 'Bestseller' }).sort({ createdAt: -1 });
+    const products = await Product.find({ badge: 'Bestseller', inStock: { $ne: false } }).sort({ createdAt: -1 });
     
     const productsWithSEO = products.map(product => ({
       ...product.toObject(),

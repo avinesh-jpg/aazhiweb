@@ -50,6 +50,7 @@ const orderSchema = new mongoose.Schema({
     email: { type: String, required: true }
   },
   emailSent: { type: Boolean, default: false },
+  stockDeducted: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -83,4 +84,35 @@ orderSchema.pre('save', async function(next) {
   }
 });
 
+// Deduct stock when order is confirmed
+orderSchema.pre('save', async function(next) {
+  if (this.status === 'confirmed' && !this.stockDeducted) {
+    try {
+      console.log(`Deducting stock for order: ${this.orderNumber || this._id}`);
+      for (const item of this.items) {
+        const productId = parseInt(item.productId);
+        if (!isNaN(productId)) {
+          const product = await mongoose.model('Product').findOne({ productId });
+          if (product) {
+            const sizeObj = product.sizes.find(s => s.name === item.size);
+            if (sizeObj) {
+              sizeObj.stock = Math.max(0, sizeObj.stock - item.quantity);
+              // Save the product (triggers recalculation of inStock)
+              await product.save();
+              console.log(`✅ Deducted ${item.quantity} units of size "${item.size}" for product ID ${productId}. New stock: ${sizeObj.stock}`);
+            } else {
+              console.warn(`⚠️ Size "${item.size}" not found on product ID ${productId}`);
+            }
+          } else {
+            console.warn(`⚠️ Product ID ${productId} not found during stock deduction`);
+          }
+        }
+      }
+      this.stockDeducted = true;
+    } catch (error) {
+      console.error('❌ Error deducting stock on order confirmation:', error);
+    }
+  }
+  next();
+});
 export default mongoose.model('Order', orderSchema);
