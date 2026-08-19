@@ -213,6 +213,9 @@ const AdminDashboard = () => {
 
         <div class="total">
           <p>Subtotal: ₹${order.subtotal.toLocaleString()}</p>
+          ${order.discount && order.discount > 0 ? `
+            <p>Discount${order.couponCode ? ` (${order.couponCode})` : ''}: -₹${order.discount.toLocaleString()}</p>
+          ` : ''}
           <p>Shipping: ${order.shipping === 0 ? 'FREE' : `₹${order.shipping.toLocaleString()}`}</p>
           <p>Total: ₹${order.total.toLocaleString()}</p>
         </div>
