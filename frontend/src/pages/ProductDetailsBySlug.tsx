@@ -842,7 +842,7 @@ const ProductDetailsBySlug = () => {
                       {sizeError && <p className="text-xs text-red-500">{sizeError}</p>}
                     </div>
                     <div className="flex flex-wrap gap-3">
-                      {product.sizes?.map((sizeObj: Size) => (
+                      {product.sizes?.filter((sizeObj: Size) => sizeObj.stock > 0).map((sizeObj: Size) => (
                         <button
                           key={sizeObj.name}
                           onClick={() => {
@@ -850,12 +850,9 @@ const ProductDetailsBySlug = () => {
                             setSizeError('');
                             setQuantity(1);
                           }}
-                          disabled={sizeObj.stock === 0}
                           className={`px-5 py-2.5 border rounded-full text-sm font-medium transition-all relative ${
                             selectedSize?.name === sizeObj.name
                               ? "border-purple-500 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md"
-                              : sizeObj.stock === 0
-                              ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
                               : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
                           }`}
                         >
@@ -864,9 +861,6 @@ const ProductDetailsBySlug = () => {
                             <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
                               Only {sizeObj.stock}
                             </span>
-                          )}
-                          {sizeObj.stock === 0 && (
-                            <span className="ml-1 text-xs">(Out)</span>
                           )}
                         </button>
                       ))}
