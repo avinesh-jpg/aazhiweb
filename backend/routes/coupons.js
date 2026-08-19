@@ -8,9 +8,8 @@ const seedDefaults = async () => {
   const count = await Coupon.countDocuments();
   if (count === 0) {
     const defaultCoupons = [
-      { code: 'LAUNCH75', threshold: 750, discount: 75 },
-      { code: 'LAUNCH200', threshold: 1500, discount: 200 },
-      { code: 'LAUNCH400', threshold: 2500, discount: 400 }
+      { code: 'LAUNCH100', threshold: 2000, discount: 100 },
+      { code: 'LAUNCH200', threshold: 3000, discount: 200 }
     ];
     await Coupon.create(defaultCoupons);
     console.log('Seeded default coupon tiers.');
