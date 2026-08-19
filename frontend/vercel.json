@@ -1,60 +1,6 @@
 {
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "https://aazhiweb.onrender.com/sitemap.xml" },
-    
-    { "source": "/cart", "destination": "/" },
-    { "source": "/checkout", "destination": "/" },
-    { "source": "/orders", "destination": "/" },
-    { "source": "/profile", "destination": "/" },
-    { "source": "/admin/:path*", "destination": "/" },
-    { "source": "/search", "destination": "/" },
-    { "source": "/blog/:path*", "destination": "/" },
-    { "source": "/combo/:path*", "destination": "/" },
-    
-    {
-      "source": "/product/:id",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i)(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
-        }
-      ],
-      "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/product-by-id/:id"
-    },
-    {
-      "source": "/:category/:subcategory/:slug",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i)(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
-        }
-      ],
-      "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/product/:category/:subcategory/:slug"
-    },
-    {
-      "source": "/category/:category",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i)(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
-        }
-      ],
-      "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/category/:category"
-    },
-    {
-      "source": "/:slug",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i)(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
-        }
-      ],
-      "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/product/all/all/:slug"
-    },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
