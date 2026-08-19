@@ -466,12 +466,14 @@ const ProductDetails = () => {
   const stockStatus = useMemo((): StockStatus => {
     if (!product) return { text: "Loading...", color: "text-gray-600", bg: "bg-gray-100", badge: "bg-gray-100 text-gray-800" };
     
+    const isAllOutOfStock = product.sizes && product.sizes.length > 0 && product.sizes.every(size => size.stock === 0);
+    if (isAllOutOfStock) {
+      return { text: "Out of Stock", color: "text-red-600", bg: "bg-red-100", badge: "bg-red-100 text-red-800" };
+    }
+
     if (hasSizes) {
       if (!selectedSize) {
         return { text: "Select a size", color: "text-yellow-600", bg: "bg-yellow-100", badge: "bg-yellow-100 text-yellow-800" };
-      }
-      if (selectedSize.stock === 0) {
-        return { text: "Out of Stock", color: "text-red-600", bg: "bg-red-100", badge: "bg-red-100 text-red-800" };
       }
       if (selectedSize.stock <= STOCK_THRESHOLDS.VERY_LOW) {
         return { text: `⚠️ Only ${selectedSize.stock} left in ${selectedSize.name}`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
@@ -481,9 +483,6 @@ const ProductDetails = () => {
     
     if (product.sizes && product.sizes.length > 0 && product.sizes[0].name === 'One Size') {
       const oneSize = product.sizes[0];
-      if (oneSize.stock === 0) {
-        return { text: "Out of Stock", color: "text-red-600", bg: "bg-red-100", badge: "bg-red-100 text-red-800" };
-      }
       if (oneSize.stock <= STOCK_THRESHOLDS.VERY_LOW) {
         return { text: `⚠️ Only ${oneSize.stock} left in stock`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
       }
@@ -498,15 +497,11 @@ const ProductDetails = () => {
 
   const outOfStock = useMemo(() => {
     if (!product) return true;
-    
-    if (hasSizes) {
-      if (!selectedSize) return false;
-      return selectedSize.stock === 0;
-    } else if (product.sizes && product.sizes.length > 0 && product.sizes[0].name === 'One Size') {
-      return product.sizes[0].stock === 0;
+    if (product.sizes && product.sizes.length > 0) {
+      return product.sizes.every(size => size.stock === 0);
     }
     return false;
-  }, [product, selectedSize, hasSizes]);
+  }, [product]);
 
   const maxStock = useMemo(() => {
     if (!product) return 0;
