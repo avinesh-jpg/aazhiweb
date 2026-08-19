@@ -394,6 +394,7 @@ const AdminDashboard = () => {
               activeTab === 'combos' ? 'bg-primary text-white' : 'hover:bg-gray-100'
             }`}
           >
+            {/*                          //if we need  combos and icon we can use this code to view on the admin dash board 
             <Gift size={18} />
             Combos
           </button>
@@ -403,6 +404,8 @@ const AdminDashboard = () => {
               activeTab === 'blogs' ? 'bg-primary text-white' : 'hover:bg-gray-100'
             }`}
           >
+            */}
+
             <FileText size={18} />
             Blogs
           </button>
