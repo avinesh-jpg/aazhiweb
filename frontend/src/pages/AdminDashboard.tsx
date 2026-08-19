@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
-  Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText
+  Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle
 } from 'lucide-react';
 import ProductModal from '@/components/Admin/ProductModal';
 import SubcategoryManager from '@/components/Admin/SubcategoryManager';
@@ -20,7 +20,7 @@ const AdminDashboard = () => {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos' | 'blogs'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos' | 'blogs' | 'inventory'>('dashboard');
   const [loading, setLoading] = useState(true);
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -136,6 +136,7 @@ const AdminDashboard = () => {
   };
 
   const printInvoice = (order: any) => {
+    const logoUrl = `${window.location.origin}/logo.png`;
     const invoiceHtml = `
       <!DOCTYPE html>
       <html>
@@ -144,7 +145,8 @@ const AdminDashboard = () => {
         <style>
           body { font-family: Arial, sans-serif; padding: 40px; }
           .header { text-align: center; margin-bottom: 30px; }
-          .header h1 { color: #2c3e50; margin: 0; }
+          .header img { max-height: 80px; width: auto; object-fit: contain; display: block; margin: 0 auto 10px auto; }
+          .header p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
           .order-info { margin-bottom: 20px; }
           table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
           th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
@@ -156,7 +158,7 @@ const AdminDashboard = () => {
       </head>
       <body>
         <div class="header">
-          <h1>Aazhi</h1>
+        <img src="${logoUrl}" alt="Aazhi Logo" />
           <p>Order Invoice</p>
         </div>
 
@@ -225,14 +227,30 @@ const AdminDashboard = () => {
     // Replace with invoice
     document.body.innerHTML = invoiceHtml;
 
-    // Print
-    window.print();
+    // Wait for the logo image to finish loading before initiating print
+    const imgElement = document.querySelector('.header img') as HTMLImageElement;
+    
+    const triggerPrint = () => {
+      window.print();
+      document.body.innerHTML = originalContent;
+      window.location.reload();
+    };
 
-    // Restore original page
-    document.body.innerHTML = originalContent;
-
-    // Optional reload (ensures React UI comes back clean)
-    window.location.reload();
+    if (imgElement) {
+      if (imgElement.complete) {
+        triggerPrint();
+      } else {
+        imgElement.onload = triggerPrint;
+        imgElement.onerror = triggerPrint; // fallback in case of loading error
+        
+        // Safety timeout (1.5 seconds) in case onload/onerror doesn't fire
+        setTimeout(() => {
+          triggerPrint();
+        }, 1500);
+      }
+    } else {
+      triggerPrint();
+    }
   };
 
   const handleAddProduct = () => {
@@ -380,6 +398,15 @@ const AdminDashboard = () => {
           >
             <FileText size={18} />
             Blogs
+          </button>
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'inventory' ? 'bg-primary text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <AlertTriangle size={18} />
+            Inventory Alerts
           </button>
           <div className="pt-4 border-t mt-4">
             <button
@@ -734,6 +761,88 @@ const AdminDashboard = () => {
         {activeTab === 'blogs' && (
           <div>
             <BlogManager />
+          </div>
+        )}
+
+        {/* Inventory Alerts Tab */}
+        {activeTab === 'inventory' && (
+          <div>
+            <h1 className="text-2xl font-bold mb-6">⚠️ Inventory Alerts</h1>
+            <p className="text-muted-foreground mb-6">Products and sizes that are currently out of stock or running low (5 or fewer items left).</p>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Image</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Product Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Size</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Category</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Stock Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {(() => {
+                      const lowStockItems: any[] = [];
+                      products.forEach((product) => {
+                        if (product.sizes && product.sizes.length > 0) {
+                          product.sizes.forEach((size: any) => {
+                            if (size.stock <= 5) {
+                              lowStockItems.push({
+                                ...product,
+                                alertSize: size.name,
+                                alertStock: size.stock
+                              });
+                            }
+                          });
+                        }
+                      });
+
+                      if (lowStockItems.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={6} className="text-center py-8 text-gray-500 font-medium">
+                              🎉 Excellent! All product sizes are well stocked.
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return lowStockItems.map((item, idx) => (
+                        <tr key={`${item._id}-${item.alertSize}-${idx}`} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
+                          </td>
+                          <td className="px-6 py-4 text-sm font-medium">{item.name}</td>
+                          <td className="px-6 py-4 text-sm font-semibold text-gray-700">{item.alertSize}</td>
+                          <td className="px-6 py-4 text-sm capitalize">{item.category}</td>
+                          <td className="px-6 py-4 text-sm">
+                            {item.alertStock === 0 ? (
+                              <span className="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                🚫 Out of Stock
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-full bg-orange-100 text-orange-800 animate-pulse">
+                                ⚠️ Only {item.alertStock} left
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <button
+                              onClick={() => handleEditProduct(item)}
+                              className="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded hover:bg-primary/90 transition-colors"
+                            >
+                              Restock / Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </div>
