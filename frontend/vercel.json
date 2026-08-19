@@ -1,6 +1,28 @@
 {
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "https://aazhiweb.onrender.com/sitemap.xml" },
+    {
+      "source": "/product/:category/:subcategory/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
+        }
+      ],
+      "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/product/:category/:subcategory/:slug"
+    },
+    {
+      "source": "/category/:category",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
+        }
+      ],
+      "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/category/:category"
+    },
     { "source": "/(.*)", "destination": "/" }
   ]
 }

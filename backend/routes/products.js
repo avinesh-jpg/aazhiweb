@@ -264,6 +264,96 @@ router.get('/bestsellers', async (req, res) => {
   }
 });
 
+// GET HTML preview of product for crawlers/social media sharing
+router.get('/seo-preview/product/:category/:subcategory/:slug', async (req, res) => {
+  try {
+    const { category, subcategory, slug } = req.params;
+    const product = await Product.findOne({ slug });
+    
+    const pageTitle = product ? `${product.name} | Aazhi Premium` : 'Aazhi | Premium Cotton Baby Clothes & Kids Wear';
+    const pageDesc = product ? (product.description || `Buy ${product.name} at Aazhi Premium.`) : 'Shop premium baby clothes, newborn clothing, cotton dresses, rompers, and kids wear online at Aazhi.';
+    const imageUrl = product ? product.image : 'https://theaazhi.com/logo.png';
+    const productUrl = `https://theaazhi.com/product/${category}/${subcategory}/${slug}`;
+    
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${pageTitle}</title>
+        <meta name="description" content="${pageDesc}" />
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content="${pageTitle}" />
+        <meta property="og:description" content="${pageDesc}" />
+        <meta property="og:image" content="${imageUrl}" />
+        <meta property="og:url" content="${productUrl}" />
+        <meta property="og:site_name" content="Aazhi Premium" />
+        
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${pageTitle}" />
+        <meta name="twitter:description" content="${pageDesc}" />
+        <meta name="twitter:image" content="${imageUrl}" />
+      </head>
+      <body>
+        <h1>${product ? product.name : 'Product Not Found'}</h1>
+        <p>${pageDesc}</p>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('SEO product preview error:', error);
+    res.status(500).send('Error loading preview');
+  }
+});
+
+// GET HTML preview of category for crawlers/social media sharing
+router.get('/seo-preview/category/:category', async (req, res) => {
+  try {
+    const { category } = req.params;
+    const products = await Product.find({ category, inStock: { $ne: false } }).limit(1);
+    
+    const pageTitle = `${category} Premium Kids Wear | Aazhi`;
+    const pageDesc = `Shop the latest ${category} clothing collection at Aazhi. 100% soft cotton baby clothing and kids wear.`;
+    const imageUrl = products.length > 0 ? products[0].image : 'https://theaazhi.com/logo.png';
+    const categoryUrl = `https://theaazhi.com/category/${category}`;
+    
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${pageTitle}</title>
+        <meta name="description" content="${pageDesc}" />
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="${pageTitle}" />
+        <meta property="og:description" content="${pageDesc}" />
+        <meta property="og:image" content="${imageUrl}" />
+        <meta property="og:url" content="${categoryUrl}" />
+        <meta property="og:site_name" content="Aazhi Premium" />
+        
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${pageTitle}" />
+        <meta name="twitter:description" content="${pageDesc}" />
+        <meta name="twitter:image" content="${imageUrl}" />
+      </head>
+      <body>
+        <h1>${category} Collection</h1>
+        <p>${pageDesc}</p>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('SEO category preview error:', error);
+    res.status(500).send('Error loading preview');
+  }
+});
+
 // ✅ Generate SEO data for all existing products (Migration endpoint)
 router.post('/generate-seo', async (req, res) => {
   try {
