@@ -183,7 +183,20 @@ router.post('/products', authAdmin, async (req, res) => {
 router.put('/products/:productId', authAdmin, async (req, res) => {
   try {
     const { productId } = req.params;
-    const product = await Product.findByIdAndUpdate(productId, req.body, { new: true });
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    // Update fields
+    Object.assign(product, req.body);
+    
+    // Explicitly update inStock status based on sizes
+    if (product.sizes && product.sizes.length > 0) {
+      product.inStock = product.sizes.some(size => size.stock > 0);
+    }
+    
+    await product.save();
     res.json({ success: true, product });
   } catch (error) {
     console.error('Update product error:', error);
