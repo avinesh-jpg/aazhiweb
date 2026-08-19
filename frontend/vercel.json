@@ -7,7 +7,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
+          "value": "(?i)(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
         }
       ],
       "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/product/:category/:subcategory/:slug"
@@ -18,7 +18,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
+          "value": "(?i)(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp|telegrambot)"
         }
       ],
       "destination": "https://aazhiweb.onrender.com/api/products/seo-preview/category/:category"
