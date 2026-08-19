@@ -154,6 +154,10 @@ const AdminDashboard = () => {
           .total { text-align: right; font-size: 18px; font-weight: bold; }
           .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
           .address-box { background: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; }
+          @media print {
+            @page { margin: 0; }
+            body { margin: 1.6cm; padding: 0; }
+          }
         </style>
       </head>
       <body>
