@@ -273,7 +273,9 @@ router.get('/seo-preview/product/:category/:subcategory/:slug', async (req, res)
     const pageTitle = product ? `${product.name} | Aazhi Premium` : 'Aazhi | Premium Cotton Baby Clothes & Kids Wear';
     const pageDesc = product ? (product.description || `Buy ${product.name} at Aazhi Premium.`) : 'Shop premium baby clothes, newborn clothing, cotton dresses, rompers, and kids wear online at Aazhi.';
     const imageUrl = product ? product.image : 'https://theaazhi.com/logo.png';
-    const productUrl = `https://theaazhi.com/product/${category}/${subcategory}/${slug}`;
+    const productUrl = (category === 'all' && subcategory === 'all') 
+      ? `https://theaazhi.com/${slug}` 
+      : `https://theaazhi.com/${category}/${subcategory}/${slug}`;
     
     res.send(`
       <!DOCTYPE html>
@@ -305,6 +307,56 @@ router.get('/seo-preview/product/:category/:subcategory/:slug', async (req, res)
     `);
   } catch (error) {
     console.error('SEO product preview error:', error);
+    res.status(500).send('Error loading preview');
+  }
+});
+
+// GET HTML preview of product by ID for crawlers/social media sharing
+router.get('/seo-preview/product-by-id/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let product = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      product = await Product.findById(id);
+    } else if (!isNaN(parseInt(id))) {
+      product = await Product.findOne({ productId: parseInt(id) });
+    }
+    
+    const pageTitle = product ? `${product.name} | Aazhi Premium` : 'Aazhi | Premium Cotton Baby Clothes & Kids Wear';
+    const pageDesc = product ? (product.description || `Buy ${product.name} at Aazhi Premium.`) : 'Shop premium baby clothes, newborn clothing, cotton dresses, rompers, and kids wear online at Aazhi.';
+    const imageUrl = product ? product.image : 'https://theaazhi.com/logo.png';
+    const productUrl = `https://theaazhi.com/product/${id}`;
+    
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${pageTitle}</title>
+        <meta name="description" content="${pageDesc}" />
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content="${pageTitle}" />
+        <meta property="og:description" content="${pageDesc}" />
+        <meta property="og:image" content="${imageUrl}" />
+        <meta property="og:url" content="${productUrl}" />
+        <meta property="og:site_name" content="Aazhi Premium" />
+        
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${pageTitle}" />
+        <meta name="twitter:description" content="${pageDesc}" />
+        <meta name="twitter:image" content="${imageUrl}" />
+      </head>
+      <body>
+        <h1>${product ? product.name : 'Product Not Found'}</h1>
+        <p>${pageDesc}</p>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('SEO product by ID preview error:', error);
     res.status(500).send('Error loading preview');
   }
 });
