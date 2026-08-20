@@ -217,7 +217,7 @@ router.delete('/products/:productId', authAdmin, async (req, res) => {
     
     if (product.isDeleted) {
       // If it is already soft-deleted, this action acts as a permanent delete!
-      await Product.findByIdAndDelete(productId);
+      await Product.deleteOne({ _id: productId });
       return res.json({ success: true, message: 'Product permanently deleted' });
     }
     
