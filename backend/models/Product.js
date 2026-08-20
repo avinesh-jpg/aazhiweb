@@ -34,6 +34,8 @@ const productSchema = new mongoose.Schema({
   material: { type: String },
   care: { type: String },
   inStock: { type: Boolean, default: true },
+  isDeleted: { type: Boolean, default: false, index: true },
+  deletedAt: { type: Date, default: null },
   
   // ✅ SEO Fields - Add these
   seoTitle: { type: String },
@@ -91,6 +93,14 @@ productSchema.pre('save', async function(next) {
   const hasStock = this.sizes.some(size => size.stock > 0);
   this.inStock = hasStock;
   
+  next();
+});
+
+// Global query middleware to automatically exclude deleted products unless showDeleted is explicitly set to true
+productSchema.pre(/^find/, function(next) {
+  if (!this.getOptions().showDeleted) {
+    this.find({ isDeleted: { $ne: true } });
+  }
   next();
 });
 

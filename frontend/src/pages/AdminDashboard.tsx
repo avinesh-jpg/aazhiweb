@@ -27,7 +27,9 @@ const AdminDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-
+  const [viewTrash, setViewTrash] = useState(false);
+  const [trashProducts, setTrashProducts] = useState<any[]>([]);
+  
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
     if (!token) {
@@ -38,6 +40,7 @@ const AdminDashboard = () => {
     fetchStats();
     fetchOrders();
     fetchProducts();
+    fetchTrashProducts();
     fetchUsers();
   }, [navigate]);
 
@@ -86,6 +89,21 @@ const AdminDashboard = () => {
       console.error('Fetch products error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTrashProducts = async () => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const response = await fetch(`${API_URL}/admin/products/trash`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setTrashProducts(data.products);
+      }
+    } catch (error) {
+      console.error('Fetch trash products error:', error);
     }
   };
 
@@ -270,8 +288,12 @@ const AdminDashboard = () => {
     setShowProductModal(true);
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+  const handleDeleteProduct = async (productId: string, isPermanent = false) => {
+    const confirmMessage = isPermanent 
+      ? 'Are you sure you want to PERMANENTLY delete this product? This action cannot be undone.'
+      : 'Are you sure you want to delete this product? It will be moved to the Trash Bin.';
+      
+    if (window.confirm(confirmMessage)) {
       const token = localStorage.getItem('admin_token');
       try {
         await fetch(`${API_URL}/admin/products/${productId}`, {
@@ -279,9 +301,27 @@ const AdminDashboard = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         fetchProducts();
+        fetchTrashProducts();
       } catch (error) {
         console.error('Delete product error:', error);
       }
+    }
+  };
+
+  const handleRestoreProduct = async (productId: string) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const response = await fetch(`${API_URL}/admin/products/${productId}/restore`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        fetchProducts();
+        fetchTrashProducts();
+      }
+    } catch (error) {
+      console.error('Restore product error:', error);
     }
   };
 
@@ -644,14 +684,28 @@ const AdminDashboard = () => {
         {activeTab === 'products' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Products Management</h1>
-              <button
-                onClick={handleAddProduct}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
-              >
-                <Plus size={18} />
-                Add Product
-              </button>
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold">Products Management</h1>
+                <button
+                  onClick={() => setViewTrash(!viewTrash)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border flex items-center gap-1.5 transition-colors ${
+                    viewTrash 
+                      ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  {viewTrash ? '← View Active Products' : `🗑️ Trash Bin (${trashProducts.length})`}
+                </button>
+              </div>
+              {!viewTrash && (
+                <button
+                  onClick={handleAddProduct}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
+                >
+                  <Plus size={18} />
+                  Add Product
+                </button>
+              )}
             </div>
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
@@ -668,7 +722,7 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {products.map((product) => (
+                    {(viewTrash ? trashProducts : products).map((product) => (
                       <tr key={product._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
@@ -694,19 +748,41 @@ const AdminDashboard = () => {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex gap-2">
-                            <button onClick={() => handleEditProduct(product)} className="text-blue-600 hover:text-blue-800">
-                              <Edit size={18} />
-                            </button>
-                            <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800">
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
+                          {viewTrash ? (
+                            <div className="flex gap-3">
+                              <button 
+                                onClick={() => handleRestoreProduct(product._id)} 
+                                className="px-2.5 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded flex items-center gap-1 transition-colors"
+                              >
+                                Restore
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteProduct(product._id, true)} 
+                                className="px-2.5 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded flex items-center gap-1 transition-colors"
+                              >
+                                Delete Permanent
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <button onClick={() => handleEditProduct(product)} className="text-blue-600 hover:text-blue-800">
+                                <Edit size={18} />
+                              </button>
+                              <button onClick={() => handleDeleteProduct(product._id, false)} className="text-red-600 hover:text-red-800">
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                {(viewTrash ? trashProducts : products).length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No products found
+                  </div>
+                )}
               </div>
             </div>
           </div>

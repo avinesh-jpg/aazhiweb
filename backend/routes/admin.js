@@ -204,14 +204,63 @@ router.put('/products/:productId', authAdmin, async (req, res) => {
   }
 });
 
-// Delete Product
+// Delete Product (Soft delete / Move to Trash, or Permanent delete if already deleted)
 router.delete('/products/:productId', authAdmin, async (req, res) => {
   try {
     const { productId } = req.params;
-    await Product.findByIdAndDelete(productId);
-    res.json({ success: true });
+    
+    // We must find it first, enabling showDeleted option in case it's already soft-deleted
+    const product = await Product.findById(productId).setOptions({ showDeleted: true });
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    if (product.isDeleted) {
+      // If it is already soft-deleted, this action acts as a permanent delete!
+      await Product.findByIdAndDelete(productId);
+      return res.json({ success: true, message: 'Product permanently deleted' });
+    }
+    
+    // Perform soft delete
+    product.isDeleted = true;
+    product.deletedAt = new Date();
+    await product.save();
+    
+    res.json({ success: true, message: 'Product moved to trash bin' });
   } catch (error) {
     console.error('Delete product error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get Trash Bin Products
+router.get('/products/trash', authAdmin, async (req, res) => {
+  try {
+    // Retrieve only soft-deleted products
+    const products = await Product.find({ isDeleted: true }).setOptions({ showDeleted: true }).sort({ deletedAt: -1 });
+    res.json({ success: true, products });
+  } catch (error) {
+    console.error('Get trash bin products error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Restore Product from Trash
+router.put('/products/:productId/restore', authAdmin, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const product = await Product.findById(productId).setOptions({ showDeleted: true });
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    product.isDeleted = false;
+    product.deletedAt = null;
+    await product.save();
+    
+    res.json({ success: true, product, message: 'Product restored successfully' });
+  } catch (error) {
+    console.error('Restore product error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
