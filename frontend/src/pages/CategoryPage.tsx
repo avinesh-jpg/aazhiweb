@@ -381,7 +381,7 @@ const CategoryPage = () => {
               </h1>
               {!loading && !error && (
                 <p className="text-gray-500 mt-2">
-                  {products.length} products found
+                  {products.length} Handpicked Styles for your little one
                 </p>
               )}
             </div>
