@@ -686,6 +686,9 @@ const AdminDashboard = () => {
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
                 <h1 className="text-2xl font-bold">Products Management</h1>
+                
+                {/*  if we neeed a trash can we can remove this comment and use the below code to view the trash can on the admin dashboard
+
                 <button
                   onClick={() => setViewTrash(!viewTrash)}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg border flex items-center gap-1.5 transition-colors ${
@@ -694,8 +697,12 @@ const AdminDashboard = () => {
                       : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                   }`}
                 >
-                  {viewTrash ? '← View Active Products' : `🗑️ Trash Bin (${trashProducts.length})`}
-                </button>
+                  {viewTrash ? '← View Active Products' : `🗑️ Trash Bin (${trashProducts.length})`}    
+                </button>  
+
+                */}
+            
+
               </div>
               {!viewTrash && (
                 <button
