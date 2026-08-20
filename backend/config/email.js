@@ -353,13 +353,7 @@ const generateOrderConfirmationHTML = (orderDetails, customerName) => {
             </p>
           </div>
           
-          <p>We'll send you another email once your order is shipped.</p>
-          
-          <div style="text-align: center;">
-            <a href="${process.env.ORDER_TRACKING_URL || '#'}/${orderDetails.orderNumber}" class="tracking-btn">
-              Track Your Order
-            </a>
-          </div>
+        
           
           <p>Need help? Contact our <a href="${process.env.SUPPORT_URL || 'mailto:support@aazhi.com'}">customer support</a>.</p>
           
