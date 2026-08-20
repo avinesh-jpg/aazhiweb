@@ -687,7 +687,7 @@ const AdminDashboard = () => {
               <div className="flex items-center gap-4">
                 <h1 className="text-2xl font-bold">Products Management</h1>
                 
-                {/*  if we neeed a trash can we can remove this comment and use the below code to view the trash can on the admin dashboard
+                 if we neeed a trash can we can remove this comment and use the below code to view the trash can on the admin dashboard
 
                 <button
                   onClick={() => setViewTrash(!viewTrash)}
@@ -700,7 +700,7 @@ const AdminDashboard = () => {
                   {viewTrash ? '← View Active Products' : `🗑️ Trash Bin (${trashProducts.length})`}    
                 </button>  
 
-                */}
+                
             
 
               </div>
