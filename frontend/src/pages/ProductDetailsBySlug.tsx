@@ -1,5 +1,5 @@
 // src/pages/ProductDetailsBySlug.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import { Heart, Minus, Plus, ChevronLeft, ChevronRight, Check } from "lucide-react";
@@ -106,6 +106,7 @@ const ProductDetailsBySlug = () => {
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addToCart } = useCart();
+  const sizeChartRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -832,7 +833,21 @@ const ProductDetailsBySlug = () => {
                 {hasSizes && !outOfStock && (
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-2xl font-semibold text-[#1e1b4b]">Select Size</h3>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-semibold text-[#1e1b4b] font-heading">Select Size</span>
+                        {product.subcategory?.toLowerCase().includes('casual frock') && (
+                          <>
+                            
+                            <button 
+                              onClick={() => sizeChartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                              className="text-xl font-semibold text-purple-700 pl-10"
+                            >
+                              Size Chart {'\u203A'}
+                            </button>
+                          
+                          </>
+                        )}
+                      </div>
                       {sizeError && <p className="text-xs text-red-500">{sizeError}</p>}
                     </div>
                     <div className="flex flex-wrap gap-3">
@@ -929,6 +944,20 @@ const ProductDetailsBySlug = () => {
                     </>
                   )}
                 </div>
+
+                {/* Inline Size Chart (Permanently Displayed for Casual Frocks) */}
+                {product.subcategory?.toLowerCase().includes('casual frock') && (
+                  <div ref={sizeChartRef} className="mt-6 rounded-2xl overflow-hidden border border-purple-100 flex justify-center max-h-[400px] overflow-y-auto">
+                    <img 
+                      src="/size-chart.jpg" 
+                      alt="Size Chart" 
+                      className="max-w-full h-auto object-contain rounded-2xl"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&h=800&fit=crop';
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1011,6 +1040,9 @@ const ProductDetailsBySlug = () => {
             )}
           </div>
         </main>
+
+
+
         <Footer />
         <BackToTop />
       </div>

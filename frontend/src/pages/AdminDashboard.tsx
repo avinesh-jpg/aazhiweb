@@ -428,23 +428,27 @@ const AdminDashboard = () => {
             <Truck size={18} />
             Shipping
           </button>
+
+          {/*
+
           <button
             onClick={() => setActiveTab('combos')}
             className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
               activeTab === 'combos' ? 'bg-primary text-white' : 'hover:bg-gray-100'
             }`}
           >
-            {/*                          //if we need  combos and icon we can use this code to view on the admin dash board
+                                      //if we need  combos and icon we can use this code to view on the admin dash board
             <Gift size={18} />
             Combos
-          </button>
+          </button>*/}
+
           <button
             onClick={() => setActiveTab('blogs')}
             className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
               activeTab === 'blogs' ? 'bg-primary text-white' : 'hover:bg-gray-100'
             }`}
           >
-            */}
+            
 
             <FileText size={18} />
             Blogs
