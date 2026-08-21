@@ -621,7 +621,7 @@ const ProductDetailsBySlug = () => {
               <span className="mx-2">/</span>
               
               <button 
-                onClick={() => navigate(`/${formatForUrl(product.category)}`)} 
+                onClick={() => navigate(`/category/collection/${product.category}`)} 
                 className="hover:text-purple-500 transition-colors"
               >
                 {product.category}
@@ -631,7 +631,7 @@ const ProductDetailsBySlug = () => {
                 <>
                   <span className="mx-2">/</span>
                   <button 
-                    onClick={() => navigate(`/${formatForUrl(product.category)}/${formatForUrl(product.subcategory)}`)} 
+                    onClick={() => navigate(`/category/subcategory/${product.subcategory}`)} 
                     className="hover:text-purple-500 transition-colors"
                   >
                     {product.subcategory}

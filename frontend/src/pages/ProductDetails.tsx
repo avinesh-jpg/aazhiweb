@@ -793,7 +793,7 @@ const ProductDetails = () => {
                     <li><span className="mx-2">/</span></li>
                     <li>
                       <button 
-                        onClick={() => navigate(`/category/collection/${product.category}/${product.subcategory}`)} 
+                        onClick={() => navigate(`/category/subcategory/${product.subcategory}`)} 
                         className="hover:text-purple-500 transition-colors"
                       >
                         {product.subcategory}
