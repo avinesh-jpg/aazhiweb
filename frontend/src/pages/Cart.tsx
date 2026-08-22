@@ -2,12 +2,13 @@
 import { useCart } from "@/context/useCart";
 import { useNavigate } from "react-router-dom";
 import { Trash2, ArrowLeft, Minus, Plus, ShoppingBag, Copy, Check, Lock, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import BackToTop from "@/components/BackToTop";
 import { toast } from "sonner";
+import { trackEvent } from '../utils/analytics';
 
 // Update CartItem interface
 interface CartItem {
@@ -40,6 +41,7 @@ const Cart = () => {
   }
   const [couponTiers, setCouponTiers] = useState<CouponTier[]>([]);
   const [showTiersModal, setShowTiersModal] = useState(false);
+  const hasTrackedViewCart = useRef(false);
 
   // Fetch shipping settings
   useEffect(() => {
@@ -95,9 +97,7 @@ const Cart = () => {
           if (response.ok) {
             const product = await response.json();
             
-            // Check if product has new size structure
             if (product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object') {
-              // Find the specific size
               const sizeObj = product.sizes.find((s: any) => s.name === item.size);
               if (sizeObj) {
                 stockMap.set(`${item.productId}-${item.size}`, sizeObj.stock);
@@ -105,7 +105,6 @@ const Cart = () => {
                 stockMap.set(`${item.productId}-${item.size}`, product.sizes[0].stock);
               }
             } else if (product.stockQuantity !== undefined) {
-              // Old format
               stockMap.set(`${item.productId}-${item.size || ''}`, product.stockQuantity);
             }
           }
@@ -127,6 +126,24 @@ const Cart = () => {
   const shippingRate = shippingSettings.standardShippingRate;
   const shipping = subtotal >= shippingThreshold ? 0 : shippingRate;
   const total = subtotal + shipping;
+
+  // GA4: Trigger view_cart once when cart items load
+  useEffect(() => {
+    if (cartItems.length > 0 && !hasTrackedViewCart.current) {
+      trackEvent('view_cart', {
+        currency: 'INR',
+        value: total,
+        items: cartItems.map(item => ({
+          item_id: String(item.productId),
+          item_name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          item_variant: item.size || undefined
+        }))
+      });
+      hasTrackedViewCart.current = true;
+    }
+  }, [cartItems, total]);
 
   const getCouponLadderState = () => {
     if (couponTiers.length === 0) return null;
@@ -162,7 +179,6 @@ const Cart = () => {
 
   const couponState = getCouponLadderState();
 
-  // Get available stock for an item
   const getAvailableStock = (item: CartItem): number => {
     const key = `${item.productId}-${item.size || ''}`;
     return stockInfo.get(key) || Infinity;
@@ -171,34 +187,42 @@ const Cart = () => {
   const handleQuantityChange = async (item: CartItem, newQuantity: number) => {
     if (newQuantity < 1) return;
     
-    // Check stock availability
     const availableStock = getAvailableStock(item);
     if (newQuantity > availableStock) {
       toast.error(`Only ${availableStock} items available in ${item.size || 'this size'}`);
       return;
     }
     
-    // Pass size as third parameter
     await updateQuantity(item.productId, newQuantity, item.size);
   };
 
   const handleRemove = async (item: CartItem) => {
     if (window.confirm('Are you sure you want to remove this item?')) {
-      // Pass size as second parameter
+      // GA4: Track remove_from_cart
+      trackEvent('remove_from_cart', {
+        currency: 'INR',
+        value: item.price * item.quantity,
+        items: [
+          {
+            item_id: String(item.productId),
+            item_name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            item_variant: item.size || undefined
+          }
+        ]
+      });
+
       await removeFromCart(item.productId, item.size);
     }
   };
 
   const handleCheckout = () => {
-    console.log('Checkout button clicked');
-    console.log('Cart items:', cartItems.length);
-    
     if (cartItems.length === 0) {
       toast.error('Your cart is empty');
       return;
     }
     
-    // Check if any items are out of stock
     const hasOutOfStock = cartItems.some(item => {
       const availableStock = getAvailableStock(item);
       return availableStock === 0;
@@ -209,8 +233,20 @@ const Cart = () => {
       return;
     }
     
-    // Navigate to checkout page
-    console.log('Navigating to checkout...');
+    // GA4: Track begin_checkout
+    trackEvent('begin_checkout', {
+      currency: 'INR',
+      value: total,
+      coupon: couponState?.bestUnlocked?.code || undefined,
+      items: cartItems.map(item => ({
+        item_id: String(item.productId),
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        item_variant: item.size || undefined
+      }))
+    });
+
     navigate('/checkout');
   };
 
@@ -298,7 +334,6 @@ const Cart = () => {
                                 Size: {item.size}
                               </p>
                             )}
-                            {/* Low stock warning */}
                             {isLowStock && !isOutOfStock && (
                               <p className="text-xs text-orange-600 mt-2 animate-pulse">
                                 ⚠️ Only {availableStock} left in stock!
@@ -475,7 +510,7 @@ const Cart = () => {
                 </button>
                 
                 <button 
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/')} 
                   className="w-full mt-3 py-3 rounded-full font-semibold transition-all duration-300 bg-transparent border-2 border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400 hover:-translate-y-0.5"
                 >
                   Continue Shopping
@@ -588,7 +623,7 @@ const Cart = () => {
               })}
             </div>
             
-            <button
+            <button 
               onClick={() => setShowTiersModal(false)}
               className="w-full mt-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-md transition-all duration-300"
             >

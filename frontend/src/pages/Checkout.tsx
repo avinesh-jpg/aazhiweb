@@ -7,17 +7,16 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import BackToTop from '@/components/BackToTop';
-import { Truck, Clock, Zap, Shield } from 'lucide-react';
+import { Truck, Shield } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, cartCount, clearCart, fetchCart } = useCart();
-  const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
-  const [pendingOrderId, setPendingOrderId] = useState('');
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [shippingCost, setShippingCost] = useState(0);
   const [isFreeShipping, setIsFreeShipping] = useState(false);
@@ -28,6 +27,22 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
+
+  const token = localStorage.getItem('tiinyberry_token');
+  const user = JSON.parse(localStorage.getItem('tiinyberry_user') || 'null');
+  
+  const [formData, setFormData] = useState({
+    fullName: user?.name || '',
+    email: user?.email || '',
+    phone: user?.mobileNumber || user?.phone || '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+  });
+
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = subtotal - (appliedCoupon?.discount || 0) + shippingCost;
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return;
@@ -66,19 +81,6 @@ const Checkout = () => {
     setCouponInput('');
     setCouponError('');
   };
-  
-  const token = localStorage.getItem('tiinyberry_token');
-  const user = JSON.parse(localStorage.getItem('tiinyberry_user') || 'null');
-  
-  const [formData, setFormData] = useState({
-    fullName: user?.name || '',
-    email: user?.email || '',
-    phone: user?.mobileNumber || user?.phone || '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-  });
 
   // Load user's default address from profile
   useEffect(() => {
@@ -125,16 +127,16 @@ const Checkout = () => {
     }
   }, [cartItems, navigate, orderPlaced]);
 
-  // Calculate shipping cost
+  // Calculate shipping cost & track shipping info in GA4
   useEffect(() => {
     const calculateShipping = async () => {
-      const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const calculatedSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       
       try {
         const response = await fetch(`${API_URL}/shipping/calculate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subtotal, shippingMethod })
+          body: JSON.stringify({ subtotal: calculatedSubtotal, shippingMethod })
         });
         const data = await response.json();
         
@@ -143,19 +145,34 @@ const Checkout = () => {
           setIsFreeShipping(data.isFree);
           setFreeShippingThreshold(data.freeShippingThreshold);
           setRemainingForFree(data.remainingForFree);
+
+          if (cartItems.length > 0) {
+            trackEvent('add_shipping_info', {
+              currency: 'INR',
+              value: calculatedSubtotal + data.shippingCost - (appliedCoupon?.discount || 0),
+              shipping_tier: shippingMethod,
+              coupon: appliedCoupon?.code || undefined,
+              items: cartItems.map(item => ({
+                item_id: String(item.productId),
+                item_name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                item_variant: item.size || undefined
+              }))
+            });
+          }
         }
       } catch (error) {
         console.error('Shipping calculation error:', error);
       }
     };
     
-    calculateShipping();
-  }, [cartItems, shippingMethod]);
+    if (cartItems.length > 0) {
+      calculateShipping();
+    }
+  }, [cartItems, shippingMethod, appliedCoupon]);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const total = subtotal - (appliedCoupon?.discount || 0) + shippingCost;
-
-  // Create pending order before payment
+  // Create pending order before payment & track payment info
   const createPendingOrder = async () => {
     const sessionId = localStorage.getItem('tiinyberry_session_id');
     const headers: any = { 'Content-Type': 'application/json' };
@@ -166,7 +183,6 @@ const Checkout = () => {
       headers['x-session-id'] = sessionId;
     }
     
-    // Validate form data
     if (!formData.fullName) {
       throw new Error('Please enter your full name');
     }
@@ -179,6 +195,21 @@ const Checkout = () => {
     if (!formData.address) {
       throw new Error('Please enter your address');
     }
+
+    // GA4: Trigger add_payment_info
+    trackEvent('add_payment_info', {
+      currency: 'INR',
+      value: total,
+      payment_type: 'Razorpay',
+      coupon: appliedCoupon?.code || undefined,
+      items: cartItems.map(item => ({
+        item_id: String(item.productId),
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        item_variant: item.size || undefined
+      }))
+    });
     
     const response = await fetch(`${API_URL}/orders/create-pending`, {
       method: 'POST',
@@ -202,7 +233,6 @@ const Checkout = () => {
     const data = await response.json();
     
     if (data.success) {
-      setPendingOrderId(data.orderId);
       return data.orderId;
     } else {
       throw new Error(data.message);
@@ -210,10 +240,6 @@ const Checkout = () => {
   };
 
   const handlePaymentSuccess = async (response: any, orderId: string) => {
-    console.log('Payment success:', response);
-    console.log('Order ID:', orderId);
-    
-    // Confirm the order after successful payment
     const confirmResponse = await fetch(`${API_URL}/orders/confirm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -229,7 +255,27 @@ const Checkout = () => {
     const confirmData = await confirmResponse.json();
     
     if (confirmData.success) {
-      setOrderNumber(confirmData.order.orderNumber);
+      const confirmedOrderNum = confirmData.order?.orderNumber || orderId;
+
+      // GA4: Track final purchase event
+      trackEvent('purchase', {
+        transaction_id: String(confirmedOrderNum),
+        value: total,
+        currency: 'INR',
+        tax: 0,
+        shipping: shippingCost,
+        coupon: appliedCoupon?.code || undefined,
+        payment_type: 'Razorpay',
+        items: cartItems.map(item => ({
+          item_id: String(item.productId),
+          item_name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          item_variant: item.size || undefined
+        }))
+      });
+
+      setOrderNumber(confirmedOrderNum);
       setOrderPlaced(true);
       await clearCart();
       await fetchCart();
@@ -280,7 +326,6 @@ const Checkout = () => {
           </h1>
           
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Checkout Form */}
             <div className="lg:col-span-2">
               <form className="bg-white/70 backdrop-blur-md border border-purple-200/50 rounded-2xl p-6 shadow-lg transition-all duration-300 hover:shadow-purple-100/50">
                 <h2 className="text-xl font-semibold mb-6 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
@@ -381,7 +426,6 @@ const Checkout = () => {
                   </div>
                 </div>
                 
-                {/* Shipping Method */}
                 <h2 className="text-xl font-semibold mb-4 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                   Shipping Method
                 </h2>
@@ -454,7 +498,6 @@ const Checkout = () => {
               </form>
             </div>
             
-            {/* Order Summary */}
             <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 h-fit sticky top-24 transition-all duration-300 border border-purple-200/50 shadow-lg hover:shadow-purple-100/50">
               <h2 className="text-lg font-semibold mb-4 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                 Order Summary
@@ -485,7 +528,6 @@ const Checkout = () => {
                 ))}
               </div>
 
-              {/* Coupon Code Input */}
               <div className="py-4 border-t border-b border-purple-100 my-3">
                 <div className="flex gap-2">
                   <input
@@ -509,7 +551,7 @@ const Checkout = () => {
                       type="button"
                       onClick={handleApplyCoupon}
                       disabled={couponLoading || !couponInput.trim()}
-                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all animate-pulse-once"
+                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all"
                     >
                       {couponLoading ? 'Applying...' : 'Apply'}
                     </button>

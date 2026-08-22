@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { toast } from "sonner";
+import { trackEvent } from '../utils/analytics';
 
 // Types
 interface Color {
@@ -309,7 +310,7 @@ const ProductImageGallery = ({
             >
               <img 
                 src={img} 
-                alt={`${productName} view ${idx + 1}`}
+                alt={`${productName} view ${idx + 1}`} 
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -340,16 +341,12 @@ const SizeSelector = ({
         <div className="flex items-center gap-3">
           <span className="text-2xl font-semibold text-[#1e1b4b] font-heading">Select Size</span>
           {onShowSizeChart && (
-            <>
-              
-              <button 
-                onClick={onShowSizeChart}
-                className="text-xl font-semibold text-gray-400"
-              >
-                Size Chart {'\u203A'} 
-              </button>
-              
-            </>
+            <button 
+              onClick={onShowSizeChart}
+              className="text-xl font-semibold text-gray-400"
+            >
+              Size Chart {'\u203A'} 
+            </button>
           )}
         </div>
         {error && <p className="text-xs text-red-500">{error}</p>}
@@ -365,14 +362,12 @@ const SizeSelector = ({
                 : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
             }`}
           >
-            
             {sizeObj.name}
             {sizeObj.stock > 0 && sizeObj.stock <= STOCK_THRESHOLDS.VERY_LOW && (
               <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
                 Only {sizeObj.stock}
               </span>
             )}
-              
           </button>
         ))}
       </div>
@@ -449,9 +444,24 @@ const ProductDetails = () => {
   const { addToCart } = useCart();
   const sizeChartRef = useRef<HTMLDivElement | null>(null);
 
-  // Effects
+  // GA4: Trigger view_item when product is loaded
   useEffect(() => {
     if (product) {
+      trackEvent('view_item', {
+        currency: 'INR',
+        value: product.price,
+        items: [
+          {
+            item_id: String(product.productId),
+            item_name: product.name,
+            item_category: product.category,
+            item_category2: product.subcategory,
+            price: product.price,
+            quantity: 1
+          }
+        ]
+      });
+
       if (product.sizes && product.sizes.length > 0) {
         setSelectedSize(product.sizes[0]);
       }
@@ -472,10 +482,9 @@ const ProductDetails = () => {
     return selectedColor?.images || product?.images || [product?.image || DEFAULT_IMAGE];
   }, [selectedColor, product]);
 
-  const hasMultipleImages = useMemo(() => currentImages.length > 1, [currentImages]);
-  const hasColors = useMemo(() => product?.colors && product.colors.length > 0, [product]);
+  const hasColors = useMemo(() => Boolean(product?.colors && product.colors.length > 0), [product]);
   const hasSizes = useMemo(() => {
-    return product?.sizes && product.sizes.length > 0 && product.sizes[0].name !== 'One Size';
+    return Boolean(product?.sizes && product.sizes.length > 0 && product.sizes[0].name !== 'One Size');
   }, [product]);
 
   const descriptionBullets = useMemo(() => {
@@ -533,24 +542,20 @@ const ProductDetails = () => {
     return 10;
   }, [product, selectedSize, hasSizes]);
 
-  // ✅ YOUR EXACT TITLE TEMPLATE
   const getPageTitle = useCallback(() => {
     if (!product) return "Product | Buy Tiruppur Cotton Kids Wear | Aazhi";
-    
     const cleanName = product.name.split("|")[0].trim();
     return `${cleanName} | Buy Tiruppur Cotton Kids Wear | Aazhi`;
   }, [product]);
 
   const getPageDescription = useCallback(() => {
     if (!product) return "Buy premium Tiruppur cotton kids wear at Aazhi.";
-    
     const cleanName = product.name.split("|")[0].trim();
     return `Buy ${cleanName} online at Aazhi. Premium Tiruppur cotton kids wear made from soft breathable cotton. Comfortable, skin-friendly and perfect for everyday wear. Shop now!`;
   }, [product]);
 
   const getPageKeywords = useCallback(() => {
     if (!product) return ["Tiruppur cotton kids wear", "Aazhi", "baby clothes"];
-    
     const cleanName = product.name.split("|")[0].trim();
     return [
       cleanName,
@@ -564,7 +569,7 @@ const ProductDetails = () => {
   }, [product]);
 
   // Handlers
-  const handleImageSelect = useCallback((image: string, index: number) => {
+  const handleImageSelect = useCallback((image: string) => {
     setSelectedImage(image);
   }, []);
 
@@ -634,6 +639,23 @@ const ProductDetails = () => {
     const success = await addToCart(product.productId, quantity, sizeName, colorName, colorImage);
     
     if (success) {
+      // GA4: Trigger add_to_cart event
+      trackEvent('add_to_cart', {
+        currency: 'INR',
+        value: product.price * quantity,
+        items: [
+          {
+            item_id: String(product.productId),
+            item_name: product.name,
+            item_category: product.category,
+            item_category2: product.subcategory,
+            item_variant: [sizeName, colorName].filter(Boolean).join(' / '),
+            price: product.price,
+            quantity: quantity
+          }
+        ]
+      });
+
       setAdded(true);
       toast.success(`Added ${quantity} item(s) to cart!`);
       setTimeout(() => setAdded(false), 2000);
@@ -664,8 +686,29 @@ const ProductDetails = () => {
     }
     
     await handleAddToCart();
+
+    // GA4: Trigger begin_checkout directly on Buy Now
+    const sizeName = selectedSize?.name || (product.sizes && product.sizes[0]?.name === 'One Size' ? 'One Size' : '');
+    const colorName = selectedColor?.name || '';
+
+    trackEvent('begin_checkout', {
+      currency: 'INR',
+      value: product.price * quantity,
+      items: [
+        {
+          item_id: String(product.productId),
+          item_name: product.name,
+          item_category: product.category,
+          item_category2: product.subcategory,
+          item_variant: [sizeName, colorName].filter(Boolean).join(' / '),
+          price: product.price,
+          quantity: quantity
+        }
+      ]
+    });
+
     navigate('/cart');
-  }, [product, selectedSize, hasSizes, handleAddToCart, navigate]);
+  }, [product, selectedSize, selectedColor, quantity, hasSizes, handleAddToCart, navigate]);
 
   const handleWishlistToggle = useCallback(() => {
     if (product) {
@@ -673,7 +716,6 @@ const ProductDetails = () => {
     }
   }, [product, toggleWishlist]);
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
@@ -687,7 +729,6 @@ const ProductDetails = () => {
     );
   }
 
-  // Error state
   if (error || !product) {
     return (
       <>
@@ -716,12 +757,10 @@ const ProductDetails = () => {
     );
   }
 
-  // ✅ Get the page title using your exact template
   const pageTitle = getPageTitle();
   const pageDescription = getPageDescription();
   const pageKeywords = getPageKeywords();
 
-  // Product Schema for SEO
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -753,15 +792,9 @@ const ProductDetails = () => {
     })
   };
 
-  // Log title for debugging
-  console.log('📝 Product Title:', pageTitle);
-  console.log('📏 Title Length:', pageTitle.length);
-  console.log('✅ Within 60 chars:', pageTitle.length <= 60);
-
   return (
     <>
       <Helmet>
-        {/* ✅ YOUR EXACT TITLE TEMPLATE */}
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <meta name="keywords" content={pageKeywords.join(', ')} />
@@ -790,7 +823,6 @@ const ProductDetails = () => {
         <Navbar />
         <main className="pt-8 pb-16">
           <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Breadcrumbs */}
             <nav className="mb-6 text-sm text-gray-500" aria-label="Breadcrumb">
               <ol className="flex flex-wrap items-center gap-1">
                 <li>
@@ -825,9 +857,7 @@ const ProductDetails = () => {
               </ol>
             </nav>
 
-            {/* Product Grid */}
             <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-16">
-              {/* Product Images */}
               <ProductImageGallery
                 images={currentImages}
                 selectedImage={selectedImage}
@@ -839,7 +869,6 @@ const ProductDetails = () => {
                 isWishlisted={wishlisted.includes(product.productId)}
               />
 
-              {/* Product Info */}
               <div>
                 <h1 className="text-3xl md:text-4xl font-light font-heading mb-3 bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
                   {product.name}
@@ -867,7 +896,6 @@ const ProductDetails = () => {
                   )}
                 </div>
 
-                {/* Product Description */}
                 <div className="mb-6">
                   {descriptionBullets.length === 1 ? (
                     <p className="text-gray-600 leading-relaxed">
@@ -890,7 +918,6 @@ const ProductDetails = () => {
                   )}
                 </div>
 
-                {/* Colors */}
                 {hasColors && !outOfStock && (
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-3">
@@ -955,7 +982,6 @@ const ProductDetails = () => {
                   </div>
                 )}
 
-                {/* Sizes */}
                 {hasSizes && !outOfStock && (
                   <SizeSelector
                     sizes={product.sizes || []}
@@ -970,7 +996,6 @@ const ProductDetails = () => {
                   />
                 )}
 
-                {/* Quantity */}
                 {!outOfStock && (
                   <QuantitySelector
                     quantity={quantity}
@@ -979,7 +1004,6 @@ const ProductDetails = () => {
                   />
                 )}
 
-                {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   {outOfStock ? (
                     <button
@@ -1010,7 +1034,6 @@ const ProductDetails = () => {
                   )}
                 </div>
 
-                {/* Inline Size Chart (Permanently Displayed for Casual Frocks) */}
                 {product.subcategory?.toLowerCase().includes('casual frock') && (
                   <div ref={sizeChartRef} className="mt-6 rounded-2xl overflow-hidden border border-purple-100 flex justify-center max-h-[400px] overflow-y-auto">
                     <img 
@@ -1026,7 +1049,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Product Details & Why Choose */}
             <div className="border-t border-purple-100 pt-12 mb-12">
               <div className="grid md:grid-cols-2 gap-12">
                 <div>
@@ -1061,7 +1083,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Related Products */}
             {relatedProducts.length > 0 && (
               <div>
                 <h2 className="text-2xl font-heading font-light mb-6 bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
@@ -1122,8 +1143,6 @@ const ProductDetails = () => {
             )}
           </div>
         </main>
-
-
 
         <Footer />
         <BackToTop />
