@@ -865,7 +865,7 @@ const AdminDashboard = () => {
         {activeTab === 'inventory' && (
           <div>
             <h1 className="text-2xl font-bold mb-6">⚠️ Inventory Alerts</h1>
-            <p className="text-muted-foreground mb-6">Products and sizes that are currently out of stock or running low (5 or fewer items left).</p>
+            <p className="text-muted-foreground mb-6">Products and sizes that are currently out of stock or running low (2 or fewer items left).</p>
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -885,7 +885,7 @@ const AdminDashboard = () => {
                       products.forEach((product) => {
                         if (product.sizes && product.sizes.length > 0) {
                           const allSizesOutOfStock = product.sizes.every((size: any) => size.stock === 0);
-                          const lowStockSizes = product.sizes.filter((size: any) => size.stock <= 5);
+                          const lowStockSizes = product.sizes.filter((size: any) => size.stock <= 2);
                           
                           if (allSizesOutOfStock || lowStockSizes.length > 0) {
                             lowStockItems.push({

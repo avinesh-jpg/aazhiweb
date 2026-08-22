@@ -1,6 +1,6 @@
 // src/pages/ProductDetails.tsx
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import { Heart, Minus, Plus, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useCart } from "@/context/useCart";
@@ -365,12 +365,14 @@ const SizeSelector = ({
                 : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
             }`}
           >
+            
             {sizeObj.name}
             {sizeObj.stock > 0 && sizeObj.stock <= STOCK_THRESHOLDS.VERY_LOW && (
               <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
                 Only {sizeObj.stock}
               </span>
             )}
+              
           </button>
         ))}
       </div>

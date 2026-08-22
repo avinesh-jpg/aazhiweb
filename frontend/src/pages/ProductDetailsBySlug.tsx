@@ -1,6 +1,6 @@
 // src/pages/ProductDetailsBySlug.tsx
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import { Heart, Minus, Plus, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useCart } from "@/context/useCart";
@@ -298,7 +298,7 @@ const ProductDetailsBySlug = () => {
     
     if (product.sizes && product.sizes.length > 0 && product.sizes[0].name === 'One Size') {
       const oneSize = product.sizes[0];
-      if (oneSize.stock <= 5) {
+      if (oneSize.stock <= 2) {
         return { text: `⚠️ Only ${oneSize.stock} left in stock`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
       }
       if (oneSize.stock <= 10) {
@@ -865,16 +865,19 @@ const ProductDetailsBySlug = () => {
                               : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
                           }`}
                         >
+                           
                           {sizeObj.name}
-                          {sizeObj.stock > 0 && sizeObj.stock <= 3 && (
+                          {/* Display the size name
+                          {sizeObj.stock > 0 && sizeObj.stock < 2 && (
                             <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
                               Only {sizeObj.stock}
                             </span>
                           )}
+                            */}
                         </button>
                       ))}
                     </div>
-                    {selectedSize && selectedSize.stock > 0 && selectedSize.stock <= 3 && (
+                    {selectedSize && selectedSize.stock > 0 && selectedSize.stock <= 2 && (
                       <p className="text-orange-600 text-sm mt-2">
                         ⚠️ Hurry! Only {selectedSize.stock} left in {selectedSize.name} size
                       </p>
@@ -902,14 +905,22 @@ const ProductDetailsBySlug = () => {
                           <Plus size={16} />
                         </button>
                       </div>
+
+                      {/*
                       <span className="text-sm text-gray-500">
                         {quantity} item{quantity > 1 ? 's' : ''}
+                         If selectedSize is defined, show stock left 
                       </span>
                       {selectedSize && selectedSize.stock <= 3 && selectedSize.stock > 0 && (
                         <span className="text-xs text-orange-600 animate-pulse">
                           Only {selectedSize.stock} left in this size!
                         </span>
+
+                        
                       )}
+
+                      */}
+
                     </div>
                   </div>
                 )}
