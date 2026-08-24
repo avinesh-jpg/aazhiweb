@@ -377,7 +377,7 @@ const CategoryPage = () => {
 
   const handleProductClick = (product: Product) => {
     if (product.slug) {
-      const collectionSlug = (name || routeValue || routeSubcategory || routeCategory || '').toLowerCase().replace(/ /g, '-').replace(/%20/g, '-');
+      const collectionSlug = (name || routeValue || value || '').toLowerCase().replace(/ /g, '-').replace(/%20/g, '-');
       if (collectionSlug) {
         navigate(`/collections/${collectionSlug}/products/${product.slug}`);
       } else {
