@@ -53,9 +53,12 @@ const formatForUrl = (text: string) => {
 // Helper: Get product URL (without /product)
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    const cat = formatForUrl(product.category) || 'collection';
-    const sub = formatForUrl(product.subcategory) || 'items';
-    return `/${cat}/${sub}/${product.slug}`;
+    let url = `/${formatForUrl(product.category)}`;
+    if (product.subcategory) {
+      url += `/${formatForUrl(product.subcategory)}`;
+    }
+    url += `/${product.slug}`;
+    return url;
   }
   return `/product/${product.productId}`;
 };
@@ -447,9 +450,12 @@ const ProductDetailsBySlug = () => {
 
   const getProductUrlForNav = (product: Product) => {
     if (product.slug) {
-      const cat = formatForUrl(product.category) || 'collection';
-      const sub = formatForUrl(product.subcategory) || 'items';
-      return `/${cat}/${sub}/${product.slug}`;
+      let url = `/${formatForUrl(product.category)}`;
+      if (product.subcategory) {
+        url += `/${formatForUrl(product.subcategory)}`;
+      }
+      url += `/${product.slug}`;
+      return url;
     }
     return `/product/${product.productId}`;
   };
@@ -618,7 +624,7 @@ const ProductDetailsBySlug = () => {
               <span className="mx-2">/</span>
               
               <button 
-                onClick={() => navigate(`/${product.category.toLowerCase()}`)} 
+                onClick={() => navigate(`/category/collection/${product.category}`)} 
                 className="hover:text-purple-500 transition-colors"
               >
                 {product.category}
@@ -628,7 +634,7 @@ const ProductDetailsBySlug = () => {
                 <>
                   <span className="mx-2">/</span>
                   <button 
-                    onClick={() => navigate(`/${product.category.toLowerCase()}/${product.subcategory.toLowerCase().replace(/ /g, '-')}`)} 
+                    onClick={() => navigate(`/category/subcategory/${product.subcategory}`)} 
                     className="hover:text-purple-500 transition-colors"
                   >
                     {product.subcategory}

@@ -4,11 +4,11 @@ import React, { useEffect, useRef } from 'react';
 // DATA
 // ============================================
 const shopLinks = [
-  { name: "New Born", category: "newborn", path: "/newborn" },
-  { name: "Girls", category: "Girls", path: "/girls" },
-  { name: "Boys", category: "Boys", path: "/boys" },
-  { name: "UniSex", category: "UniSex", path: "/unisex" },
-  { name: "Womens", category: "Womens", path: "/women" },
+  { name: "New Born", category: "newborn", path: "/category/collection/newborn" },
+  { name: "Girls", category: "Girls", path: "/category/collection/Girls" },
+  { name: "Boys", category: "Boys", path: "/category/collection/Boys" },
+  { name: "UniSex", category: "UniSex", path: "/category/collection/UniSex" },
+  { name: "Womens", category: "Womens", path: "/category/collection/womens" },
 ];
 
 const companyLinks = [

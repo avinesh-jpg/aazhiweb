@@ -7,12 +7,12 @@ import colBooties from "@/assets/unisex.webp";
 import colCoords from "@/assets/boys.webp";
 
 const collections = [
-  { label: "Newborn", image: colJablas, path: "/newborn" },
-  { label: "Girls", image: colEssentials, path: "/girls" },
-  { label: "Frocks", image: colFrocks, path: "/girls/casual-frocks" },
-  { label: "Boys", image: colCoords, path: "/boys" },
-  { label: "Muslin Hooded Towels", image: colTowels, path: "/newborn/swaddles" },
-  { label: "Unisex", image: colBooties, path: "/unisex" },
+  { label: "Newborn", image: colJablas, type: "collection", value: "newborn" },
+  { label: "Girls", image: colEssentials, type: "collection", value: "Girls" },
+  { label: "Frocks", image: colFrocks, type: "subcategory", value: "Casual Frocks" },
+  { label: "Boys", image: colCoords, type: "collection", value: "Boys" },
+  { label: "Muslin Hooded Towels", image: colTowels, type: "subcategory", value: "Swaddles" },
+  { label: "Unisex", image: colBooties, type: "collection", value: "UniSex" },
 ];
 
 const ShopByCollections = () => {
@@ -38,10 +38,10 @@ const ShopByCollections = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
         {collections.map((col, i) => (
           <Link
-            key={i}
-            to={col.path}
-            className="group relative overflow-hidden rounded-3xl bg-gray-100"
-          >
+  key={i}
+  to={`/category/${col.type}/${col.value}`}
+  className="group relative overflow-hidden rounded-3xl bg-gray-100"
+>
   {/* Image */}
   <img
     src={col.image}

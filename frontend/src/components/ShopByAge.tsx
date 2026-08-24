@@ -6,11 +6,11 @@ import age110 from "@/assets/age-1-10.webp";
 import age210 from "@/assets/age-2-10.jpg";
 
 const ages = [
-  { label: "0–3 Months", sub: "Newborn essentials", image: age03, ageRange: "0-24", path: "/newborn" },
-  { label: "6–12 Months", sub: "Active little ones", image: age612, ageRange: "6-12", path: "/girls" },
-  { label: "1–10 Years", sub: "Kids fashion & comfort", image: age110, ageRange: "1-10", path: "/unisex" },
-  { label: "2–10 Years", sub: "Premium style & play", image: age210, ageRange: "2-10", path: "/unisex" },
-  { label: "2–12 Years", sub: "Growing & exploring", image: age36, ageRange: "2-12", path: "/boys" },
+  { label: "0–3 Months", sub: "Newborn essentials", image: age03, ageRange: "0-24", path: "/category/collection/newborn" },
+  { label: "6–12 Months", sub: "Active little ones", image: age612, ageRange: "6-12", path: "/category/collection/girls" },
+  { label: "1–10 Years", sub: "Kids fashion & comfort", image: age110, ageRange: "1-10", path: "/category/collection/unisex" },
+  { label: "2–10 Years", sub: "Premium style & play", image: age210, ageRange: "2-10", path: "/category/collection/unisex" },
+  { label: "2–12 Years", sub: "Growing & exploring", image: age36, ageRange: "2-12", path: "/category/collection/boys" },
 ];
 
 const ShopByAge = () => (
@@ -34,7 +34,7 @@ const ShopByAge = () => (
       {ages.map((age, i) => (
         <Link
   key={age.label}
-  to={`/age/${age.ageRange}`}
+  to={`/category/age/${age.ageRange}`}
   className="group relative overflow-hidden rounded-3xl bg-gray-100"
   style={{ aspectRatio: "3/4" }}
 >
