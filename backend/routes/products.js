@@ -83,11 +83,7 @@ router.get('/age/:age', async (req, res) => {
 router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
-    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
-    const products = await Product.find({ 
-      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') }, 
-      inStock: { $ne: false } 
-    }).sort({ createdAt: -1 });
+    const products = await Product.find({ category, inStock: { $ne: false } }).sort({ createdAt: -1 });
     
     const productsWithSEO = products.map(product => ({
       ...product.toObject(),
@@ -104,11 +100,8 @@ router.get('/category/:category', async (req, res) => {
 router.get('/subcategory/:subcategoryName', async (req, res) => {
   try {
     const { subcategoryName } = req.params;
-    const decodedSubcategory = decodeURIComponent(subcategoryName).replace(/-/g, ' ');
-    const products = await Product.find({ 
-      subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') }, 
-      inStock: { $ne: false } 
-    }).sort({ createdAt: -1 });
+    const decodedSubcategory = decodeURIComponent(subcategoryName);
+    const products = await Product.find({ subcategory: decodedSubcategory, inStock: { $ne: false } }).sort({ createdAt: -1 });
     
     const productsWithSEO = products.map(product => ({
       ...product.toObject(),

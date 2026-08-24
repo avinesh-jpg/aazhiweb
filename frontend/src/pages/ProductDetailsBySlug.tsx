@@ -53,7 +53,12 @@ const formatForUrl = (text: string) => {
 // Helper: Get product URL (without /product)
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    return `/products/${product.slug}`;
+    let url = `/${formatForUrl(product.category)}`;
+    if (product.subcategory) {
+      url += `/${formatForUrl(product.subcategory)}`;
+    }
+    url += `/${product.slug}`;
+    return url;
   }
   return `/product/${product.productId}`;
 };
@@ -83,11 +88,10 @@ const formatDescription = (description: string | undefined): string[] => {
 };
 
 const ProductDetailsBySlug = () => {
-  const { category, subcategory, slug, collectionName } = useParams<{ 
+  const { category, subcategory, slug } = useParams<{ 
     category?: string; 
     subcategory?: string; 
     slug: string;
-    collectionName?: string;
   }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
@@ -446,10 +450,12 @@ const ProductDetailsBySlug = () => {
 
   const getProductUrlForNav = (product: Product) => {
     if (product.slug) {
-      if (collectionName) {
-        return `/collections/${collectionName}/${product.slug}`;
+      let url = `/${formatForUrl(product.category)}`;
+      if (product.subcategory) {
+        url += `/${formatForUrl(product.subcategory)}`;
       }
-      return `/products/${product.slug}`;
+      url += `/${product.slug}`;
+      return url;
     }
     return `/product/${product.productId}`;
   };
@@ -618,7 +624,7 @@ const ProductDetailsBySlug = () => {
               <span className="mx-2">/</span>
               
               <button 
-                onClick={() => navigate(`/collections/${product.category.toLowerCase()}`)} 
+                onClick={() => navigate(`/category/collection/${product.category}`)} 
                 className="hover:text-purple-500 transition-colors"
               >
                 {product.category}
@@ -628,7 +634,7 @@ const ProductDetailsBySlug = () => {
                 <>
                   <span className="mx-2">/</span>
                   <button 
-                    onClick={() => navigate(`/collections/${product.subcategory.toLowerCase().replace(/ /g, '-')}`)} 
+                    onClick={() => navigate(`/category/subcategory/${product.subcategory}`)} 
                     className="hover:text-purple-500 transition-colors"
                   >
                     {product.subcategory}
