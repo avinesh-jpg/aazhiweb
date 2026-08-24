@@ -124,7 +124,9 @@ const ProductDetailsBySlug = () => {
           setProduct(productData);
           
           if (productData.slug && productData.category) {
-            const correctUrl = getProductUrl(productData);
+            const correctUrl = collectionName 
+              ? `/collections/${collectionName}/products/${productData.slug}`
+              : `/products/${productData.slug}`;
             const currentPath = window.location.pathname;
             
             if (currentPath !== correctUrl) {
@@ -164,7 +166,9 @@ const ProductDetailsBySlug = () => {
               setProduct(data);
               
               if (data.slug && data.category) {
-                const correctUrl = getProductUrl(data);
+                const correctUrl = collectionName 
+                  ? `/collections/${collectionName}/products/${data.slug}`
+                  : `/products/${data.slug}`;
                 navigate(correctUrl, { replace: true });
                 return;
               }
