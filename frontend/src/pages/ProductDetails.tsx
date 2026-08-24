@@ -834,7 +834,7 @@ const ProductDetails = () => {
                 <li><span className="mx-2">/</span></li>
                 <li>
                   <button 
-                    onClick={() => navigate(`/category/collection/${product.category}`)} 
+                    onClick={() => navigate(`/collections/${product.category.toLowerCase()}`)} 
                     className="hover:text-purple-500 transition-colors"
                   >
                     {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
@@ -845,7 +845,7 @@ const ProductDetails = () => {
                     <li><span className="mx-2">/</span></li>
                     <li>
                       <button 
-                        onClick={() => navigate(`/category/subcategory/${product.subcategory}`)} 
+                        onClick={() => navigate(`/collections/${product.subcategory.toLowerCase().replace(/ /g, '-')}`)} 
                         className="hover:text-purple-500 transition-colors"
                       >
                         {product.subcategory}

@@ -39,7 +39,7 @@ const ShopByCollections = () => {
         {collections.map((col, i) => (
           <Link
   key={i}
-  to={`/category/${col.type}/${col.value}`}
+  to={`/collections/${col.value.toLowerCase().replace(/ /g, '-')}`}
   className="group relative overflow-hidden rounded-3xl bg-gray-100"
 >
   {/* Image */}
