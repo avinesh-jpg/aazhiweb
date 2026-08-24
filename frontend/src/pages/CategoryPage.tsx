@@ -507,12 +507,17 @@ const CategoryPage = () => {
                             </span>
                           )}
                         </div>
-                        
+
+                         {/* Low stock warning message
                         {inStock && lowStockInfo.hasLowStock && (
+                          
                           <p className="text-xs text-orange-600 font-medium mt-1 animate-pulse">
                             ⚡ Only {lowStockInfo.lowestStock} left {lowStockInfo.sizeName ? `in ${lowStockInfo.sizeName}` : 'in stock'} - order soon!
                           </p>
+                        
                         )}
+                          */}
+                          
                         
                         {!inStock ? (
                           <button

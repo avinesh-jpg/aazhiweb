@@ -362,6 +362,7 @@ const SizeSelector = ({
                 : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
             }`}
           >
+            
             {sizeObj.name}
             {sizeObj.stock > 0 && sizeObj.stock <= STOCK_THRESHOLDS.VERY_LOW && (
               <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">

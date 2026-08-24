@@ -290,9 +290,11 @@ const ProductDetailsBySlug = () => {
       if (!selectedSize) {
         return { text: "Select a size", color: "text-yellow-600", bg: "bg-yellow-100", badge: "bg-yellow-100 text-yellow-800" };
       }
+      {/* Display low stock warning if applicable 
       if (selectedSize.stock <= 3) {
         return { text: `⚠️ Only ${selectedSize.stock} left in ${selectedSize.name}`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
       }
+        */}
       return { text: "✓ In Stock", color: "text-green-600", bg: "bg-green-100", badge: "bg-green-100 text-green-800" };
     }
     
