@@ -56,6 +56,15 @@ const getProductUrl = (product: Product): string => {
   return `/product/${product.productId}`;
 };
 
+// Helper: Clean hyphenated slugs for display (e.g. shorts-set -> Shorts Set)
+const getCleanDisplayName = (slug: string | undefined): string => {
+  if (!slug) return '';
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 const CategoryPage = () => {
   const { name, type: routeType, value: routeValue } = useParams<{ name?: string; type?: string; value?: string }>();
   const navigate = useNavigate();
@@ -130,7 +139,7 @@ const CategoryPage = () => {
       return collectionMap[value || ''] || 'Shop by Collection';
     }
     if (type === 'subcategory') {
-      return value || 'Products';
+      return getCleanDisplayName(value) || 'Products';
     }
     return 'Products';
   };
@@ -143,7 +152,7 @@ const CategoryPage = () => {
       return SEOUtils.getCategoryTitle(value || '');
     }
     if (type === 'subcategory') {
-      return `Aazhi ${value} | Premium Kids Wear India`;
+      return `Aazhi ${getCleanDisplayName(value)} | Premium Kids Wear India`;
     }
     return SEOUtils.getHomeTitle();
   };
