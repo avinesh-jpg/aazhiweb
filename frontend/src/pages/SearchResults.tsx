@@ -26,12 +26,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 // ✅ Helper: Get product URL (without /product)
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
-    if (product.subcategory) {
-      url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
-    }
-    url += `/${product.slug}`;
-    return url;
+    const cat = (product.category || 'collection').toLowerCase().replace(/ /g, '-');
+    const sub = (product.subcategory || 'items').toLowerCase().replace(/ /g, '-');
+    return `/${cat}/${sub}/${product.slug}`;
   }
   return `/product/${product.productId}`;
 };

@@ -51,18 +51,20 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 // Helper: Get product URL
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
-    if (product.subcategory) {
-      url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
-    }
-    url += `/${product.slug}`;
-    return url;
+    const cat = (product.category || 'collection').toLowerCase().replace(/ /g, '-');
+    const sub = (product.subcategory || 'items').toLowerCase().replace(/ /g, '-');
+    return `/${cat}/${sub}/${product.slug}`;
   }
   return `/product/${product.productId}`;
 };
 
 const CategoryPage = () => {
-  const { type, value } = useParams<{ type: string; value: string }>();
+  const { category: routeCategory, subcategory: routeSubcategory, type: routeType, value: routeValue } = useParams<{ 
+    category?: string; 
+    subcategory?: string; 
+    type?: string; 
+    value?: string;
+  }>();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,6 +72,32 @@ const CategoryPage = () => {
   const [wishlisted, setWishlisted] = useState<number[]>([]);
   const [added, setAdded] = useState<number[]>([]);
   const { addToCart } = useCart();
+
+  const { type, value } = (() => {
+    if (routeType && routeValue) {
+      return { type: routeType, value: routeValue };
+    }
+    if (routeCategory && routeSubcategory) {
+      return { type: 'subcategory', value: routeSubcategory };
+    }
+    if (routeCategory) {
+      const lowerCategory = routeCategory.toLowerCase();
+      const exactCasingMap: { [key: string]: string } = {
+        'girls': 'Girls',
+        'boys': 'Boys',
+        'unisex': 'UniSex',
+        'newborn': 'newborn',
+        'clothing': 'clothing',
+        'thottil': 'thottil',
+        'bathing': 'bathing',
+        'bedding': 'bedding',
+        'accessories': 'accessories',
+        'women': 'women'
+      };
+      return { type: 'collection', value: exactCasingMap[lowerCategory] || routeCategory };
+    }
+    return { type: 'collection', value: '' };
+  })();
 
   const getPageTitle = () => {
     if (type === 'age') {

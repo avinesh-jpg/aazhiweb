@@ -41,7 +41,7 @@ const ThottilHighlight = () => (
           Unbeatable Value for Money. Get premium brand-quality garments at a fraction of high-street retail prices. We unlock Tiruppur's surplus market for families nationwide.
         </p>
         <Link 
-          to="/category/collection/thottil"
+          to="/thottil"
           className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-bold text-white text-[0.72rem] uppercase tracking-[0.16em] transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 hover:shadow-purple-500/30 bg-gradient-to-r from-purple-500 via-purple-400 to-blue-400"
         >
           Explore Thottil Collection <ArrowRight size={14} />

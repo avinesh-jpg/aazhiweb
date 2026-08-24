@@ -66,22 +66,10 @@ function App() {
           <AnalyticsTracker />
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
+              {/* Static Routes */}
               <Route path="/" element={<Index />} />
-              <Route path="/category/:type/:value" element={<CategoryPage />} />
-              
-              {/* ✅ NEW: Blog Routes */}
               <Route path="/blog" element={<BlogList />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
-              
-              {/* ✅ NEW: Direct category/subcategory/slug routes (without /product) */}
-              <Route path="/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />
-              
-              {/* ✅ Fallback: Just slug (if no category/subcategory) */}
-              <Route path="/:slug" element={<ProductDetailsBySlug />} />
-              
-              {/* ✅ EXISTING: ID-based route (keep for backward compatibility) */}
-              <Route path="/product/:id" element={<ProductDetails />} />
-              
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
@@ -95,6 +83,19 @@ function App() {
               <Route path="/ShippingPolicy" element={<ShippingPolicy />} />
               <Route path="/help/return-policy" element={<ReturnPolicy />} /> 
               <Route path="/contact" element={<Contact />} />
+              
+              {/* Legacy ID-based product route */}
+              <Route path="/product/:id" element={<ProductDetails />} />
+              
+              {/* Legacy category route */}
+              <Route path="/category/:type/:value" element={<CategoryPage />} />
+              
+              {/* Dynamic Clean Nested Storefront Routes */}
+              <Route path="/:category" element={<CategoryPage />} />
+              <Route path="/:category/:subcategory" element={<CategoryPage />} />
+              <Route path="/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />
+              
+              {/* 404 Fallback */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
