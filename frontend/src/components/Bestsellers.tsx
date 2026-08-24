@@ -25,7 +25,8 @@
   // ✅ Helper: Get product URL (without /product)
   const getProductUrl = (product: Product): string => {
     if (product.slug) {
-      return `/products/${product.slug}`;
+      const cat = (product.category || 'collection').toLowerCase().replace(/ /g, '-');
+      return `/collections/${cat}/products/${product.slug}`;
     }
     return `/product/${product.productId}`;
   };

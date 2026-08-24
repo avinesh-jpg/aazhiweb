@@ -368,10 +368,12 @@ const CategoryPage = () => {
 
   const handleProductClick = (product: Product) => {
     if (product.slug) {
-      if (name) {
-        navigate(`/collections/${name}/products/${product.slug}`);
+      const collectionSlug = (name || routeValue || routeSubcategory || routeCategory || '').toLowerCase().replace(/ /g, '-').replace(/%20/g, '-');
+      if (collectionSlug) {
+        navigate(`/collections/${collectionSlug}/products/${product.slug}`);
       } else {
-        navigate(`/products/${product.slug}`);
+        const cat = (product.category || 'collection').toLowerCase().replace(/ /g, '-');
+        navigate(`/collections/${cat}/products/${product.slug}`);
       }
     } else {
       navigate(`/product/${product.productId}`);
