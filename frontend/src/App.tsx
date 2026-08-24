@@ -66,22 +66,8 @@ function App() {
           <AnalyticsTracker />
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
+              {/* Static Pages */}
               <Route path="/" element={<Index />} />
-              <Route path="/category/:type/:value" element={<CategoryPage />} />
-              
-              {/* ✅ NEW: Blog Routes */}
-              <Route path="/blog" element={<BlogList />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
-              
-              {/* ✅ NEW: Direct category/subcategory/slug routes (without /product) */}
-              <Route path="/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />
-              
-              {/* ✅ Fallback: Just slug (if no category/subcategory) */}
-              <Route path="/:slug" element={<ProductDetailsBySlug />} />
-              
-              {/* ✅ EXISTING: ID-based route (keep for backward compatibility) */}
-              <Route path="/product/:id" element={<ProductDetails />} />
-              
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
@@ -89,12 +75,40 @@ function App() {
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/search" element={<SearchResults />} />
+              <Route path="/about" element={<About />} />
+              
+              {/* Standard Policy & Contact Pages */}
+              <Route path="/shipping-policy" element={<ShippingPolicy />} />
+              <Route path="/return-policy" element={<ReturnPolicy />} />
+              <Route path="/contact-us" element={<Contact />} />
+              
+              {/* Standard Blog Routes */}
+              <Route path="/blogs" element={<BlogList />} />
+              <Route path="/blogs/:slug" element={<BlogPost />} />
+              
+              {/* Standard Combo Routes */}
+              <Route path="/combos" element={<CombosPage />} />
+              <Route path="/combos/:id" element={<ComboDetails />} />
+
+              {/* Standard Storefront Routing (Shopify Style) */}
+              <Route path="/collections/:name" element={<CategoryPage />} />
+              <Route path="/collections/:collectionName/products/:slug" element={<ProductDetailsBySlug />} />
+              <Route path="/products/:slug" element={<ProductDetailsBySlug />} />
+
+              {/* Legacy Routes (Keep for backward compatibility) */}
+              <Route path="/ShippingPolicy" element={<ShippingPolicy />} />
+              <Route path="/help/return-policy" element={<ReturnPolicy />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/blog" element={<BlogList />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/combo/:id" element={<ComboDetails />} />
               <Route path="/shop/combos" element={<CombosPage />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/ShippingPolicy" element={<ShippingPolicy />} />
-              <Route path="/help/return-policy" element={<ReturnPolicy />} /> 
-              <Route path="/contact" element={<Contact />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+              <Route path="/category/:type/:value" element={<CategoryPage />} />
+              <Route path="/:category/:subcategory/:slug" element={<ProductDetailsBySlug />} />
+              <Route path="/:slug" element={<ProductDetailsBySlug />} />
+
+              {/* 404 Fallback */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

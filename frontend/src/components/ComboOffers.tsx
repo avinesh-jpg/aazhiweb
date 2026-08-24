@@ -256,7 +256,7 @@ const ComboOffers = () => {
                   </button>
 
                   <button
-                    onClick={() => navigate(`/combo/${combo._id}`)}
+                    onClick={() => navigate(`/combos/${combo._id}`)}
                     className="px-4 py-2.5 rounded-full border-2 border-purple-300 text-purple-600 font-medium transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-500 hover:to-blue-400 hover:text-white hover:border-transparent hover:scale-105"
                   >
                     View

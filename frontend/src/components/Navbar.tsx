@@ -72,13 +72,11 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { label: "New Born",             category: "newborn",    path: "/category/collection/newborn" },
-    { label: "Girls",              category: "Girls",    path: "/category/collection/Girls" },
-    { label: "Boys",             category: "Boys",   path: "/category/collection/Boys" },
-    { label: "UniSex",              category: "UniSex",    path: "/category/collection/UniSex" },
-    //{ label: "Bedding",              category: "bedding",    path: "/category/collection/bedding" },
-    { label: "womens",category: "women",path: "/category/collection/womens" },//hhere the word womens is used for womens because we have only one subcategory under womens which is womens and we want to show that in the navbar instead of showing accessories to women
-    //{ label: "Blog",                category: "blog",      path: "/blog" },
+    { label: "New Born",             category: "newborn",    path: "/collections/newborn" },
+    { label: "Girls",              category: "Girls",    path: "/collections/girls" },
+    { label: "Boys",             category: "Boys",   path: "/collections/boys" },
+    { label: "UniSex",              category: "UniSex",    path: "/collections/unisex" },
+    { label: "womens",category: "women",path: "/collections/women" },
   ];  
 
   return (
@@ -284,7 +282,7 @@ const Navbar = () => {
                             {subItems.map((sub) => (
                               <button
                                 key={sub._id}
-                                onClick={() => handleNavigation(`/category/subcategory/${sub.name}`)}
+                                onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
                                 className="dropdown-item"
                               >
                                 {sub.name}
@@ -416,7 +414,7 @@ const Navbar = () => {
                         {subItems.map((sub) => (
                           <button
                             key={sub._id}
-                            onClick={() => handleNavigation(`/category/subcategory/${sub.name}`)}
+                            onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
                             className="mobile-sub-item"
                           >
                             {sub.name}

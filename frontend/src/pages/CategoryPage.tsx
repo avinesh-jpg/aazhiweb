@@ -51,18 +51,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 // Helper: Get product URL
 const getProductUrl = (product: Product): string => {
   if (product.slug) {
-    let url = `/${product.category?.toLowerCase().replace(/ /g, '-')}`;
-    if (product.subcategory) {
-      url += `/${product.subcategory?.toLowerCase().replace(/ /g, '-')}`;
-    }
-    url += `/${product.slug}`;
-    return url;
+    return `/products/${product.slug}`;
   }
   return `/product/${product.productId}`;
 };
 
 const CategoryPage = () => {
-  const { type, value } = useParams<{ type: string; value: string }>();
+  const { name, type: routeType, value: routeValue } = useParams<{ name?: string; type?: string; value?: string }>();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,6 +65,43 @@ const CategoryPage = () => {
   const [wishlisted, setWishlisted] = useState<number[]>([]);
   const [added, setAdded] = useState<number[]>([]);
   const { addToCart } = useCart();
+
+  const { type, value } = (() => {
+    if (routeType && routeValue) {
+      return { type: routeType, value: routeValue };
+    }
+    
+    if (!name) return { type: 'collection', value: '' };
+    
+    const lowerName = name.toLowerCase();
+    
+    // 1. Age check
+    const knownAges = ['0-24', '2-12', '6-12', '1-10', '2-10'];
+    if (knownAges.includes(name)) {
+      return { type: 'age', value: name };
+    }
+    
+    // 2. Collection (Category) check
+    const knownCollections = ['girls', 'boys', 'unisex', 'newborn', 'clothing', 'thottil', 'bathing', 'bedding', 'accessories', 'women'];
+    if (knownCollections.includes(lowerName)) {
+      const exactCasingMap: { [key: string]: string } = {
+        'girls': 'Girls',
+        'boys': 'Boys',
+        'unisex': 'UniSex',
+        'newborn': 'newborn',
+        'clothing': 'clothing',
+        'thottil': 'thottil',
+        'bathing': 'bathing',
+        'bedding': 'bedding',
+        'accessories': 'accessories',
+        'women': 'women'
+      };
+      return { type: 'collection', value: exactCasingMap[lowerName] || name };
+    }
+    
+    // 3. Fallback to subcategory
+    return { type: 'subcategory', value: name };
+  })();
 
   const getPageTitle = () => {
     if (type === 'age') {
@@ -335,7 +367,15 @@ const CategoryPage = () => {
   };
 
   const handleProductClick = (product: Product) => {
-    navigate(getProductUrl(product));
+    if (product.slug) {
+      if (name) {
+        navigate(`/collections/${name}/products/${product.slug}`);
+      } else {
+        navigate(`/products/${product.slug}`);
+      }
+    } else {
+      navigate(`/product/${product.productId}`);
+    }
   };
 
   const defaultImage = "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400&h=500&fit=crop";
