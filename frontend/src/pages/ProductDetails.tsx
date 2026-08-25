@@ -719,7 +719,7 @@ const ProductDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
+      <div className="min-h-screen bg-white">
         <AnnouncementBar />
         <Navbar />
         <div className="flex items-center justify-center h-96">
