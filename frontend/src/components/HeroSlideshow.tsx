@@ -9,19 +9,19 @@ const slides = [
     image: banner1,
     heading: "Premium Tiruppur Cotton Kids Wear.", 
     cta: "Shop Now", 
-    link: "#collections" 
+    link: "/collections/casual-frocks" 
   },
   { 
     image: banner2,
     heading: "Made for Play, Priced for Parents.",  
     cta: "Shop Now", 
-    link: "#collections" 
+    link: "/collections/shorts-sets" 
   },
   { 
     image: banner3,
     heading: "No Itchy Tags, Just Happy Wiggles.",  
     cta: "Shop Now", 
-    link: "#collections" 
+    link: "/collections/full-hand-tshirt-&-pant" 
   },
 ];
 
