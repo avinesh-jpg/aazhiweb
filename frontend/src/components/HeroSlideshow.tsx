@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import banner1 from "../assets/banner1-optimized.webp";
-import banner2 from "../assets/banner2-optimized.webp";
-import banner3 from "../assets/banner3-optimized.webp";
+import banner1 from "../assets/new banner 1.png";
+import banner2 from "../assets/new banner 2.png";
+import banner3 from "../assets/new banner 3.png";
 
 const slides = [
   { 
@@ -184,13 +184,21 @@ const HeroSlideshow = () => {
         
           <h1 
             className="text-white font-light max-w-3xl drop-shadow-lg" 
-            style={{ 
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2.2rem, 6vw, 5rem)",
-              lineHeight: 1.1,
-              textShadow: "0 2px 24px rgba(139, 92, 246, 0.2)",
-              wordBreak: 'break-word'
-            }}
+            style={{
+  fontFamily: "'Cormorant Garamond', serif",
+  fontSize: "clamp(2.2rem, 6vw, 5rem)",
+  lineHeight: 1.1,
+  color: "#fff",
+
+  WebkitTextStroke: "0.8px rgba(255, 255, 255, 0.7)",
+
+  textShadow: `
+    0 2px 3px rgba(0, 0, 0, 2),
+    0 5px 15px rgba(0, 0, 0, 2)
+  `,
+
+  wordBreak: "break-word"
+}}
           >
             {slides[0].heading}
           </h1>
@@ -287,13 +295,21 @@ const HeroSlideshow = () => {
           
               <h1 
                 className="text-white font-light max-w-3xl drop-shadow-lg" 
-                style={{ 
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "clamp(2.2rem, 6vw, 5rem)",
-                  lineHeight: 1.1,
-                  textShadow: "0 2px 24px rgba(139, 92, 246, 0.2)",
-                  wordBreak: 'break-word'
-                }}
+                style={{
+  fontFamily: "'Cormorant Garamond', serif",
+  fontSize: "clamp(2.2rem, 6vw, 5rem)",
+  lineHeight: 1.1,
+  color: "#fff",
+
+  WebkitTextStroke: "0.8px rgba(255, 255, 255, 0.7)",
+
+  textShadow: `
+    0 2px 3px rgba(0, 0, 0, 2),
+    0 5px 15px rgba(0, 0, 0, 2)
+  `,
+
+  wordBreak: "break-word"
+}}
               >
                 {slide.heading}
               </h1>
@@ -423,6 +439,8 @@ const HeroSlideshow = () => {
           max-width: 100%;
           height: auto;
         }
+
+        
       `}</style>
     </div>
   );
