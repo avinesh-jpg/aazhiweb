@@ -79,13 +79,20 @@ router.get('/age/:age', async (req, res) => {
   }
 });
 
+// Helper: Create regex that matches spaces and hyphens interchangeably
+const makeFlexibleRegex = (param) => {
+  const decoded = decodeURIComponent(param);
+  const escaped = decoded.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = escaped.replace(/[-\s]+/g, '[- ]');
+  return new RegExp(`^${pattern}$`, 'i');
+};
+
 // Get products by category
 router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
-    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
     const products = await Product.find({ 
-      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') }, 
+      category: { $regex: makeFlexibleRegex(category) }, 
       inStock: { $ne: false } 
     }).sort({ createdAt: -1 });
     
@@ -104,9 +111,8 @@ router.get('/category/:category', async (req, res) => {
 router.get('/subcategory/:subcategoryName', async (req, res) => {
   try {
     const { subcategoryName } = req.params;
-    const decodedSubcategory = decodeURIComponent(subcategoryName).replace(/-/g, ' ');
     const products = await Product.find({ 
-      subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') }, 
+      subcategory: { $regex: makeFlexibleRegex(subcategoryName) }, 
       inStock: { $ne: false } 
     }).sort({ createdAt: -1 });
     
@@ -174,12 +180,9 @@ router.get('/category/:category/subcategory/:subcategory/slug/:slug', async (req
   try {
     const { category, subcategory, slug } = req.params;
     
-    const decodedCategory = decodeURIComponent(category).replace(/-/g, ' ');
-    const decodedSubcategory = decodeURIComponent(subcategory).replace(/-/g, ' ');
-    
     const product = await Product.findOne({ 
-      category: { $regex: new RegExp(`^${decodedCategory}$`, 'i') },
-      subcategory: { $regex: new RegExp(`^${decodedSubcategory}$`, 'i') },
+      category: { $regex: makeFlexibleRegex(category) },
+      subcategory: { $regex: makeFlexibleRegex(subcategory) },
       slug: slug
     });
     
