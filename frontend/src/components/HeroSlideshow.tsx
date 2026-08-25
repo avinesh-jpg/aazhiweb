@@ -118,7 +118,7 @@ const HeroSlideshow = () => {
       style={{ 
         height: "calc(100vh - 112px)", 
         minHeight: 480,
-        backgroundColor: "#f9fafb"
+        backgroundColor: "#1a1a2e"
       }}
     >
       {/* ⭐⭐⭐ LCP FIX: STATIC FIRST SLIDE - Always in HTML for immediate discovery ⭐⭐⭐ */}
@@ -135,7 +135,7 @@ const HeroSlideshow = () => {
         <img
           src={slides[0].image}
           alt={slides[0].heading}
-          fetchPriority="high"
+          fetchpriority="high"
           loading="eager"
           decoding="async"
           className="absolute inset-0 w-full h-full object-cover"
@@ -249,7 +249,7 @@ const HeroSlideshow = () => {
               alt={slide.heading}
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
-              fetchPriority="low"
+              fetchpriority="low"
               decoding="async"
               style={{
                 opacity: isActive ? 1 : 0,
