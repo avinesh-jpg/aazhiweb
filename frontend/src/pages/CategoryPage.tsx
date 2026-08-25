@@ -65,6 +65,16 @@ const getCleanDisplayName = (slug: string | undefined): string => {
     .join(' ');
 };
 
+// Visual Skeleton Loader for product cards while data is loading
+const SkeletonCard = () => (
+  <div className="animate-pulse flex flex-col gap-4">
+    <div className="bg-purple-100/50 rounded-xl w-full" style={{ aspectRatio: "3/4" }}></div>
+    <div className="h-4 bg-purple-100/50 rounded w-3/4"></div>
+    <div className="h-3 bg-purple-100/50 rounded w-1/2"></div>
+    <div className="h-8 bg-purple-100/50 rounded-full w-full mt-2"></div>
+  </div>
+);
+
 const CategoryPage = () => {
   const { name, type: routeType, value: routeValue } = useParams<{ name?: string; type?: string; value?: string }>();
   const navigate = useNavigate();
@@ -462,6 +472,14 @@ const CategoryPage = () => {
                 >
                   Continue Shopping
                 </button>
+              </div>
+            )}
+
+            {loading && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
               </div>
             )}
 

@@ -29,8 +29,8 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 // 🌀 Loading spinner while page loads
 function LoadingSpinner() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
-      <div className="inline-block rounded-full h-12 w-12 border-4 border-purple-300 border-t-purple-600 animate-spin"></div>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="inline-block rounded-full h-12 w-12 border-4 border-purple-100 border-t-purple-600 animate-spin"></div>
     </div>
   );
 }
