@@ -76,25 +76,11 @@
   body {
     @apply text-foreground;
     font-family: 'Nunito Sans', sans-serif;
-
-    /* 🎨 MY SIGNATURE GRADIENT: Warm lavender to soft sky blue */
-    background: radial-gradient(ellipse at 20% 25%, #f5efff 0%, #e8f0fe 45%, #faf5ff 70%, #ffffff 100%);
-    background-attachment: fixed;
+    background: #ffffff;
     min-height: 100vh;
   }
 
-  /* 🌟 Depth overlay for dimensional feel */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(ellipse at 80% 70%, rgba(167, 139, 250, 0.08) 0%, rgba(96, 165, 250, 0.06) 50%, transparent 80%);
-    pointer-events: none;
-    z-index: -1;
-  }
+
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cormorant Garamond', serif;
