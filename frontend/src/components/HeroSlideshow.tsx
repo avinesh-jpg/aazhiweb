@@ -118,7 +118,13 @@ const HeroSlideshow = () => {
       style={{ 
         height: "calc(100vh - 112px)", 
         minHeight: 480,
-        backgroundColor: "#1a1a2e"
+        // FIXED: Changed from #1a1a2e to a warm cream color that matches banner1
+        backgroundColor: "#f5f0eb",
+        // FIXED: Added banner1 as CSS background for instant display
+        backgroundImage: `url(${banner1})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat"
       }}
     >
       {/* ⭐⭐⭐ LCP FIX: STATIC FIRST SLIDE - Always in HTML for immediate discovery ⭐⭐⭐ */}
@@ -135,7 +141,7 @@ const HeroSlideshow = () => {
         <img
           src={slides[0].image}
           alt={slides[0].heading}
-          fetchpriority="high"
+          fetchPriority="high"
           loading="eager"
           decoding="async"
           className="absolute inset-0 w-full h-full object-cover"
@@ -185,20 +191,17 @@ const HeroSlideshow = () => {
           <h1 
             className="text-white font-light max-w-3xl drop-shadow-lg" 
             style={{
-  fontFamily: "'Cormorant Garamond', serif",
-  fontSize: "clamp(2.2rem, 6vw, 5rem)",
-  lineHeight: 1.1,
-  color: "#fff",
-
-  WebkitTextStroke: "0.8px rgba(255, 255, 255, 0.7)",
-
-  textShadow: `
-    0 2px 3px rgba(0, 0, 0, 2),
-    0 5px 15px rgba(0, 0, 0, 2)
-  `,
-
-  wordBreak: "break-word"
-}}
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(2.2rem, 6vw, 5rem)",
+              lineHeight: 1.1,
+              color: "#fff",
+              WebkitTextStroke: "0.8px rgba(255, 255, 255, 0.7)",
+              textShadow: `
+                0 2px 3px rgba(0, 0, 0, 2),
+                0 5px 15px rgba(0, 0, 0, 2)
+              `,
+              wordBreak: "break-word"
+            }}
           >
             {slides[0].heading}
           </h1>
@@ -249,7 +252,7 @@ const HeroSlideshow = () => {
               alt={slide.heading}
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
-              fetchpriority="low"
+              fetchPriority="low"
               decoding="async"
               style={{
                 opacity: isActive ? 1 : 0,
@@ -296,20 +299,17 @@ const HeroSlideshow = () => {
               <h1 
                 className="text-white font-light max-w-3xl drop-shadow-lg" 
                 style={{
-  fontFamily: "'Cormorant Garamond', serif",
-  fontSize: "clamp(2.2rem, 6vw, 5rem)",
-  lineHeight: 1.1,
-  color: "#fff",
-
-  WebkitTextStroke: "0.8px rgba(255, 255, 255, 0.7)",
-
-  textShadow: `
-    0 2px 3px rgba(0, 0, 0, 2),
-    0 5px 15px rgba(0, 0, 0, 2)
-  `,
-
-  wordBreak: "break-word"
-}}
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "clamp(2.2rem, 6vw, 5rem)",
+                  lineHeight: 1.1,
+                  color: "#fff",
+                  WebkitTextStroke: "0.8px rgba(255, 255, 255, 0.7)",
+                  textShadow: `
+                    0 2px 3px rgba(0, 0, 0, 2),
+                    0 5px 15px rgba(0, 0, 0, 2)
+                  `,
+                  wordBreak: "break-word"
+                }}
               >
                 {slide.heading}
               </h1>
@@ -439,8 +439,6 @@ const HeroSlideshow = () => {
           max-width: 100%;
           height: auto;
         }
-
-        
       `}</style>
     </div>
   );
