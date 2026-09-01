@@ -86,6 +86,30 @@ const formatDescription = (description: string | undefined): string[] => {
   return [description];
 };
 
+// Helper: Get size chart info by subcategory
+const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: string; isFullWidth?: boolean } | null => {
+  if (!subcategory) return null;
+  const lower = subcategory.toLowerCase();
+  
+  if (lower.includes('casual frock')) {
+    return {
+      src: '/size-chart.jpg',
+      alt: 'Casual Frocks Size Chart',
+      isFullWidth: false
+    };
+  }
+  
+  if (lower.includes('full hand tshirt & pant') || lower.includes('tshirt & pant') || lower.includes('t-shirt & pant')) {
+    return {
+      src: '/tshirt.jpeg',
+      alt: 'Full Hand Tshirt & Pant Size Chart',
+      isFullWidth: true
+    };
+  }
+  
+  return null;
+};
+
 // Custom Hooks
 const useProduct = (id: string) => {
   const [product, setProduct] = useState<Product | null>(null);
@@ -444,6 +468,7 @@ const ProductDetails = () => {
   const { wishlisted, toggleWishlist } = useWishlist(product?.productId);
   const { addToCart } = useCart();
   const sizeChartRef = useRef<HTMLDivElement | null>(null);
+  const sizeChartInfo = getSizeChartInfo(product?.subcategory);
 
   // GA4: Trigger view_item when product is loaded
   useEffect(() => {
@@ -719,12 +744,26 @@ const ProductDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
         <AnnouncementBar />
         <Navbar />
-        <div className="flex items-center justify-center h-96">
-          <div className="inline-block rounded-full h-8 w-8 border-2 border-purple-300 border-t-purple-600 animate-spin"></div>
-        </div>
+        <main className="pt-8 pb-16">
+          <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 h-4 w-48 bg-purple-100/50 rounded animate-pulse"></div>
+            <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-16">
+              {/* Image Skeleton */}
+              <div className="relative overflow-hidden rounded-2xl bg-purple-100/40 animate-pulse shadow-lg" style={{ aspectRatio: "3/4" }}></div>
+              {/* Content Skeleton */}
+              <div className="space-y-4 animate-pulse">
+                <div className="h-8 bg-purple-100/50 rounded-lg w-3/4"></div>
+                <div className="h-6 bg-purple-100/40 rounded-full w-28"></div>
+                <div className="h-8 bg-purple-100/50 rounded-lg w-36"></div>
+                <div className="h-24 bg-purple-100/30 rounded-xl w-full"></div>
+                <div className="h-12 bg-purple-100/50 rounded-full w-full mt-6"></div>
+              </div>
+            </div>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -990,7 +1029,7 @@ const ProductDetails = () => {
                     onSelect={handleSizeSelect}
                     error={sizeError}
                     onShowSizeChart={
-                      product.subcategory?.toLowerCase().includes('casual frock')
+                      sizeChartInfo
                         ? () => sizeChartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
                         : undefined
                     }
@@ -1035,12 +1074,16 @@ const ProductDetails = () => {
                   )}
                 </div>
 
-                {product.subcategory?.toLowerCase().includes('casual frock') && (
-                  <div ref={sizeChartRef} className="mt-6 rounded-2xl overflow-hidden border border-purple-100 flex justify-center max-h-[400px] overflow-y-auto">
+                {/* Inline Size Chart */}
+                {sizeChartInfo && (
+                  <div 
+                    ref={sizeChartRef} 
+                    className="mt-6 flex justify-center w-full"
+                  >
                     <img 
-                      src="/size-chart.jpg" 
-                      alt="Size Chart" 
-                      className="max-w-full h-auto object-contain rounded-2xl"
+                      src={sizeChartInfo.src} 
+                      alt={sizeChartInfo.alt} 
+                      className="w-full max-w-[450px] h-auto object-contain rounded-2xl shadow-sm border border-purple-100"
                       onError={(e) => {
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&h=800&fit=crop';
                       }}
