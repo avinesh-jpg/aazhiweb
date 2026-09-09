@@ -274,47 +274,118 @@ router.get('/bestsellers', async (req, res) => {
   }
 });
 
-// GET HTML preview of product for crawlers/social media sharing
+// Helper to escape HTML special characters
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Helper to generate social preview HTML for a product
+function generateProductSEOHTML(product, canonicalUrl) {
+  const pageTitle = product ? `${product.name} | Buy Tiruppur Cotton Kids Wear | Aazhi` : 'Aazhi - Organic Baby & Toddler Clothing';
+  const priceText = product?.price ? `₹${product.price} - ` : '';
+  const pageDesc = product 
+    ? (product.description ? `${priceText}${product.description}` : `${priceText}Buy ${product.name} online at Aazhi. Premium Tiruppur cotton kids wear made from 100% soft breathable cotton.`)
+    : 'Explore Aazhi\'s premium organic, comfortable baby and toddler clothing for ages 0-10. Sustainable, soft, and safe for your little ones.';
+  
+  let imageUrl = product?.image || (product?.images && product.images[0]) || 'https://theaazhi.com/aazhi-og-square-compressed.jpg';
+  if (imageUrl.startsWith('/')) {
+    imageUrl = `https://theaazhi.com${imageUrl}`;
+  }
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHTML(pageTitle)}</title>
+  <meta name="description" content="${escapeHTML(pageDesc)}" />
+  
+  <!-- Open Graph / Facebook / WhatsApp / Instagram -->
+  <meta property="og:site_name" content="Aazhi" />
+  <meta property="og:type" content="product" />
+  <meta property="og:title" content="${escapeHTML(pageTitle)}" />
+  <meta property="og:description" content="${escapeHTML(pageDesc)}" />
+  <meta property="og:image" content="${imageUrl}" />
+  <meta property="og:image:secure_url" content="${imageUrl}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="600" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:image:alt" content="${escapeHTML(product ? product.name : 'Aazhi')}" />
+  <meta property="og:url" content="${canonicalUrl}" />
+  <meta property="og:locale" content="en_US" />
+  <link rel="image_src" href="${imageUrl}" />
+  
+  ${product?.price ? `<meta property="product:price:amount" content="${product.price}" />
+  <meta property="product:price:currency" content="INR" />` : ''}
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escapeHTML(pageTitle)}" />
+  <meta name="twitter:description" content="${escapeHTML(pageDesc)}" />
+  <meta name="twitter:image" content="${imageUrl}" />
+  <meta name="twitter:site" content="@Aazhi" />
+
+  <link rel="canonical" href="${canonicalUrl}" />
+
+  <!-- Instant Client Redirect for Real Users -->
+  <meta http-equiv="refresh" content="0;url=${canonicalUrl}">
+  <script>window.location.replace("${canonicalUrl}");</script>
+</head>
+<body>
+  <h1>${escapeHTML(product ? product.name : 'Aazhi - Organic Baby & Toddler Clothing')}</h1>
+  <p>${escapeHTML(pageDesc)}</p>
+  <img src="${imageUrl}" alt="${escapeHTML(product ? product.name : 'Aazhi')}" style="max-width:300px;height:auto;" />
+</body>
+</html>`;
+}
+
+// GET HTML preview of product by slug for crawlers/social media sharing
+router.get('/seo-preview/product-by-slug/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const product = await Product.findOne({
+      $or: [
+        { slug: slug },
+        { slug: { $regex: new RegExp(`^${slug}$`, 'i') } }
+      ]
+    });
+    
+    const categorySlug = product?.category ? product.category.toLowerCase().replace(/ /g, '-') : 'all';
+    const subcategorySlug = product?.subcategory ? product.subcategory.toLowerCase().replace(/ /g, '-') : '';
+    const canonicalUrl = subcategorySlug 
+      ? `https://theaazhi.com/collections/${categorySlug}/${subcategorySlug}/products/${slug}`
+      : `https://theaazhi.com/collections/${categorySlug}/products/${slug}`;
+    
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+    res.send(generateProductSEOHTML(product, canonicalUrl));
+  } catch (error) {
+    console.error('SEO product preview by slug error:', error);
+    res.status(500).send('Error loading preview');
+  }
+});
+
+// GET HTML preview of product by category/subcategory/slug for crawlers/social media sharing
 router.get('/seo-preview/product/:category/:subcategory/:slug', async (req, res) => {
   try {
     const { category, subcategory, slug } = req.params;
-    const product = await Product.findOne({ slug });
+    const product = await Product.findOne({
+      $or: [
+        { slug: slug },
+        { slug: { $regex: new RegExp(`^${slug}$`, 'i') } }
+      ]
+    });
     
-    const pageTitle = product ? `${product.name} | Aazhi Premium` : 'Aazhi | Premium Cotton Baby Clothes & Kids Wear';
-    const pageDesc = product ? (product.description || `Buy ${product.name} at Aazhi Premium.`) : 'Shop premium baby clothes, newborn clothing, cotton dresses, rompers, and kids wear online at Aazhi.';
-    const imageUrl = product ? product.image : 'https://theaazhi.com/logo.png';
-    const productUrl = (category === 'all' && subcategory === 'all') 
-      ? `https://theaazhi.com/${slug}` 
-      : `https://theaazhi.com/${category}/${subcategory}/${slug}`;
+    const canonicalUrl = (category === 'all' && subcategory === 'all') 
+      ? `https://theaazhi.com/products/${slug}` 
+      : `https://theaazhi.com/collections/${category}/${subcategory}/products/${slug}`;
     
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>${pageTitle}</title>
-        <meta name="description" content="${pageDesc}" />
-        
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="product" />
-        <meta property="og:title" content="${pageTitle}" />
-        <meta property="og:description" content="${pageDesc}" />
-        <meta property="og:image" content="${imageUrl}" />
-        <meta property="og:url" content="${productUrl}" />
-        <meta property="og:site_name" content="Aazhi Premium" />
-        
-        <!-- Twitter -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="${pageTitle}" />
-        <meta name="twitter:description" content="${pageDesc}" />
-        <meta name="twitter:image" content="${imageUrl}" />
-      </head>
-      <body>
-        <h1>${product ? product.name : 'Product Not Found'}</h1>
-        <p>${pageDesc}</p>
-      </body>
-      </html>
-    `);
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+    res.send(generateProductSEOHTML(product, canonicalUrl));
   } catch (error) {
     console.error('SEO product preview error:', error);
     res.status(500).send('Error loading preview');
@@ -332,39 +403,12 @@ router.get('/seo-preview/product-by-id/:id', async (req, res) => {
       product = await Product.findOne({ productId: parseInt(id) });
     }
     
-    const pageTitle = product ? `${product.name} | Aazhi Premium` : 'Aazhi | Premium Cotton Baby Clothes & Kids Wear';
-    const pageDesc = product ? (product.description || `Buy ${product.name} at Aazhi Premium.`) : 'Shop premium baby clothes, newborn clothing, cotton dresses, rompers, and kids wear online at Aazhi.';
-    const imageUrl = product ? product.image : 'https://theaazhi.com/logo.png';
-    const productUrl = `https://theaazhi.com/product/${id}`;
+    const canonicalUrl = product?.slug 
+      ? `https://theaazhi.com/collections/${(product.category || 'all').toLowerCase().replace(/ /g, '-')}/products/${product.slug}`
+      : `https://theaazhi.com/product/${id}`;
     
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>${pageTitle}</title>
-        <meta name="description" content="${pageDesc}" />
-        
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="product" />
-        <meta property="og:title" content="${pageTitle}" />
-        <meta property="og:description" content="${pageDesc}" />
-        <meta property="og:image" content="${imageUrl}" />
-        <meta property="og:url" content="${productUrl}" />
-        <meta property="og:site_name" content="Aazhi Premium" />
-        
-        <!-- Twitter -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="${pageTitle}" />
-        <meta name="twitter:description" content="${pageDesc}" />
-        <meta name="twitter:image" content="${imageUrl}" />
-      </head>
-      <body>
-        <h1>${product ? product.name : 'Product Not Found'}</h1>
-        <p>${pageDesc}</p>
-      </body>
-      </html>
-    `);
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+    res.send(generateProductSEOHTML(product, canonicalUrl));
   } catch (error) {
     console.error('SEO product by ID preview error:', error);
     res.status(500).send('Error loading preview');
@@ -375,41 +419,51 @@ router.get('/seo-preview/product-by-id/:id', async (req, res) => {
 router.get('/seo-preview/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
-    const products = await Product.find({ category, inStock: { $ne: false } }).limit(1);
+    const cleanCategory = decodeURIComponent(category).replace(/-/g, ' ');
+    const products = await Product.find({ 
+      category: { $regex: new RegExp(`^${cleanCategory}$`, 'i') }, 
+      inStock: { $ne: false } 
+    }).limit(1);
     
-    const pageTitle = `${category} Premium Kids Wear | Aazhi`;
-    const pageDesc = `Shop the latest ${category} clothing collection at Aazhi. 100% soft cotton baby clothing and kids wear.`;
-    const imageUrl = products.length > 0 ? products[0].image : 'https://theaazhi.com/logo.png';
-    const categoryUrl = `https://theaazhi.com/category/${category}`;
+    const pageTitle = `${cleanCategory} Premium Kids Wear | Aazhi`;
+    const pageDesc = `Shop the latest ${cleanCategory} clothing collection at Aazhi. 100% soft cotton baby clothing and kids wear.`;
+    const imageUrl = products.length > 0 && products[0].image ? products[0].image : 'https://theaazhi.com/aazhi-og-square-compressed.jpg';
+    const categoryUrl = `https://theaazhi.com/collections/${category.toLowerCase()}`;
     
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>${pageTitle}</title>
-        <meta name="description" content="${pageDesc}" />
-        
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="${pageTitle}" />
-        <meta property="og:description" content="${pageDesc}" />
-        <meta property="og:image" content="${imageUrl}" />
-        <meta property="og:url" content="${categoryUrl}" />
-        <meta property="og:site_name" content="Aazhi Premium" />
-        
-        <!-- Twitter -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="${pageTitle}" />
-        <meta name="twitter:description" content="${pageDesc}" />
-        <meta name="twitter:image" content="${imageUrl}" />
-      </head>
-      <body>
-        <h1>${category} Collection</h1>
-        <p>${pageDesc}</p>
-      </body>
-      </html>
-    `);
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400');
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHTML(pageTitle)}</title>
+  <meta name="description" content="${escapeHTML(pageDesc)}" />
+  
+  <meta property="og:site_name" content="Aazhi" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${escapeHTML(pageTitle)}" />
+  <meta property="og:description" content="${escapeHTML(pageDesc)}" />
+  <meta property="og:image" content="${imageUrl}" />
+  <meta property="og:image:secure_url" content="${imageUrl}" />
+  <meta property="og:image:width" content="600" />
+  <meta property="og:image:height" content="600" />
+  <meta property="og:url" content="${categoryUrl}" />
+  <meta property="og:locale" content="en_US" />
+  <link rel="image_src" href="${imageUrl}" />
+  
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escapeHTML(pageTitle)}" />
+  <meta name="twitter:description" content="${escapeHTML(pageDesc)}" />
+  <meta name="twitter:image" content="${imageUrl}" />
+
+  <link rel="canonical" href="${categoryUrl}" />
+  <meta http-equiv="refresh" content="0;url=${categoryUrl}">
+  <script>window.location.replace("${categoryUrl}");</script>
+</head>
+<body>
+  <h1>${escapeHTML(cleanCategory)} Collection</h1>
+  <p>${escapeHTML(pageDesc)}</p>
+</body>
+</html>`);
   } catch (error) {
     console.error('SEO category preview error:', error);
     res.status(500).send('Error loading preview');
