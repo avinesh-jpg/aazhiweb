@@ -9,10 +9,10 @@ export default async function middleware(request) {
   const userAgent = request.headers.get('user-agent') || '';
   const url = new URL(request.url);
 
-  // Crawler User-Agents (case-insensitive checks)
+  // Crawler User-Agents (case-insensitive checks for automated link scrapers only)
   const bots = [
-    'whatsapp', 'facebookexternalhit', 'facebot', 'twitterbot', 'instagram',
-    'linkedinbot', 'telegrambot', 'slackbot', 'pinterest', 'discordbot',
+    'whatsapp', 'facebookexternalhit', 'facebot', 'meta-externalagent', 'facebookcatalog',
+    'twitterbot', 'linkedinbot', 'telegrambot', 'slackbot', 'pinterest', 'discordbot',
     'applebot', 'googlebot', 'bingbot', 'yandex', 'baiduspider', 'embedly',
     'quora link preview', 'showyoubot', 'outbrain', 'vkshare', 'w3c_validator'
   ];
