@@ -28,7 +28,7 @@ export default async function middleware(request) {
     // 1. URLs containing "/products/:slug" (e.g. /collections/boys/products/slug or /products/slug)
     if (productsIdx !== -1 && pathParts[productsIdx + 1]) {
       const slug = pathParts[productsIdx + 1];
-      destinationUrl = `https://aazhiweb.onrender.com/api/products/seo-preview/product-by-slug/${slug}`;
+      destinationUrl = `https://aazhiweb.onrender.com/api/products/seo-preview/product/all/all/${slug}`;
     }
     // 2. URLs like "/product/:idOrSlug"
     else if (pathParts[0] === 'product' && pathParts[1]) {
@@ -46,7 +46,7 @@ export default async function middleware(request) {
     else if (pathParts.length === 1) {
       const systemPages = ['cart', 'checkout', 'orders', 'profile', 'search', 'blog', 'blogs', 'combo', 'collections', 'about', 'contact', 'privacy-policy', 'terms'];
       if (!systemPages.includes(pathParts[0].toLowerCase())) {
-        destinationUrl = `https://aazhiweb.onrender.com/api/products/seo-preview/product-by-slug/${pathParts[0]}`;
+        destinationUrl = `https://aazhiweb.onrender.com/api/products/seo-preview/product/all/all/${pathParts[0]}`;
       }
     }
 
