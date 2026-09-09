@@ -1,6 +1,17 @@
 {
   "rewrites": [
-    { "source": "/sitemap.xml", "destination": "https://aazhiweb.onrender.com/sitemap.xml" },
-    { "source": "/(.*)", "destination": "/" }
+    { 
+      "source": "/sitemap.xml", 
+      "destination": "https://aazhiweb.onrender.com/sitemap.xml" 
+    },
+    { 
+      "source": "/((?!.*\\.[^/]+$).*)", 
+      "destination": "/" 
+    }
   ]
 }
+
+
+
+
+
