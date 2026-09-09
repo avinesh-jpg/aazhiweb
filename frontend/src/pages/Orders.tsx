@@ -10,6 +10,10 @@ import BackToTop from '@/components/BackToTop';
 interface Order {
   _id: string;
   orderNumber: string;
+  subtotal?: number;
+  shipping?: number;
+  discount?: number;
+  couponCode?: string;
   total: number;
   status: string;
   createdAt: string;
@@ -303,12 +307,20 @@ const Orders = () => {
                       <div className="mt-4 pt-4 border-t border-purple-100">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500">Subtotal</span>
-                          <span className="text-[#1e1b4b]">₹{calculateSubtotal(order.items).toLocaleString()}</span>
+                          <span className="text-[#1e1b4b]">₹{(order.subtotal ?? calculateSubtotal(order.items)).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm mt-1">
                           <span className="text-gray-500">Shipping</span>
-                          <span className="text-green-600">FREE</span>
+                          <span className={order.shipping && order.shipping > 0 ? "text-[#1e1b4b]" : "text-green-600 font-medium"}>
+                            {order.shipping && order.shipping > 0 ? `₹${order.shipping.toLocaleString()}` : 'FREE'}
+                          </span>
                         </div>
+                        {order.discount ? (
+                          <div className="flex justify-between text-sm mt-1 text-green-600">
+                            <span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
+                            <span>-₹{order.discount.toLocaleString()}</span>
+                          </div>
+                        ) : null}
                         {order.paymentMethod === 'cod' && (
                           <div className="flex justify-between text-sm mt-1">
                             <span className="text-gray-500">Payment Method</span>
