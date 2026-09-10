@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
-  Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle
+  Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle,
+  Search, RefreshCw
 } from 'lucide-react';
 import ProductModal from '@/components/Admin/ProductModal';
 import SubcategoryManager from '@/components/Admin/SubcategoryManager';
@@ -29,6 +30,9 @@ const AdminDashboard = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [viewTrash, setViewTrash] = useState(false);
   const [trashProducts, setTrashProducts] = useState<any[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -337,13 +341,35 @@ const AdminDashboard = () => {
     navigate('/admin/login');
   };
 
-  const filterOrders = (status: string) => {
-    if (status === 'all') {
-      setOrders(allOrders);
-    } else {
-      setOrders(allOrders.filter(order => order.status === status));
+  const getPaymentStatusColor = (paymentStatus: string) => {
+    switch ((paymentStatus || '').toLowerCase()) {
+      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  const filteredOrders = allOrders.filter((order: any) => {
+    if (statusFilter !== 'all' && (order.status || '').toLowerCase() !== statusFilter.toLowerCase()) {
+      return false;
+    }
+    if (paymentFilter !== 'all' && (order.paymentStatus || 'pending').toLowerCase() !== paymentFilter.toLowerCase()) {
+      return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const orderNum = (order.orderNumber || '').toLowerCase();
+      const name = (order.userId?.name || order.guestName || order.shippingAddress?.fullName || '').toLowerCase();
+      const phone = (order.guestMobile || order.shippingAddress?.phone || '').toLowerCase();
+      const email = (order.userId?.email || order.guestEmail || order.shippingAddress?.email || '').toLowerCase();
+      const city = (order.shippingAddress?.city || '').toLowerCase();
+      if (!orderNum.includes(q) && !name.includes(q) && !phone.includes(q) && !email.includes(q) && !city.includes(q)) {
+        return false;
+      }
+    }
+    return true;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -558,15 +584,70 @@ const AdminDashboard = () => {
 
         {/* Orders Tab */}
         {activeTab === 'orders' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Orders Management</h1>
-              <div className="flex gap-2">
-                <select 
-                  className="px-3 py-2 border rounded-lg"
-                  onChange={(e) => filterOrders(e.target.value)}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Showing <span className="font-semibold text-gray-800">{filteredOrders.length}</span> of <span className="font-semibold text-gray-800">{allOrders.length}</span> total orders
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={fetchOrders}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 border rounded-lg text-sm font-medium text-gray-700 transition-colors"
+                  title="Refresh orders"
                 >
-                  <option value="all">All Orders</option>
+                  <RefreshCw size={16} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              {/* Search Box */}
+              <div className="md:col-span-5 relative">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input 
+                  type="text"
+                  placeholder="Search order #, customer, phone, email, city..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Payment Filter */}
+              <div className="md:col-span-3">
+                <select 
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+                >
+                  <option value="all">💳 All Payments</option>
+                  <option value="paid">🟢 Paid Only</option>
+                  <option value="pending">🟡 Pending Payment</option>
+                  <option value="failed">🔴 Failed Only</option>
+                </select>
+              </div>
+
+              {/* Order Status Filter */}
+              <div className="md:col-span-3">
+                <select 
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+                >
+                  <option value="all">📦 All Statuses</option>
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
                   <option value="processing">Processing</option>
@@ -574,12 +655,25 @@ const AdminDashboard = () => {
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
-                <button 
-                  onClick={fetchOrders}
-                  className="px-3 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                  Refresh
-                </button>
+              </div>
+
+              {/* Clear Filter Button */}
+              <div className="md:col-span-1 flex items-center justify-end">
+                {(statusFilter !== 'all' || paymentFilter !== 'all' || searchQuery.trim() !== '') ? (
+                  <button
+                    onClick={() => {
+                      setStatusFilter('all');
+                      setPaymentFilter('all');
+                      setSearchQuery('');
+                    }}
+                    className="w-full py-2 px-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-colors flex items-center justify-center gap-1"
+                    title="Clear all filters"
+                  >
+                    <X size={14} /> Clear
+                  </button>
+                ) : (
+                  <div className="text-xs text-gray-400 text-center w-full">All</div>
+                )}
               </div>
             </div>
             
@@ -600,7 +694,7 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {orders.map((order) => (
+                    {filteredOrders.map((order) => (
                       <tr key={order._id} className="hover:bg-gray-50">
                         <td className="px-4 py-4 text-sm font-medium">{order.orderNumber}</td>
                         <td className="px-4 py-4">
@@ -613,7 +707,7 @@ const AdminDashboard = () => {
                         <td className="px-4 py-4 text-sm">{order.items?.length || 0}</td>
                         <td className="px-4 py-4 text-sm font-medium">₹{order.total?.toLocaleString()}</td>
                         <td className="px-4 py-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPaymentStatusColor(order.paymentStatus)}`}>
                             {order.paymentStatus || 'pending'}
                           </span>
                         </td>
@@ -674,9 +768,11 @@ const AdminDashboard = () => {
                     ))}
                   </tbody>
                 </table>
-                {orders.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    No orders found
+                {filteredOrders.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <ShoppingBag className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-base font-semibold text-gray-700">No matching orders found</p>
+                    <p className="text-xs text-gray-400 mt-1">Try adjusting your search query, payment filter, or status filter</p>
                   </div>
                 )}
               </div>
