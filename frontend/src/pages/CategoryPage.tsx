@@ -57,11 +57,31 @@ const getProductUrl = (product: Product): string => {
 };
 
 // Helper: Clean hyphenated slugs for display (e.g. shorts-set -> Shorts Set)
-const getCleanDisplayName = (slug: string | undefined): string => {
+/*const getCleanDisplayName = (slug: string | undefined): string => {
   if (!slug) return '';
   return slug
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};   */
+
+const getCleanDisplayName = (slug: string | undefined): string => {
+  if (!slug) return '';
+
+  // Preserve age ranges such as 6M-7M
+  if (/^\d+[mM]-\d+[mM]$/i.test(slug)) {
+    return slug.toUpperCase();
+  }
+
+  return slug
+    .split('-')
+    .map(word => {
+      if (/^\d+m$/i.test(word)) {
+        return word.toUpperCase();
+      }
+
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
     .join(' ');
 };
 
@@ -439,7 +459,7 @@ const CategoryPage = () => {
               </button>
               <h1 className="text-3xl md:text-4xl font-light font-heading bg-gradient-to-r from-[#1e1b4b] to-[#5b21b6] bg-clip-text text-transparent">
                 {getPageTitle()}
-              </h1>
+              </h1>             
               {!loading && !error && (
                 <p className="text-gray-500 mt-2">
                   {products.length} Handpicked Styles for your little one
