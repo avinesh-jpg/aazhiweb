@@ -1,119 +1,82 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'egdythgl',
+  api_key: process.env.CLOUDINARY_API_KEY || '381581618352664',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'yNDDf4ipUKJXKXXBTURI_ShdbIw'
+});
 
 const router = express.Router();
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-// File filter
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  
-  if (mimetype && extname) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only images are allowed (jpeg, jpg, png, gif, webp)'));
-  }
+const uploadBufferToCloudinary = (buffer, folder = 'aazhi/products') => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: 'image'
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
 };
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: fileFilter
-});
-
 // Single image upload
-router.post('/image', (req, res) => {
-  upload.single('image')(req, res, (err) => {
-    if (err) {
-      console.error('Upload error:', err.message);
-      return res.status(400).json({ success: false, message: err.message });
+router.post('/image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
-    
-    try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, message: 'No file uploaded' });
-      }
-      
-      const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-      console.log('Image uploaded:', imageUrl);
-      
-      res.json({ 
-        success: true, 
-        url: imageUrl, 
-        filename: req.file.filename 
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
-      res.status(500).json({ success: false, message: error.message });
-    }
-  });
+    const result = await uploadBufferToCloudinary(req.file.buffer);
+    console.log('Image uploaded to Cloudinary:', result.secure_url);
+    res.json({
+      success: true,
+      url: result.secure_url,
+      filename: result.public_id
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 // Multiple images upload
-router.post('/images', (req, res) => {
-  upload.array('images', 10)(req, res, (err) => {
-    if (err) {
-      console.error('Upload error:', err.message);
-      return res.status(400).json({ success: false, message: err.message });
+router.post('/images', upload.array('images', 10), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: 'No files uploaded' });
     }
-    
-    try {
-      if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ success: false, message: 'No files uploaded' });
-      }
-      
-      const urls = req.files.map(file => ({
-        url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`,
-        filename: file.filename
-      }));
-      
-      console.log(`${urls.length} images uploaded`);
-      
-      res.json({ success: true, images: urls });
-    } catch (error) {
-      console.error('Upload error:', error);
-      res.status(500).json({ success: false, message: error.message });
-    }
-  });
+    const uploadPromises = req.files.map(file => uploadBufferToCloudinary(file.buffer));
+    const results = await Promise.all(uploadPromises);
+    const urls = results.map(r => ({
+      url: r.secure_url,
+      filename: r.public_id
+    }));
+    console.log(`${urls.length} images uploaded to Cloudinary`);
+    res.json({ success: true, images: urls });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 // Delete image
-router.delete('/image/:filename', (req, res) => {
+router.delete('/image/:publicId(*)', async (req, res) => {
   try {
-    const { filename } = req.params;
-    const filepath = path.join(uploadDir, filename);
-    
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
-      res.json({ success: true, message: 'Image deleted' });
-    } else {
-      res.status(404).json({ success: false, message: 'Image not found' });
-    }
+    const { publicId } = req.params;
+    await cloudinary.uploader.destroy(publicId);
+    res.json({ success: true, message: 'Image deleted from Cloudinary' });
   } catch (error) {
     console.error('Delete error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -122,7 +85,7 @@ router.delete('/image/:filename', (req, res) => {
 
 // Test endpoint
 router.get('/test', (req, res) => {
-  res.json({ success: true, message: 'Upload routes are working!' });
+  res.json({ success: true, message: 'Cloudinary upload routes are working!' });
 });
 
 export default router;
