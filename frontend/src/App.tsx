@@ -92,6 +92,7 @@ function App() {
 
               {/* Standard Storefront Routing (Shopify Style) */}
               <Route path="/collections/:name" element={<CategoryPage />} />
+              <Route path="/collections/:category/:subcategory" element={<CategoryPage />} />
               <Route path="/collections/:collectionName/products/:slug" element={<ProductDetailsBySlug />} />
               <Route path="/products/:slug" element={<ProductDetailsBySlug />} />
 

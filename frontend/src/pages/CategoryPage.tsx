@@ -96,7 +96,13 @@ const SkeletonCard = () => (
 );
 
 const CategoryPage = () => {
-  const { name, type: routeType, value: routeValue } = useParams<{ name?: string; type?: string; value?: string }>();
+  const { name, category: paramCategory, subcategory: paramSubcategory, type: routeType, value: routeValue } = useParams<{ 
+    name?: string; 
+    category?: string; 
+    subcategory?: string; 
+    type?: string; 
+    value?: string 
+  }>();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,19 +111,42 @@ const CategoryPage = () => {
   const [added, setAdded] = useState<number[]>([]);
   const { addToCart } = useCart();
 
-  const { type, value } = (() => {
+  const { type, value, category, subcategory } = (() => {
+    if (paramCategory && paramSubcategory) {
+      const lowerCat = paramCategory.toLowerCase();
+      const exactCasingMap: { [key: string]: string } = {
+        'girls': 'Girls',
+        'boys': 'Boys',
+        'unisex': 'UniSex',
+        'newborn': 'newborn',
+        'clothing': 'clothing',
+        'thottil': 'thottil',
+        'bathing': 'bathing',
+        'bedding': 'bedding',
+        'accessories': 'accessories',
+        'women': 'women'
+      };
+      const cat = exactCasingMap[lowerCat] || paramCategory;
+      return { 
+        type: 'category-subcategory', 
+        value: paramSubcategory, 
+        category: cat, 
+        subcategory: paramSubcategory 
+      };
+    }
+
     if (routeType && routeValue) {
-      return { type: routeType, value: routeValue };
+      return { type: routeType, value: routeValue, category: '', subcategory: '' };
     }
     
-    if (!name) return { type: 'collection', value: '' };
+    if (!name) return { type: 'collection', value: '', category: '', subcategory: '' };
     
     const lowerName = name.toLowerCase();
     
     // 1. Age check
     const knownAges = ['0-24', '2-12', '6-12', '1-10', '2-10'];
     if (knownAges.includes(name)) {
-      return { type: 'age', value: name };
+      return { type: 'age', value: name, category: '', subcategory: '' };
     }
     
     // 2. Collection (Category) check
@@ -135,14 +164,17 @@ const CategoryPage = () => {
         'accessories': 'accessories',
         'women': 'women'
       };
-      return { type: 'collection', value: exactCasingMap[lowerName] || name };
+      return { type: 'collection', value: exactCasingMap[lowerName] || name, category: '', subcategory: '' };
     }
     
     // 3. Fallback to subcategory
-    return { type: 'subcategory', value: name };
+    return { type: 'subcategory', value: name, category: '', subcategory: '' };
   })();
 
   const getPageTitle = () => {
+    if (type === 'category-subcategory') {
+      return `${getCleanDisplayName(category)} ${getCleanDisplayName(subcategory)}`;
+    }
     if (type === 'age') {
       const ageMap: { [key: string]: string } = {
         '0-24': '0-3 Months',
@@ -175,6 +207,9 @@ const CategoryPage = () => {
   };
 
   const getMetaTitle = () => {
+    if (type === 'category-subcategory') {
+      return `Aazhi ${getCleanDisplayName(category)} ${getCleanDisplayName(subcategory)} | Premium Kids Wear India`;
+    }
     if (type === 'age') {
       return SEOUtils.getCategoryTitle(value || '');
     }
@@ -272,7 +307,9 @@ const CategoryPage = () => {
       try {
         let url = `${API_URL}/products`;
         
-        if (type === 'age' && value) {
+        if (type === 'category-subcategory' && category && subcategory) {
+          url = `${API_URL}/products/category/${category}/subcategory/${subcategory}`;
+        } else if (type === 'age' && value) {
           url = `${API_URL}/products/age/${value}`;
         } else if (type === 'collection' && value) {
           url = `${API_URL}/products/category/${value}`;
@@ -311,7 +348,7 @@ const CategoryPage = () => {
     };
     
     fetchProducts();
-  }, [type, value]);
+  }, [type, value, category, subcategory]);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -407,13 +444,8 @@ const CategoryPage = () => {
 
   const handleProductClick = (product: Product) => {
     if (product.slug) {
-      const collectionSlug = (name || routeValue || value || '').toLowerCase().replace(/ /g, '-').replace(/%20/g, '-');
-      if (collectionSlug) {
-        navigate(`/collections/${collectionSlug}/products/${product.slug}`);
-      } else {
-        const cat = (product.category || 'collection').toLowerCase().replace(/ /g, '-');
-        navigate(`/collections/${cat}/products/${product.slug}`);
-      }
+      const collectionSlug = (category || name || routeValue || value || product.category || 'collection').toLowerCase().replace(/ /g, '-').replace(/%20/g, '-');
+      navigate(`/collections/${collectionSlug}/products/${product.slug}`);
     } else {
       navigate(`/product/${product.productId}`);
     }

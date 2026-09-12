@@ -128,6 +128,28 @@ router.get('/subcategory/:subcategoryName', async (req, res) => {
   }
 });
 
+// Get products by category and subcategory
+router.get('/category/:category/subcategory/:subcategoryName', async (req, res) => {
+  try {
+    const { category, subcategoryName } = req.params;
+    const products = await Product.find({ 
+      category: { $regex: makeFlexibleRegex(category) }, 
+      subcategory: { $regex: makeFlexibleRegex(subcategoryName) }, 
+      inStock: { $ne: false } 
+    }).sort({ createdAt: -1 });
+    
+    const productsWithSEO = products.map(product => ({
+      ...product.toObject(),
+      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
+    }));
+    
+    res.json(productsWithSEO);
+  } catch (error) {
+    console.error('Error fetching products by category and subcategory:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get product by slug only
 router.get('/slug/:slug', async (req, res) => {
   try {
