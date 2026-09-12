@@ -279,19 +279,15 @@ const Navbar = () => {
                         <div className="dropdown-panel rounded-xl mt-1 overflow-hidden">
                           <div className="dropdown-header">{item.label}</div>
                           <div className="max-h-96 overflow-y-auto">
-                            {subItems.map((sub) => {
-                              const catSlug = (item.category || '').toLowerCase().replace(/ /g, '-');
-                              const subSlug = (sub.name || '').toLowerCase().replace(/ /g, '-');
-                              return (
-                                <button
-                                  key={sub._id}
-                                  onClick={() => handleNavigation(`/collections/${catSlug}/${subSlug}`)}
-                                  className="dropdown-item"
-                                >
-                                  {sub.name}
-                                </button>
-                              );
-                            })}
+                            {subItems.map((sub) => (
+                              <button
+                                key={sub._id}
+                                onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
+                                className="dropdown-item"
+                              >
+                                {sub.name}
+                              </button>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -415,19 +411,15 @@ const Navbar = () => {
                         >
                           All {item.label}
                         </button>
-                        {subItems.map((sub) => {
-                          const catSlug = (item.category || '').toLowerCase().replace(/ /g, '-');
-                          const subSlug = (sub.name || '').toLowerCase().replace(/ /g, '-');
-                          return (
-                            <button
-                              key={sub._id}
-                              onClick={() => handleNavigation(`/collections/${catSlug}/${subSlug}`)}
-                              className="mobile-sub-item"
-                            >
-                              {sub.name}
-                            </button>
-                          );
-                        })}
+                        {subItems.map((sub) => (
+                          <button
+                            key={sub._id}
+                            onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
+                            className="mobile-sub-item"
+                          >
+                            {sub.name}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>

@@ -673,7 +673,7 @@ const ProductDetailsBySlug = () => {
                 <>
                   <span className="mx-2">/</span>
                   <button 
-                    onClick={() => navigate(`/collections/${(product.category || 'collection').toLowerCase().replace(/ /g, '-')}/${product.subcategory.toLowerCase().replace(/ /g, '-')}`)} 
+                    onClick={() => navigate(`/collections/${product.subcategory.toLowerCase().replace(/ /g, '-')}`)} 
                     className="hover:text-purple-500 transition-colors"
                   >
                     {product.subcategory}
