@@ -103,6 +103,38 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
   
+  if (lower.includes('sleeveless frocks')) {
+    return {
+      src: '/girls_frock_sizechart.png',
+      alt: 'Sleeveless Frock Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  if (lower.includes('girls capri sets')) {  
+    return {
+      src: '/girls_top_pant_sizechart.png',
+      alt: 'Girls Capri Sets Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  if (lower.includes('shorts sets with rope')) {     
+    return {
+      src: '/boys_top_shorts_sizechart.png',
+      alt: 'Shorts Sets with Rope Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  if (lower.includes('boys full pants')) {     
+    return {
+      src: '/boys_pant_set_sizechart.png',
+      alt: 'Boys Full Pants Size Chart',
+      isFullWidth: true
+    };
+  }
+  
   return null;
 };
 
