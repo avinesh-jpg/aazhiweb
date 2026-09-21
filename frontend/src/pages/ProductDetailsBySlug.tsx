@@ -97,7 +97,7 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
   
   if (lower.includes('full hand tshirt & pant') || lower.includes('tshirt & pant') || lower.includes('t-shirt & pant')) {
     return {
-      src: '/tshirt.jpeg',
+      src: '/tshirt_pant_set_sizechart.png',
       alt: 'Full Hand Tshirt & Pant Size Chart',
       isFullWidth: true
     };
@@ -134,7 +134,39 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
       isFullWidth: true
     };
   }
-  
+
+  if (lower.includes('sleeveless shorts sets')) {     
+    return {
+      src: '/shorts_set_sizechart.png',
+      alt: 'Sleeveless Shorts Sets Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  if (lower.includes('full hand t-shirt')) {     
+    return {
+      src: '/sweatshirts_sizechart.png',
+      alt: 'Full Hand T Shirt Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  if (lower.includes('night suits')) {     
+    return {
+      src: '/night_suit_sizechart.png',
+      alt: 'Night Suits Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  if (lower.includes('womens t-shirt')) {     
+    return {
+      src: '/womens_tshirt_sizechart.png',
+      alt: 'Womens T-Shirt Size Chart',
+      isFullWidth: true
+    };
+  }
+
   return null;
 };
 
