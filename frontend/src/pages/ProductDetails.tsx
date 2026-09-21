@@ -105,6 +105,8 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
       alt: 'Full Hand Tshirt & Pant Size Chart',
       isFullWidth: true
     };
+  }
+
   if (lower.includes('sleeveless frocks')) {
     return {
       src: '/girls_frock_sizechart.png',
