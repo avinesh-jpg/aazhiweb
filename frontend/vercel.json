@@ -5,15 +5,15 @@
       "destination": "https://aazhiweb.onrender.com/sitemap.xml" 
     },
     {
-      "source": "/blog/:slug",
+      "source": "/blog/:slug*",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|Pinterest|TelegramBot|LinkedInBot|Slackbot|vkShare|W3C_Validator|discordapp).*"
+          "value": ".*(facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|WhatsApp|whatsapp|Twitterbot|twitterbot|Pinterest|TelegramBot|telegrambot|LinkedInBot|linkedinbot|Slackbot|slackbot|vkShare|W3C_Validator|discordapp).*"
         }
       ],
-      "destination": "/api/blog-preview?slug=:slug"
+      "destination": "/api/blog-preview?slug=:slug*"
     },
     {
       "source": "/blog",
@@ -21,7 +21,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|Pinterest|TelegramBot|LinkedInBot|Slackbot|vkShare|W3C_Validator|discordapp).*"
+          "value": ".*(facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|WhatsApp|whatsapp|Twitterbot|twitterbot|Pinterest|TelegramBot|telegrambot|LinkedInBot|linkedinbot|Slackbot|slackbot|vkShare|W3C_Validator|discordapp).*"
         }
       ],
       "destination": "/api/blog-preview"

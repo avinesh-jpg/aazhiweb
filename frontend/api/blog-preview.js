@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   const { slug } = req.query;
   const baseUrl = 'https://theaazhi.com';
-  const defaultImage = `${baseUrl}/aazhi-og-square-compressed.jpg`;
+  const defaultImage = 'https://res.cloudinary.com/egdythgl/image/upload/c_fill,w_1200,h_630,q_auto/aazhi-og-square-compressed.jpg';
   const defaultTitle = 'Aazhi Blog – Baby Clothing Guides & Parenting Stories';
   const defaultDescription = "Explore Aazhi's blog for parenting tips, baby clothing guides, organic fabric choices, and behind-the-scenes stories from India's textile capital, Tiruppur.";
 
@@ -11,38 +11,59 @@ export default async function handler(req, res) {
   let targetUrl = `${baseUrl}/blog`;
 
   if (slug) {
-    targetUrl = `${baseUrl}/blog/${slug}`;
-    try {
-      const response = await fetch(`https://aazhiweb.onrender.com/api/blog/slug/${encodeURIComponent(slug)}`);
-      if (response.ok) {
-        const data = await response.json();
-        const blog = data.blog;
-        if (blog) {
-          title = `${blog.title} | Aazhi Blog`;
-          
-          if (blog.summary && blog.summary.length > 30 && blog.summary.toLowerCase() !== blog.title.toLowerCase()) {
-            description = blog.summary;
-          } else if (blog.content) {
-            let clean = blog.content
-              .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-              .replace(/<!--[\s\S]*?-->/g, '')
-              .replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '')
-              .replace(/<[^>]+>/g, ' ')
-              .replace(/\s+/g, ' ')
-              .trim();
-            if (clean.length > 200) {
-              clean = clean.slice(0, 197) + '...';
-            }
-            description = clean || blog.summary || blog.title;
-          } else {
-            description = blog.summary || blog.title;
-          }
+    const cleanSlug = String(slug).replace(/\/+$/, '');
+    targetUrl = `${baseUrl}/blog/${cleanSlug}`;
 
-          if (blog.coverImage) {
-            rawImage = blog.coverImage.startsWith('http')
-              ? blog.coverImage
-              : `https://aazhiweb.onrender.com${blog.coverImage}`;
+    try {
+      let blog = null;
+
+      // 1. Direct slug lookup
+      const directRes = await fetch(`https://aazhiweb.onrender.com/api/blog/slug/${encodeURIComponent(cleanSlug)}`);
+      if (directRes.ok) {
+        const data = await directRes.json();
+        blog = data.blog;
+      }
+
+      // 2. Fuzzy fallback if exact slug didn't match
+      if (!blog) {
+        const listRes = await fetch('https://aazhiweb.onrender.com/api/blog');
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          const blogs = listData.blogs || [];
+          const normalizedQuery = cleanSlug.toLowerCase().replace(/[^a-z0-9]/g, '');
+          blog = blogs.find(b => {
+            const s = (b.slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const t = (b.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            return s === normalizedQuery || normalizedQuery.includes(s) || s.includes(normalizedQuery) || t.includes(normalizedQuery);
+          });
+        }
+      }
+
+      if (blog) {
+        title = `${blog.title} | Aazhi Blog`;
+        
+        if (blog.summary && blog.summary.length > 30 && blog.summary.toLowerCase() !== blog.title.toLowerCase()) {
+          description = blog.summary;
+        } else if (blog.content) {
+          let clean = blog.content
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<!--[\s\S]*?-->/g, '')
+            .replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          if (clean.length > 200) {
+            clean = clean.slice(0, 197) + '...';
           }
+          description = clean || blog.summary || blog.title;
+        } else {
+          description = blog.summary || blog.title;
+        }
+
+        if (blog.coverImage) {
+          rawImage = blog.coverImage.startsWith('http')
+            ? blog.coverImage
+            : `https://aazhiweb.onrender.com${blog.coverImage}`;
         }
       }
     } catch (err) {
@@ -50,19 +71,25 @@ export default async function handler(req, res) {
     }
   }
 
-  // Optimize image to 1200x630 JPG under 100KB so WhatsApp & Facebook render it instantly
+  // Optimize image to high-compatibility 1200x630 JPG under 100KB for WhatsApp and Facebook
   const getOptimizedImageUrl = (url, fallback) => {
     if (!url) return fallback;
     let full = url;
     if (!full.startsWith('http')) {
       full = `https://aazhiweb.onrender.com${full}`;
     }
+    
+    // Cloudinary direct upload optimization
     if (full.includes('res.cloudinary.com')) {
       if (full.includes('/image/upload/')) {
-        return full.replace('/image/upload/', '/image/upload/c_fill,w_1200,h_630,q_auto,f_jpg/');
+        let transformed = full.replace('/image/upload/', '/image/upload/c_fill,w_1200,h_630,q_auto,f_jpg/');
+        // Ensure ends in .jpg for scraper compatibility
+        return transformed.replace(/\.(png|webp|jpeg)$/i, '.jpg');
       }
       return full;
     }
+
+    // Cloudinary fetch proxy for external URLs
     return `https://res.cloudinary.com/egdythgl/image/fetch/c_fill,w_1200,h_630,q_auto,f_jpg/${full}`;
   };
 
@@ -112,14 +139,11 @@ export default async function handler(req, res) {
   <meta name="twitter:site" content="@Aazhi" />
 
   <link rel="canonical" href="${safeUrl}" />
-
-  <!-- Instant redirect for normal browsers -->
-  <meta http-equiv="refresh" content="0;url=${safeUrl}" />
+</head>
+<body>
   <script>
     window.location.replace("${safeUrl}");
   </script>
-</head>
-<body>
   <p>Redirecting to <a href="${safeUrl}">${safeTitle}</a>...</p>
 </body>
 </html>`;
