@@ -1,23 +1,24 @@
 const reviewsData = [
   { 
     stars: 5, 
-    text: "The quality of the organic jablas is absolutely amazing. My newborn's skin is so sensitive and these are the only clothes that don't cause any irritation. Will definitely order again!", 
-    name: "Priya Ramesh", 
+    text: "Received the parcel and the quality of the dress is really good. This is the second time I'm purchasing from Aazhi, and I'm very happy with the quality. Please bring more colours and designs — looking forward to purchasing more!", 
+    name: "Saranya", 
     location: "Chennai, Tamil Nadu" 
   },
   { 
     stars: 5, 
-    text: "The Thottil from Aazhi is so beautifully made. My baby sleeps peacefully in it and the muslin fabric is so soft. Love the traditional yet modern design. Highly recommend!", 
-    name: "Anitha Krishnan", 
-    location: "Coimbatore, Tamil Nadu" 
+    text: "Dresses are superb, cloth is so soft, I just loved it. Ordered for my daughter, she liked it a lot.", 
+    name: "Faisal Akram", 
+    location: "Telangana" 
   },
   { 
     stars: 5, 
-    text: "I got the newborn essential kit as a gift for my sister and she absolutely loves it! The packaging was beautiful and every single piece is top quality. Aazhi is our go-to brand now.", 
+    text: "Parcel received, material is so soft and excellent quality. Fits perfectly too, no complaints at all. Will order more soon.", 
     name: "Kavya Sundar", 
     location: "Bengaluru, Karnataka" 
   },
 ];
+
 
 const SocialFeed = () => (
   <section className="py-20 md:py-28 bg-gradient-to-b from-white to-gray-50/50">
