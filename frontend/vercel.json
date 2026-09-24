@@ -4,14 +4,31 @@
       "source": "/sitemap.xml", 
       "destination": "https://aazhiweb.onrender.com/sitemap.xml" 
     },
+    {
+      "source": "/blog/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|Pinterest|TelegramBot|LinkedInBot|Slackbot|vkShare|W3C_Validator|discordapp).*"
+        }
+      ],
+      "destination": "/api/blog-preview?slug=:slug"
+    },
+    {
+      "source": "/blog",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|Pinterest|TelegramBot|LinkedInBot|Slackbot|vkShare|W3C_Validator|discordapp).*"
+        }
+      ],
+      "destination": "/api/blog-preview"
+    },
     { 
       "source": "/((?!.*\\.[^/]+$).*)", 
       "destination": "/" 
     }
   ]
 }
-
-
-
-
-
