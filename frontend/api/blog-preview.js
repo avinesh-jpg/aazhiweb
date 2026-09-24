@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   let title = defaultTitle;
   let description = defaultDescription;
-  let image = defaultImage;
+  let rawImage = defaultImage;
   let targetUrl = `${baseUrl}/blog`;
 
   if (slug) {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
           }
 
           if (blog.coverImage) {
-            image = blog.coverImage.startsWith('http')
+            rawImage = blog.coverImage.startsWith('http')
               ? blog.coverImage
               : `https://aazhiweb.onrender.com${blog.coverImage}`;
           }
@@ -49,6 +49,24 @@ export default async function handler(req, res) {
       console.error('Error fetching blog for preview:', err);
     }
   }
+
+  // Optimize image to 1200x630 JPG under 100KB so WhatsApp & Facebook render it instantly
+  const getOptimizedImageUrl = (url, fallback) => {
+    if (!url) return fallback;
+    let full = url;
+    if (!full.startsWith('http')) {
+      full = `https://aazhiweb.onrender.com${full}`;
+    }
+    if (full.includes('res.cloudinary.com')) {
+      if (full.includes('/image/upload/')) {
+        return full.replace('/image/upload/', '/image/upload/c_fill,w_1200,h_630,q_auto,f_jpg/');
+      }
+      return full;
+    }
+    return `https://res.cloudinary.com/egdythgl/image/fetch/c_fill,w_1200,h_630,q_auto,f_jpg/${full}`;
+  };
+
+  const finalImage = getOptimizedImageUrl(rawImage, defaultImage);
 
   // Escape HTML entities to prevent injection
   const escapeHtml = (str) =>
@@ -61,11 +79,11 @@ export default async function handler(req, res) {
 
   const safeTitle = escapeHtml(title);
   const safeDescription = escapeHtml(description);
-  const safeImage = escapeHtml(image);
+  const safeImage = escapeHtml(finalImage);
   const safeUrl = escapeHtml(targetUrl);
 
   const html = `<!doctype html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="UTF-8" />
   <title>${safeTitle}</title>
@@ -79,6 +97,11 @@ export default async function handler(req, res) {
   <meta property="og:description" content="${safeDescription}" />
   <meta property="og:image" content="${safeImage}" />
   <meta property="og:image:secure_url" content="${safeImage}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="${safeTitle}" />
+  <link rel="image_src" href="${safeImage}" />
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -90,7 +113,7 @@ export default async function handler(req, res) {
 
   <link rel="canonical" href="${safeUrl}" />
 
-  <!-- Instant redirect for normal browsers if they ever hit this endpoint -->
+  <!-- Instant redirect for normal browsers -->
   <meta http-equiv="refresh" content="0;url=${safeUrl}" />
   <script>
     window.location.replace("${safeUrl}");
