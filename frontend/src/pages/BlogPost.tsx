@@ -108,15 +108,24 @@ const BlogPost: React.FC = () => {
         <title>{blog.title} | Aazhi Blog</title>
         <meta name="description" content={blog.summary} />
         <meta name="keywords" content={blog.tags?.join(', ')} />
+        
+        {/* Open Graph / Facebook / WhatsApp */}
+        <meta property="og:site_name" content="Aazhi" />
         <meta property="og:title" content={blog.title} />
         <meta property="og:description" content={blog.summary} />
         <meta property="og:image" content={getImageUrl(blog.coverImage)} />
+        <meta property="og:image:secure_url" content={getImageUrl(blog.coverImage)} />
+        <meta property="og:image:alt" content={blog.title} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={window.location.href} />
+        
+        {/* Twitter / X */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={blog.title} />
         <meta name="twitter:description" content={blog.summary} />
         <meta name="twitter:image" content={getImageUrl(blog.coverImage)} />
+        <meta name="twitter:site" content="@Aazhi" />
+
         <link rel="canonical" href={window.location.href} />
       </Helmet>
 

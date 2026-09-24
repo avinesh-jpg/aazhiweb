@@ -71,7 +71,24 @@ const BlogList: React.FC = () => {
         <title>Blog | Aazhi – Baby Clothing Guides & Parenting Stories</title>
         <meta name="description" content="Explore Aazhi's blog for parenting tips, baby clothing guides, organic fabric choices, and behind-the-scenes stories from India's textile capital, Tiruppur." />
         <meta name="keywords" content="baby care, organic baby clothes, parenting blog, Tiruppur cotton, kids styling tips" />
-        <link rel="canonical" href="https://aazhi.com/blog" />
+
+        {/* Open Graph / Facebook / WhatsApp */}
+        <meta property="og:site_name" content="Aazhi" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://theaazhi.com/blog" />
+        <meta property="og:title" content="Blog | Aazhi – Baby Clothing Guides & Parenting Stories" />
+        <meta property="og:description" content="Explore Aazhi's blog for parenting tips, baby clothing guides, organic fabric choices, and behind-the-scenes stories from India's textile capital, Tiruppur." />
+        <meta property="og:image" content="https://theaazhi.com/aazhi-og-square-compressed.jpg" />
+        <meta property="og:image:secure_url" content="https://theaazhi.com/aazhi-og-square-compressed.jpg" />
+
+        {/* Twitter / X */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://theaazhi.com/blog" />
+        <meta name="twitter:title" content="Blog | Aazhi – Baby Clothing Guides & Parenting Stories" />
+        <meta name="twitter:description" content="Explore Aazhi's blog for parenting tips, baby clothing guides, organic fabric choices, and behind-the-scenes stories from India's textile capital, Tiruppur." />
+        <meta name="twitter:image" content="https://theaazhi.com/aazhi-og-square-compressed.jpg" />
+
+        <link rel="canonical" href="https://theaazhi.com/blog" />
       </Helmet>
 
       <Navbar />
