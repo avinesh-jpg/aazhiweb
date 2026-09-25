@@ -872,7 +872,6 @@ const filteredProducts = currentProductList.filter((product: any) => {
       <option value="Newborn">Newborn</option>
       <option value="Unisex">Unisex</option>
       <option value="Women">Women</option>
-      <option value="Towels">Towels</option>
     </select>
   </div>
 </div>
