@@ -33,6 +33,8 @@ const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [productSearchQuery, setProductSearchQuery] = useState<string>('');
+  const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
   
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -370,6 +372,27 @@ const AdminDashboard = () => {
     }
     return true;
   });
+
+
+  const currentProductList = viewTrash ? trashProducts : products;
+
+const filteredProducts = currentProductList.filter((product: any) => {
+  // 1. Search by name, category, subcategory, product ID, or color
+  const matchesSearch = 
+    !productSearchQuery ||
+    product.name?.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+    product.category?.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+    product.subcategory?.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+    product.productId?.toString().toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+    product.color?.toLowerCase().includes(productSearchQuery.toLowerCase());
+
+  // 2. Filter by Category dropdown
+  const matchesCategory = 
+    productCategoryFilter === 'all' || 
+    product.category?.toLowerCase() === productCategoryFilter.toLowerCase();
+
+  return matchesSearch && matchesCategory;
+});
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -783,11 +806,14 @@ const AdminDashboard = () => {
         {/* Products Tab */}
         {activeTab === 'products' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div className="flex items-center gap-4">
-                <h1 className="text-2xl font-bold">Products Management</h1>
-                
-                
+                <div>
+                  <h1 className="text-2xl font-bold">Products Management</h1>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Showing <span className="font-semibold text-gray-800">{filteredProducts.length}</span> of <span className="font-semibold text-gray-800">{currentProductList.length}</span> {viewTrash ? 'trashed' : 'active'} products
+                  </p>
+                </div>
 
                 <button
                   onClick={() => setViewTrash(!viewTrash)}
@@ -799,10 +825,6 @@ const AdminDashboard = () => {
                 >
                   {viewTrash ? '← View Active Products' : `🗑️ Trash Bin (${trashProducts.length})`}    
                 </button>  
-
-                
-            
-
               </div>
               {!viewTrash && (
                 <button
@@ -814,6 +836,47 @@ const AdminDashboard = () => {
                 </button>
               )}
             </div>
+
+            {/* Product Search & Filter Bar */}
+<div className="grid grid-cols-1 sm:grid-cols-12 gap-3 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+  {/* Search Input Box */}
+  <div className="sm:col-span-8 relative">
+    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+    <input 
+      type="text"
+      placeholder="Search product name, category, subcategory, product ID..."
+      value={productSearchQuery}
+      onChange={(e) => setProductSearchQuery(e.target.value)}
+      className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+    />
+    {productSearchQuery && (
+      <button 
+        onClick={() => setProductSearchQuery('')}
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+      >
+        <X size={16} />
+      </button>
+    )}
+  </div>
+
+  {/* Category Filter Dropdown */}
+  <div className="sm:col-span-4">
+    <select 
+      value={productCategoryFilter}
+      onChange={(e) => setProductCategoryFilter(e.target.value)}
+      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+    >
+      <option value="all">📁 All Categories</option>
+      <option value="Boys">Boys</option>
+      <option value="Girls">Girls</option>
+      <option value="Newborn">Newborn</option>
+      <option value="Unisex">Unisex</option>
+      <option value="Women">Women</option>
+      <option value="Towels">Towels</option>
+    </select>
+  </div>
+</div>
+
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -829,7 +892,7 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {(viewTrash ? trashProducts : products).map((product) => (
+                    {filteredProducts.map((product) => (
                       <tr key={product._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
@@ -885,9 +948,11 @@ const AdminDashboard = () => {
                     ))}
                   </tbody>
                 </table>
-                {(viewTrash ? trashProducts : products).length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    No products found
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <ShoppingBag className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-base font-semibold text-gray-700">No products found</p>
+                    <p className="text-xs text-gray-400 mt-1">Try adjusting your search query or category filter</p>
                   </div>
                 )}
               </div>
