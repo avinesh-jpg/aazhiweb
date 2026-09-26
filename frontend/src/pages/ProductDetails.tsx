@@ -123,6 +123,42 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
 
+  if (lower.includes('6m-24m bow frocks') || lower.includes('bow frocks')) {     
+    return {
+      src: '/bow_frocks_v2_sizechart.png',
+      alt: 'Bow Frocks Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  // 1. Specific: Girls Shorts Sets (Must be above general shorts sets)
+  if (lower.includes('girls shorts sets')) {     
+    return {
+      src: '/girls_shorts_sets_sizechart.png',
+      alt: 'Girls Shorts Sets Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  // 2. Specific: Sleeveless Shorts Sets
+  if (lower.includes('sleeveless shorts sets')) {     
+    return {
+      src: '/shorts_set_sizechart.png',
+      alt: 'Sleeveless Shorts Sets Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  // 3. Specific: Sleeve Shorts Sets
+  if (lower.includes('sleeve shorts sets')) {     
+    return {
+      src: '/sleeve_shorts_sets_sizechart.png',
+      alt: 'Sleeve Shorts Sets Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  // 4. Specific: Shorts Sets with Rope
   if (lower.includes('shorts sets with rope')) {     
     return {
       src: '/boys_top_shorts_sizechart.png',
@@ -135,14 +171,6 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     return {
       src: '/boys_pant_set_sizechart.png',
       alt: 'Boys Full Pants Size Chart',
-      isFullWidth: true
-    };
-  }
-
-  if (lower.includes('sleeveless shorts sets')) {     
-    return {
-      src: '/shorts_set_sizechart.png',
-      alt: 'Sleeveless Shorts Sets Size Chart',
       isFullWidth: true
     };
   }
@@ -167,6 +195,15 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     return {
       src: '/womens_tshirt_sizechart.png',
       alt: 'Womens T-Shirt Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  // 5. General Boys / General Shorts Sets (Must be last)
+  if (lower.includes('boys shorts sets') || lower.includes('shorts sets')) {     
+    return {
+      src: '/boys_shorts_sets_sizechart.png',
+      alt: 'Boys Shorts Sets Size Chart',
       isFullWidth: true
     };
   }
