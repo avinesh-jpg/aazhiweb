@@ -130,7 +130,7 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
   // 1. Specific: Girls Shorts Sets (Must be above general shorts sets)
   if (lower.includes('girls shorts sets')) {     
     return {
-      src: '/girls_shorts_sets_sizechart.png',
+      src: '/girls_shorts_sets_sizecharts.png',
       alt: 'Girls Shorts Sets Size Chart',
       isFullWidth: true
     };
