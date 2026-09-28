@@ -275,6 +275,21 @@ const Checkout = () => {
         }))
       });
 
+
+      // 👇 ADD THIS FOR META PIXEL
+  if (typeof window !== 'undefined' && (window as any).fbq) {
+    (window as any).fbq('track', 'Purchase', {
+      value: total,
+      currency: 'INR',
+      content_type: 'product',
+      contents: cartItems.map((item: any) => ({
+        id: String(item.productId),
+        quantity: item.quantity,
+        item_price: item.price,
+      })),
+    });
+  }
+
       setOrderNumber(confirmedOrderNum);
       setOrderPlaced(true);
       await clearCart();
