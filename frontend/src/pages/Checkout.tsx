@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/useCart';
 import RazorpayCheckout from '@/components/RazorpayCheckout';
@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import BackToTop from '@/components/BackToTop';
-import { Truck, Shield } from 'lucide-react';
+import { Truck, Shield, Sparkles, Loader2 } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -27,6 +27,10 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
+
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [autoFilledInfo, setAutoFilledInfo] = useState<string | null>(null);
+  const lookedUpEmailRef = useRef<string>('');
 
   const token = localStorage.getItem('tiinyberry_token');
   const user = JSON.parse(localStorage.getItem('tiinyberry_user') || 'null');
@@ -82,35 +86,112 @@ const Checkout = () => {
     setCouponError('');
   };
 
-  // Load user's default address from profile
+  // Look up customer address when typing email or leaving email field
+  const lookupCustomerAddress = async (emailToLookup: string) => {
+    const cleanEmail = emailToLookup?.trim().toLowerCase();
+    if (!cleanEmail || cleanEmail === lookedUpEmailRef.current) return;
+    
+    // Check if looks like a valid email pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) return;
+
+    lookedUpEmailRef.current = cleanEmail;
+    setIsLookingUp(true);
+
+    try {
+      const response = await fetch(`${API_URL}/orders/lookup-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail })
+      });
+      const data = await response.json();
+
+      if (data.success && data.address) {
+        const addr = data.address;
+        setFormData((prev) => ({
+          ...prev,
+          fullName: addr.fullName || prev.fullName,
+          phone: addr.phone || prev.phone,
+          address: addr.address || prev.address,
+          city: addr.city || prev.city,
+          state: addr.state || prev.state,
+          pincode: addr.pincode || prev.pincode,
+        }));
+        setAutoFilledInfo('✨ Welcome back! Your address details were automatically filled.');
+      }
+    } catch (err) {
+      console.error('Customer address lookup failed:', err);
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
+
+  // Debounce email lookup when customer types email
+  useEffect(() => {
+    if (!formData.email || !formData.email.includes('@') || !formData.email.includes('.')) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      lookupCustomerAddress(formData.email);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [formData.email]);
+
+  // Load user's default address from profile or device storage
   useEffect(() => {
     const loadAddress = async () => {
       try {
-        if (!token) return;
+        if (token) {
+          const res = await fetch(`${API_URL}/auth/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
 
-        const res = await fetch(`${API_URL}/auth/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+          const data = await res.json();
+
+          if (data.success && data.user.addresses?.length > 0) {
+            const defaultAddress =
+              data.user.addresses.find((a: any) => a.isDefault) ||
+              data.user.addresses[0];
+
+            setFormData((prev) => ({
+              ...prev,
+              fullName: defaultAddress.fullName || prev.fullName,
+              email: defaultAddress.email || prev.email,
+              phone: defaultAddress.phone || prev.phone,
+              address: defaultAddress.address || '',
+              city: defaultAddress.city || '',
+              state: defaultAddress.state || '',
+              pincode: defaultAddress.pincode || ''
+            }));
+            if (defaultAddress.email) {
+              lookedUpEmailRef.current = defaultAddress.email.toLowerCase().trim();
+            }
+            return;
           }
-        });
+        }
 
-        const data = await res.json();
-
-        if (data.success && data.user.addresses?.length > 0) {
-          const defaultAddress =
-            data.user.addresses.find((a: any) => a.isDefault) ||
-            data.user.addresses[0];
-
-          setFormData((prev) => ({
-            ...prev,
-            fullName: defaultAddress.fullName || prev.fullName,
-            email: defaultAddress.email || prev.email,
-            phone: defaultAddress.phone || prev.phone,
-            address: defaultAddress.address || '',
-            city: defaultAddress.city || '',
-            state: defaultAddress.state || '',
-            pincode: defaultAddress.pincode || ''
-          }));
+        // Fallback: Check local device cache for returning guest
+        const saved = localStorage.getItem('aazhi_saved_shipping');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            setFormData((prev) => ({
+              fullName: prev.fullName || parsed.fullName || '',
+              email: prev.email || parsed.email || '',
+              phone: prev.phone || parsed.phone || '',
+              address: prev.address || parsed.address || '',
+              city: prev.city || parsed.city || '',
+              state: prev.state || parsed.state || '',
+              pincode: prev.pincode || parsed.pincode || ''
+            }));
+            if (parsed.email) {
+              lookedUpEmailRef.current = parsed.email.toLowerCase().trim();
+            }
+          }
         }
       } catch (err) {
         console.error('Error loading address:', err);
@@ -290,6 +371,21 @@ const Checkout = () => {
     });
   }
 
+      // Save shipping address to local device storage for future fast auto-fill
+      try {
+        localStorage.setItem('aazhi_saved_shipping', JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode
+        }));
+      } catch (storageErr) {
+        console.error('Failed to cache shipping info in localStorage:', storageErr);
+      }
+
       setOrderNumber(confirmedOrderNum);
       setOrderPlaced(true);
       await clearCart();
@@ -343,15 +439,41 @@ const Checkout = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <form className="bg-white/70 backdrop-blur-md border border-purple-200/50 rounded-2xl p-6 shadow-lg transition-all duration-300 hover:shadow-purple-100/50">
-                <h2 className="text-xl font-semibold mb-6 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                  Shipping Information
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                    Shipping Information
+                  </h2>
+                  {isLookingUp && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 px-3 py-1 rounded-full animate-pulse">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
+                      Checking saved details...
+                    </span>
+                  )}
+                </div>
+
+                {autoFilledInfo && (
+                  <div className="mb-5 p-3.5 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl flex items-center justify-between text-xs sm:text-sm text-purple-900 shadow-sm transition-all duration-300">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>{autoFilledInfo}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAutoFilledInfo(null)}
+                      className="text-gray-400 hover:text-gray-600 font-bold ml-2 text-sm px-1.5 py-0.5 rounded cursor-pointer"
+                      title="Dismiss"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
                 
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Full Name *</label>
                   <input
                     type="text"
                     required
+                    autoComplete="name"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
@@ -365,13 +487,15 @@ const Checkout = () => {
                     <input
                       type="email"
                       required
+                      autoComplete="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onBlur={() => lookupCustomerAddress(formData.email)}
                       className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
                       placeholder="your@email.com"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Order confirmation will be sent here
+                      Type your email to automatically load your saved details
                     </p>
                   </div>
                   <div>
@@ -381,6 +505,7 @@ const Checkout = () => {
                       <input
                         type="tel"
                         required
+                        autoComplete="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                         className="flex-1 px-4 py-2 border border-purple-200 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
@@ -398,6 +523,7 @@ const Checkout = () => {
                   <input
                     type="text"
                     required
+                    autoComplete="street-address"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
@@ -411,6 +537,7 @@ const Checkout = () => {
                     <input
                       type="text"
                       required
+                      autoComplete="address-level2"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
@@ -422,6 +549,7 @@ const Checkout = () => {
                     <input
                       type="text"
                       required
+                      autoComplete="address-level1"
                       value={formData.state}
                       onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                       className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
@@ -433,6 +561,7 @@ const Checkout = () => {
                     <input
                       type="text"
                       required
+                      autoComplete="postal-code"
                       value={formData.pincode}
                       onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                       className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"

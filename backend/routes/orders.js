@@ -10,6 +10,71 @@ import { sendOrderConfirmation } from '../config/email.js';
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'tiinyberry_secret_key_2024';
 
+// Lookup previous shipping address by email (or phone)
+router.post('/lookup-customer', async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    if (!email && !phone) {
+      return res.status(400).json({ success: false, message: 'Email or phone required' });
+    }
+
+    let foundAddress = null;
+
+    // 1. Check registered user profile first
+    if (email) {
+      const cleanEmail = email.toLowerCase().trim();
+      const user = await User.findOne({ email: cleanEmail });
+      if (user && user.addresses && user.addresses.length > 0) {
+        const def = user.addresses.find(a => a.isDefault) || user.addresses[user.addresses.length - 1];
+        foundAddress = {
+          fullName: def.fullName || user.name || '',
+          email: user.email || cleanEmail,
+          phone: def.phone || user.mobileNumber || user.phone || '',
+          address: def.address || '',
+          city: def.city || '',
+          state: def.state || '',
+          pincode: def.pincode || ''
+        };
+      }
+    }
+
+    // 2. Check previous orders (guest or registered) for this email or phone
+    if (!foundAddress) {
+      const query = [];
+      if (email) {
+        query.push({ 'shippingAddress.email': email.toLowerCase().trim() });
+      }
+      if (phone) {
+        query.push({ 'shippingAddress.phone': phone.trim() });
+      }
+
+      const lastOrder = await Order.findOne({ $or: query })
+        .sort({ createdAt: -1 });
+
+      if (lastOrder && lastOrder.shippingAddress) {
+        foundAddress = {
+          fullName: lastOrder.shippingAddress.fullName || '',
+          email: lastOrder.shippingAddress.email || email || '',
+          phone: lastOrder.shippingAddress.phone || phone || '',
+          address: lastOrder.shippingAddress.address || '',
+          city: lastOrder.shippingAddress.city || '',
+          state: lastOrder.shippingAddress.state || '',
+          pincode: lastOrder.shippingAddress.pincode || ''
+        };
+      }
+    }
+
+    if (foundAddress && (foundAddress.address || foundAddress.fullName)) {
+      return res.json({ success: true, address: foundAddress });
+    }
+
+    return res.json({ success: false, message: 'No previous address found' });
+  } catch (error) {
+    console.error('Lookup customer address error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Create pending order
 router.post('/create-pending', async (req, res) => {
   try {
