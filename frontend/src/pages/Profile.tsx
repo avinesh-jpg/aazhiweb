@@ -9,6 +9,45 @@ import BackToTop from '@/components/BackToTop';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+const INDIAN_STATES = [
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry'
+];
+
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -396,12 +435,21 @@ const Profile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1 text-[#1e1b4b]">State</label>
-                        <input
-                          type="text"
+                        <select
                           value={addressForm.state}
                           onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                          className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
-                        />
+                          className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80 text-[#1e1b4b]"
+                        >
+                          <option value="">Select State</option>
+                          {INDIAN_STATES.map((state) => (
+                            <option key={state} value={state}>
+                              {state}
+                            </option>
+                          ))}
+                          {addressForm.state && !INDIAN_STATES.includes(addressForm.state) && (
+                            <option value={addressForm.state}>{addressForm.state}</option>
+                          )}
+                        </select>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
