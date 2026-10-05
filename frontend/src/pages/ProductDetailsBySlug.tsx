@@ -261,13 +261,14 @@ const ProductDetailsBySlug = () => {
             }
           }
           
-          if (productData.sizes && productData.sizes.length > 0) {
-            if (productData.sizes[0].name === 'One Size') {
-              setSelectedSize(productData.sizes[0]);
-            } else {
-              setSelectedSize(productData.sizes[0]);
-            }
-          }
+          // Replace lines 264-270:
+if (productData.sizes && productData.sizes.length > 0) {
+  if (productData.sizes[0].name === 'One Size') {
+    setSelectedSize(productData.sizes[0]);
+  } else {
+    setSelectedSize(null); // 👈 Do NOT pre-select default size
+  }
+}
           
           if (productData.colors && productData.colors.length > 0) {
             setSelectedColor(productData.colors[0]);
@@ -299,9 +300,14 @@ const ProductDetailsBySlug = () => {
                 return;
               }
               
-              if (data.sizes && data.sizes.length > 0) {
-                setSelectedSize(data.sizes[0]);
-              }
+              // Replace lines 300-305:
+if (data.sizes && data.sizes.length > 0) {
+  if (data.sizes[0].name === 'One Size') {
+    setSelectedSize(data.sizes[0]);
+  } else {
+    setSelectedSize(null); // 👈 Do NOT pre-select default size
+  }
+}
               
               if (data.colors && data.colors.length > 0) {
                 setSelectedColor(data.colors[0]);
@@ -974,53 +980,49 @@ const ProductDetailsBySlug = () => {
                 {/* Sizes */}
                 {hasSizes && !outOfStock && (
                   <div className="mb-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-semibold text-[#1e1b4b] font-heading">Select Size</span>
-                        {sizeChartInfo && (
-                          <button 
-                            onClick={() => sizeChartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                            className="text-xl font-semibold text-purple-700 pl-10"
-                          >
-                            Size Chart {'\u203A'}
-                          </button>
-                        )}
-                      </div>
-                      {sizeError && <p className="text-xs text-red-500">{sizeError}</p>}
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      {product.sizes?.filter((sizeObj: Size) => sizeObj.stock > 0).map((sizeObj: Size) => (
-                        <button
-                          key={sizeObj.name}
-                          onClick={() => {
-                            setSelectedSize(sizeObj);
-                            setSizeError('');
-                            setQuantity(1);
-                          }}
-                          className={`px-5 py-2.5 border rounded-full text-sm font-medium transition-all relative ${
-                            selectedSize?.name === sizeObj.name
-                              ? "border-purple-500 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md"
-                              : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
-                          }`}
-                        >
-                           
-                          {sizeObj.name}
-                          {/* Display the size name
-                          {sizeObj.stock > 0 && sizeObj.stock < 2 && (
-                            <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                              Only {sizeObj.stock}
-                            </span>
-                          )}
-                            */}
-                        </button>
-                      ))}
-                    </div>
-                    {selectedSize && selectedSize.stock > 0 && selectedSize.stock <= 2 && (
-                      <p className="text-orange-600 text-sm mt-2">
-                        ⚠️ Hurry! Only {selectedSize.stock} left in {selectedSize.name} size
-                      </p>
-                    )}
-                  </div>
+  <div className="flex justify-between items-center mb-3">
+    <div className="flex items-center gap-3">
+      <span className="text-2xl font-semibold text-[#1e1b4b] font-heading">
+        Select Size <span className="text-red-500 text-base">*</span>
+      </span>
+      {sizeChartInfo && (
+        <button 
+          onClick={() => sizeChartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          className="text-xl font-semibold text-purple-700 pl-4"
+        >
+          Size Chart ›
+        </button>
+      )}
+    </div>
+  </div>
+
+  {/* 👈 Red Warning Banner when no size is picked */}
+  {sizeError && (
+    <p className="text-sm font-medium text-red-600 mb-2 animate-bounce">
+      ⚠️ {sizeError}
+    </p>
+  )}
+
+  <div className={`flex flex-wrap gap-3 p-2 rounded-2xl transition-all ${sizeError ? 'ring-2 ring-red-400 bg-red-50/40' : ''}`}>
+    {product.sizes?.filter((sizeObj: Size) => sizeObj.stock > 0).map((sizeObj: Size) => (
+      <button
+        key={sizeObj.name}
+        onClick={() => {
+          setSelectedSize(sizeObj);
+          setSizeError(''); // Clears error when size is selected
+          setQuantity(1);
+        }}
+        className={`px-5 py-2.5 border rounded-full text-sm font-medium transition-all relative ${
+          selectedSize?.name === sizeObj.name
+            ? "border-purple-500 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md scale-105"
+            : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50 bg-white"
+        }`}
+      >
+        {sizeObj.name}
+      </button>
+    ))}
+  </div>
+</div>
                 )}
 
                 {/* Quantity */}

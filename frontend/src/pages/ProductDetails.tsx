@@ -464,30 +464,38 @@ const SizeSelector = ({
     <div className="mb-6">
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-3">
-          <span className="text-2xl font-semibold text-[#1e1b4b] font-heading">Select Size</span>
+          <span className="text-2xl font-semibold text-[#1e1b4b] font-heading">
+            Select Size <span className="text-red-500 text-base">*</span>
+          </span>
           {onShowSizeChart && (
             <button 
               onClick={onShowSizeChart}
-              className="text-xl font-semibold text-gray-400"
+              className="text-xl font-semibold text-purple-700 pl-4"
             >
-              Size Chart {'\u203A'} 
+              Size Chart ›
             </button>
           )}
         </div>
-        {error && <p className="text-xs text-red-500">{error}</p>}
       </div>
-      <div className="flex flex-wrap gap-3">
+
+      {/* Red Warning Banner when no size is picked */}
+      {error && (
+        <p className="text-sm font-medium text-red-600 mb-2 animate-bounce">
+          ⚠️ {error}
+        </p>
+      )}
+
+      <div className={`flex flex-wrap gap-3 p-2 rounded-2xl transition-all ${error ? 'ring-2 ring-red-400 bg-red-50/40' : ''}`}>
         {sizes.filter(sizeObj => sizeObj.stock > 0).map((sizeObj) => (
           <button
             key={sizeObj.name}
             onClick={() => onSelect(sizeObj)}
             className={`px-5 py-2.5 border rounded-full text-sm font-medium transition-all relative ${
               selectedSize?.name === sizeObj.name
-                ? "border-purple-500 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md"
-                : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50"
+                ? "border-purple-500 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md scale-105"
+                : "border-purple-200 hover:border-purple-400 text-[#1e1b4b] hover:bg-purple-50 bg-white"
             }`}
           >
-            
             {sizeObj.name}
             {sizeObj.stock > 0 && sizeObj.stock <= STOCK_THRESHOLDS.VERY_LOW && (
               <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
@@ -589,9 +597,13 @@ const ProductDetails = () => {
         ]
       });
 
-      if (product.sizes && product.sizes.length > 0) {
-        setSelectedSize(product.sizes[0]);
-      }
+     if (product.sizes && product.sizes.length > 0) {
+  if (product.sizes[0].name === 'One Size') {
+    setSelectedSize(product.sizes[0]);
+  } else {
+    setSelectedSize(null); // 👈 Do NOT pre-select default size
+  }
+}
       
       if (product.colors && product.colors.length > 0) {
         setSelectedColor(product.colors[0]);
