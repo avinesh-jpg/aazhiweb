@@ -11,6 +11,7 @@ interface Color {
 interface Size {
   name: string;
   stock: number;
+  initialStock?: number; // 👈 Add this for intial stock
 }
 
 interface Product {
@@ -197,6 +198,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
     newSizes[index].stock = stock;
     setFormData({ ...formData, sizes: newSizes });
   };
+
+  // 👈 Add this new function for update intial stock:
+
+const updateSizeInitialStock = (index: number, initialStock: number) => {
+  const newSizes = [...formData.sizes];
+  newSizes[index].initialStock = initialStock;
+  // If current stock is 0, optionally set stock equal to initialStock
+  if (newSizes[index].stock === 0) {
+    newSizes[index].stock = initialStock;
+  }
+  setFormData({ ...formData, sizes: newSizes });
+};
 
   const updateSizeName = (index: number, name: string) => {
     const newSizes = [...formData.sizes];
@@ -498,6 +511,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
             <label className="block text-sm font-medium mb-1">Sizes with Stock</label>
             
             <div className="space-y-2 mb-3">
+
+  <div className="flex gap-2 text-xs font-semibold text-gray-500 px-1">
+    <span className="flex-1">Size Name</span>
+    <span className="w-28">Initial Total</span>
+    <span className="w-28">Current Stock</span>
+    <span className="w-8"></span>
+  </div>
               {formData.sizes.map((sizeObj, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
                   <input
@@ -507,6 +527,17 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
                     className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Size (e.g., 2-3M)"
                   />
+
+                  <input
+        type="number"
+        value={sizeObj.initialStock ?? sizeObj.stock ?? 0}
+        onChange={(e) => updateSizeInitialStock(idx, parseInt(e.target.value) || 0)}
+        className="w-28 px-3 py-2 border border-blue-200 bg-blue-50/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+        placeholder="Initial Total"
+        min="0"
+        title="Initial Total Quantity (Static)"
+      />
+      
                   <input
                     type="number"
                     value={sizeObj.stock}

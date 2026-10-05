@@ -901,21 +901,27 @@ const filteredProducts = currentProductList.filter((product: any) => {
                         <td className="px-6 py-4 text-sm">{product.subcategory || '-'}</td>
                         <td className="px-6 py-4 text-sm">₹{product.price.toLocaleString()}</td>
                         <td className="px-6 py-4 text-sm">
-                          {product.sizes && product.sizes.length > 0 ? (
-                            <div className="space-y-1">
-                              {product.sizes.map((size: any, idx: number) => (
-                                <div key={idx} className="text-xs">
-                                  <span className="font-medium">{size.name}:</span>{' '}
-                                  <span className={size.stock === 0 ? 'text-red-600' : 'text-green-600'}>
-                                    {size.stock} left
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">No sizes</span>
-                          )}
-                        </td>
+  {product.sizes && product.sizes.length > 0 ? (
+    <div className="space-y-1.5">
+      {product.sizes.map((size: any, idx: number) => {
+        const initial = size.initialStock ?? size.stock ?? 0;
+        return (
+          <div key={idx} className="text-xs flex items-center gap-1.5">
+            <span className="font-semibold text-gray-700">{size.name}:</span>
+            <span className={size.stock === 0 ? 'text-red-600 font-bold' : 'text-emerald-600 font-bold'}>
+              {size.stock} left
+            </span>
+            <span className="text-[11px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+              Total: {initial}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <span className="text-gray-400 text-xs">No sizes</span>
+  )}
+</td>
                         <td className="px-6 py-4">
                           {viewTrash ? (
                             <div className="flex gap-3">

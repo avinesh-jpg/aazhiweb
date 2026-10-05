@@ -9,7 +9,8 @@ const colorSchema = new mongoose.Schema({
 
 const sizeSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  stock: { type: Number, required: true, min: 0, default: 0 }
+  stock: { type: Number, required: true, min: 0, default: 0 },
+  initialStock: { type: Number, min: 0, default: 0 } // 👈 Add this line
 });
 
 const productSchema = new mongoose.Schema({
