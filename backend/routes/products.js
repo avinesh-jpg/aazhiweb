@@ -1,5 +1,6 @@
 // routes/products.js
 import express from 'express';
+import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import { seoMiddleware } from '../middleware/seoMiddleware.js';
 
@@ -197,8 +198,10 @@ router.get('/:id', async (req, res) => {
     
     if (!isNaN(id)) {
       product = await Product.findOne({ productId: parseInt(id) });
-    } else {
+    } else if (mongoose.Types.ObjectId.isValid(id)) {
       product = await Product.findById(id);
+    } else {
+      return res.status(404).json({ message: 'Product not found' });
     }
     
     if (!product) {

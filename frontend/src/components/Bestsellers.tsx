@@ -49,30 +49,23 @@
     useEffect(() => {
       const fetchProducts = async () => {
         try {
-          const response = await fetch(`${API_URL}/products/bestsellers`);
+          let response = await fetch(`${API_URL}/products/bestsellers`);
+          if (!response.ok) {
+            response = await fetch(`${API_URL}/products`);
+          }
           if (response.ok) {
-            const data: Product[] = await response.json();
-            const productsWithImages = data.map((product: Product, index: number) => ({
+            const data = await response.json();
+            const productList = Array.isArray(data) ? data : (data.products || []);
+            const productsWithImages = productList.slice(0, 4).map((product: Product, index: number) => ({
               ...product,
               image: product.image || defaultImages[index % defaultImages.length]
             }));
-            setProducts(productsWithImages);
-          } else {
-            setProducts([
-              { productId: 1, name: "Organic Cotton Jabla Set", price: 599, originalPrice: 799, badge: "Bestseller", image: defaultImages[0], category: "clothing", sizes: ["0-3 months", "3-6 months"] },
-              { productId: 2, name: "Newborn Essential Kit", price: 1299, originalPrice: null, badge: "New", image: defaultImages[1], category: "essentials", sizes: ["One Size"] },
-              { productId: 3, name: "Muslin Summer Frock", price: 749, originalPrice: 949, badge: null, image: defaultImages[2], category: "clothing", sizes: ["3-6 months", "6-9 months"] },
-              { productId: 4, name: "Muslin Hooded Towel", price: 499, originalPrice: null, badge: "Bestseller", image: defaultImages[3], category: "bath", sizes: ["One Size"] },
-            ]);
+            if (productsWithImages.length > 0) {
+              setProducts(productsWithImages);
+            }
           }
         } catch (error) {
           console.error('Failed to fetch products:', error);
-          setProducts([
-            { productId: 1, name: "Organic Cotton Jabla Set", price: 599, originalPrice: 799, badge: "Bestseller", image: defaultImages[0], category: "clothing", sizes: ["0-3 months", "3-6 months"] },
-            { productId: 2, name: "Newborn Essential Kit", price: 1299, originalPrice: null, badge: "New", image: defaultImages[1], category: "essentials", sizes: ["One Size"] },
-            { productId: 3, name: "Muslin Summer Frock", price: 749, originalPrice: 949, badge: null, image: defaultImages[2], category: "clothing", sizes: ["3-6 months", "6-9 months"] },
-            { productId: 4, name: "Muslin Hooded Towel", price: 499, originalPrice: null, badge: "Bestseller", image: defaultImages[3], category: "bath", sizes: ["One Size"] },
-          ]);
         } finally {
           setLoading(false);
         }
