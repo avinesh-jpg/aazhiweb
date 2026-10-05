@@ -49,14 +49,14 @@
     useEffect(() => {
       const fetchProducts = async () => {
         try {
-          const response = await fetch(`${API_URL}/products`);
+          const response = await fetch(`${API_URL}/products/bestsellers`);
           if (response.ok) {
             const data: Product[] = await response.json();
             const productsWithImages = data.map((product: Product, index: number) => ({
               ...product,
               image: product.image || defaultImages[index % defaultImages.length]
             }));
-            setProducts(productsWithImages.slice(0, 4));
+            setProducts(productsWithImages);
           } else {
             setProducts([
               { productId: 1, name: "Organic Cotton Jabla Set", price: 599, originalPrice: 799, badge: "Bestseller", image: defaultImages[0], category: "clothing", sizes: ["0-3 months", "3-6 months"] },

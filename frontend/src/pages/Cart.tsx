@@ -85,43 +85,42 @@ const Cart = () => {
     toast.success(`Copied coupon code: ${text}`);
   };
 
-  // Fetch stock info for all cart items
+  // Fetch stock info for all cart items in parallel
+  const itemKeys = cartItems.map(i => `${i.productId}-${i.size || ''}`).join(',');
   useEffect(() => {
     const fetchStockInfo = async () => {
       if (cartItems.length === 0) return;
       
-      setCheckingStock(true);
       try {
         const stockMap = new Map<string, number>();
+        const productIds = [...new Set(cartItems.map(item => item.productId))];
         
-        for (const item of cartItems) {
-          const response = await fetch(`${API_URL}/products/product/${item.productId}`);
-          if (response.ok) {
-            const product = await response.json();
-            
-            if (product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object') {
-              const sizeObj = product.sizes.find((s: any) => s.name === item.size);
-              if (sizeObj) {
-                stockMap.set(`${item.productId}-${item.size}`, sizeObj.stock);
-              } else if (product.sizes[0].name === 'One Size') {
-                stockMap.set(`${item.productId}-${item.size}`, product.sizes[0].stock);
+        await Promise.all(productIds.map(async (pId) => {
+          try {
+            const response = await fetch(`${API_URL}/products/product/${pId}`);
+            if (response.ok) {
+              const product = await response.json();
+              if (product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object') {
+                product.sizes.forEach((s: any) => {
+                  stockMap.set(`${pId}-${s.name}`, s.stock);
+                });
+              } else if (product.stockQuantity !== undefined) {
+                stockMap.set(`${pId}-`, product.stockQuantity);
               }
-            } else if (product.stockQuantity !== undefined) {
-              stockMap.set(`${item.productId}-${item.size || ''}`, product.stockQuantity);
             }
+          } catch (e) {
+            console.error(`Error fetching stock for product ${pId}:`, e);
           }
-        }
+        }));
         
         setStockInfo(stockMap);
       } catch (error) {
         console.error('Error fetching stock info:', error);
-      } finally {
-        setCheckingStock(false);
       }
     };
     
     fetchStockInfo();
-  }, [cartItems]);
+  }, [itemKeys]);
 
  // Calculate raw subtotal and combo offer
 const rawSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -257,7 +256,7 @@ const total = subtotal + shipping;
     navigate('/checkout');
   };
 
-  if (loading || checkingStock) {
+  if (loading && cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#f5efff] via-[#e8f0fe] to-[#faf5ff]">
         <AnnouncementBar />

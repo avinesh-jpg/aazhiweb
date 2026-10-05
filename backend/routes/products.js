@@ -8,17 +8,25 @@ const router = express.Router();
 // Apply SEO middleware to all routes
 router.use(seoMiddleware);
 
+// Get top bestsellers (fast dedicated endpoint)
+router.get('/bestsellers', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 4;
+    const products = await Product.find({ inStock: { $ne: false } })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get all products with SEO
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find({ inStock: { $ne: false } }).sort({ createdAt: -1 });
-    
-    const productsWithSEO = products.map(product => ({
-      ...product.toObject(),
-      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
-    }));
-    
-    res.json(productsWithSEO);
+    const products = await Product.find({ inStock: { $ne: false } }).sort({ createdAt: -1 }).lean();
+    res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -48,14 +56,9 @@ router.get('/search', async (req, res) => {
         },
         { inStock: { $ne: false } }
       ]
-    }).limit(20);
+    }).limit(20).lean();
     
-    const productsWithSEO = products.map(product => ({
-      ...product.toObject(),
-      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
-    }));
-    
-    res.json(productsWithSEO);
+    res.json(products);
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ message: error.message });
@@ -66,14 +69,8 @@ router.get('/search', async (req, res) => {
 router.get('/age/:age', async (req, res) => {
   try {
     const { age } = req.params;
-    const products = await Product.find({ age, inStock: { $ne: false } }).sort({ createdAt: -1 });
-    
-    const productsWithSEO = products.map(product => ({
-      ...product.toObject(),
-      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
-    }));
-    
-    res.json(productsWithSEO);
+    const products = await Product.find({ age, inStock: { $ne: false } }).sort({ createdAt: -1 }).lean();
+    res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -94,14 +91,9 @@ router.get('/category/:category', async (req, res) => {
     const products = await Product.find({ 
       category: { $regex: makeFlexibleRegex(category) }, 
       inStock: { $ne: false } 
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }).lean();
     
-    const productsWithSEO = products.map(product => ({
-      ...product.toObject(),
-      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
-    }));
-    
-    res.json(productsWithSEO);
+    res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -114,14 +106,9 @@ router.get('/subcategory/:subcategoryName', async (req, res) => {
     const products = await Product.find({ 
       subcategory: { $regex: makeFlexibleRegex(subcategoryName) }, 
       inStock: { $ne: false } 
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }).lean();
     
-    const productsWithSEO = products.map(product => ({
-      ...product.toObject(),
-      seo: product.getSEOData ? product.getSEOData(process.env.BASE_URL) : null
-    }));
-    
-    res.json(productsWithSEO);
+    res.json(products);
   } catch (error) {
     console.error('Error fetching products by subcategory:', error);
     res.status(500).json({ message: error.message });

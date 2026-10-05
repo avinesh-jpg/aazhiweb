@@ -113,9 +113,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // UPDATED: updateQuantity now accepts size parameter
+  // Optimistic updateQuantity - instant UI response with background server sync
   const updateQuantity = async (productId: number, quantity: number, size?: string) => {
-    setLoading(true);
+    // 1. Instantly update UI in 0ms
+    setCartItems(prev => prev.map(item => {
+      if (item.productId === productId && (size ? item.size === size : true)) {
+        return { ...item, quantity };
+      }
+      return item;
+    }));
+
+    // 2. Silently sync with server in background
     try {
       const response = await fetch(`${API_URL}/cart/update/${productId}`, {
         method: 'PUT',
@@ -124,21 +132,29 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (response.ok) {
-        await fetchCart();
         return true;
+      } else {
+        await fetchCart(); // Revert on failure
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('Failed to update quantity:', error);
+      await fetchCart();
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
-  // UPDATED: removeFromCart now accepts size parameter
+  // Optimistic removeFromCart - instant UI response with background server sync
   const removeFromCart = async (productId: number, size?: string) => {
-    setLoading(true);
+    // 1. Instantly remove item from UI in 0ms
+    setCartItems(prev => prev.filter(item => {
+      if (item.productId === productId) {
+        return size ? item.size !== size : false;
+      }
+      return true;
+    }));
+
+    // 2. Silently sync with server in background
     try {
       let url = `${API_URL}/cart/remove/${productId}`;
       if (size) {
@@ -151,15 +167,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (response.ok) {
-        await fetchCart();
         return true;
+      } else {
+        await fetchCart();
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('Failed to remove from cart:', error);
+      await fetchCart();
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
