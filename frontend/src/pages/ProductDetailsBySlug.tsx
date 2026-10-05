@@ -2,13 +2,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
-import { Heart, Minus, Plus, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Heart, Minus, Plus, ChevronLeft, ChevronRight, Check, Sparkles } from "lucide-react";
 import { useCart } from "@/context/useCart";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { toast } from "sonner";
+import { isSleevelessShortsSet } from "@/utils/comboOffers";
 
 interface Color {
   name: string;
@@ -889,6 +890,16 @@ if (data.sizes && data.sizes.length > 0) {
                     </span>
                   )}
                 </div>
+
+                {isSleevelessShortsSet(product) && (
+                  <div className="mb-6 p-3.5 bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border border-purple-200 rounded-xl flex items-center gap-2.5 shadow-sm">
+                    <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 animate-pulse" />
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-bold text-purple-900">✨ Combo Special:</span>{' '}
+                      <span className="text-purple-800">Buy any <strong className="text-purple-900">5 Sleeveless Shorts Sets</strong> for only <strong className="text-purple-900">₹999</strong>! (Discount auto-applied in cart)</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Product Description */}
                 <div className="mb-6">

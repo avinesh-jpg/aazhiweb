@@ -222,12 +222,40 @@ const generateOrderConfirmationHTML = (orderDetails, customerName) => {
       `;
     }
     
+    // Add combo discount if exists
+    if (orderDetails.comboDiscount) {
+      tableHtml += `
+        <tr>
+          <td colspan="3" style="padding: 12px; text-align: right; color: #059669;"><strong>Sleeveless Combo Savings (5 for ₹999)</strong></td>
+          <td style="padding: 12px; text-align: right; color: #059669;">-₹${orderDetails.comboDiscount.toLocaleString('en-IN')}</td>
+        </tr>
+      `;
+    }
+
+    // Add coupon discount if exists
+    if (orderDetails.discount) {
+      tableHtml += `
+        <tr>
+          <td colspan="3" style="padding: 12px; text-align: right; color: #059669;"><strong>Coupon Discount ${orderDetails.couponCode ? `(${escapeHtml(orderDetails.couponCode)})` : ''}</strong></td>
+          <td style="padding: 12px; text-align: right; color: #059669;">-₹${orderDetails.discount.toLocaleString('en-IN')}</td>
+        </tr>
+      `;
+    }
+
     // Add shipping if exists
-    if (orderDetails.shippingCost) {
+    if (orderDetails.shipping !== undefined ? orderDetails.shipping > 0 : orderDetails.shippingCost) {
+      const shipAmount = orderDetails.shipping !== undefined ? orderDetails.shipping : orderDetails.shippingCost;
       tableHtml += `
         <tr style="border-top: 2px solid #e2e8f0;">
           <td colspan="3" style="padding: 12px; text-align: right;"><strong>Shipping Cost</strong></td>
-          <td style="padding: 12px; text-align: right;">₹${orderDetails.shippingCost.toLocaleString('en-IN')}</td>
+          <td style="padding: 12px; text-align: right;">₹${shipAmount.toLocaleString('en-IN')}</td>
+        </tr>
+      `;
+    } else {
+      tableHtml += `
+        <tr style="border-top: 2px solid #e2e8f0;">
+          <td colspan="3" style="padding: 12px; text-align: right;"><strong>Shipping</strong></td>
+          <td style="padding: 12px; text-align: right; color: #059669;">FREE</td>
         </tr>
       `;
     }

@@ -11,6 +11,7 @@ interface Order {
   _id: string;
   orderNumber: string;
   subtotal?: number;
+  comboDiscount?: number;
   shipping?: number;
   discount?: number;
   couponCode?: string;
@@ -309,6 +310,12 @@ const Orders = () => {
                           <span className="text-gray-500">Subtotal</span>
                           <span className="text-[#1e1b4b]">₹{(order.subtotal ?? calculateSubtotal(order.items)).toLocaleString()}</span>
                         </div>
+                        {order.comboDiscount ? (
+                          <div className="flex justify-between text-sm mt-1 text-emerald-600 font-medium">
+                            <span>Combo Offer (5 for ₹999)</span>
+                            <span>-₹{order.comboDiscount.toLocaleString()}</span>
+                          </div>
+                        ) : null}
                         <div className="flex justify-between text-sm mt-1">
                           <span className="text-gray-500">Shipping</span>
                           <span className={order.shipping && order.shipping > 0 ? "text-[#1e1b4b]" : "text-green-600 font-medium"}>
@@ -317,7 +324,7 @@ const Orders = () => {
                         </div>
                         {order.discount ? (
                           <div className="flex justify-between text-sm mt-1 text-green-600">
-                            <span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
+                            <span>Coupon Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
                             <span>-₹{order.discount.toLocaleString()}</span>
                           </div>
                         ) : null}

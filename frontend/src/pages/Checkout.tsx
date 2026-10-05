@@ -9,6 +9,7 @@ import AnnouncementBar from '@/components/AnnouncementBar';
 import BackToTop from '@/components/BackToTop';
 import { Truck, Shield, Sparkles, Loader2 } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
+import { calculateSleevelessCombo } from '@/utils/comboOffers';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -84,7 +85,9 @@ const Checkout = () => {
     pincode: '',
   });
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const rawSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const sleevelessCombo = calculateSleevelessCombo(cartItems);
+  const subtotal = Math.max(0, rawSubtotal - sleevelessCombo.comboDiscount);
   const total = subtotal - (appliedCoupon?.discount || 0) + shippingCost;
 
   const handleApplyCoupon = async () => {
@@ -256,7 +259,7 @@ const Checkout = () => {
   // Calculate shipping cost & track shipping info in GA4
   useEffect(() => {
     const calculateShipping = async () => {
-      const calculatedSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const calculatedSubtotal = subtotal;
       
       try {
         const response = await fetch(`${API_URL}/shipping/calculate`, {
@@ -296,7 +299,7 @@ const Checkout = () => {
     if (cartItems.length > 0) {
       calculateShipping();
     }
-  }, [cartItems, shippingMethod, appliedCoupon]);
+  }, [cartItems, subtotal, shippingMethod, appliedCoupon]);
 
   // Create pending order before payment & track payment info
   const createPendingOrder = async () => {
@@ -768,12 +771,27 @@ const Checkout = () => {
               
               <div className="space-y-2 pt-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal ({cartCount} items)</span>
-                  <span className="text-[#1e1b4b]">₹{subtotal.toLocaleString()}</span>
+                  <span className="text-gray-500">Items Total ({cartCount} items)</span>
+                  <span className="text-[#1e1b4b]">₹{rawSubtotal.toLocaleString()}</span>
                 </div>
+                {sleevelessCombo.comboDiscount > 0 && (
+                  <div className="flex justify-between text-xs py-1.5 px-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">
+                    <span className="flex items-center gap-1">
+                      <Sparkles size={12} className="text-emerald-600" />
+                      5 for ₹999 Combo Savings
+                    </span>
+                    <span>-₹{sleevelessCombo.comboDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+                {sleevelessCombo.comboDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Discounted Subtotal</span>
+                    <span className="text-purple-700 font-medium">₹{subtotal.toLocaleString()}</span>
+                  </div>
+                )}
                 {appliedCoupon && (
                   <div className="flex justify-between text-sm text-green-600 font-medium">
-                    <span>Discount ({appliedCoupon.code})</span>
+                    <span>Coupon Discount ({appliedCoupon.code})</span>
                     <span>-₹{appliedCoupon.discount.toLocaleString()}</span>
                   </div>
                 )}

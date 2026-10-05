@@ -136,20 +136,40 @@ router.post('/create-pending', async (req, res) => {
     console.log('Cart items count:', cart.items.length);
     
     // Calculate totals
-    const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const rawSubtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Calculate combo discount (e.g. Any 5 Sleeveless Shorts Sets for 999)
+    const eligibleSleeveless = cart.items.filter(item => {
+      const name = (item.name || '').toLowerCase();
+      const sub = (item.subcategory || '').toLowerCase();
+      return name.includes('sleevless') || name.includes('sleeveless') || sub.includes('sleeveless');
+    });
+    const totalEligibleQty = eligibleSleeveless.reduce((sum, item) => sum + item.quantity, 0);
+    let comboDiscount = 0;
+    if (totalEligibleQty >= 5) {
+      const bundleCount = Math.floor(totalEligibleQty / 5);
+      const remainderQty = totalEligibleQty % 5;
+      const regularEligiblePrice = eligibleSleeveless.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const averageItemPrice = regularEligiblePrice / totalEligibleQty;
+      const finalEligiblePrice = (bundleCount * 999) + (remainderQty * averageItemPrice);
+      comboDiscount = Math.max(0, Math.round(regularEligiblePrice - finalEligiblePrice));
+    }
+
+    // Subtotal after combo discount
+    const discountedSubtotal = Math.max(0, rawSubtotal - comboDiscount);
     
     // Fetch shipping rate dynamically from DB settings
     let shipping = 100;
     try {
       const settings = await ShippingSetting.findOne();
       if (settings) {
-        shipping = subtotal >= settings.freeShippingThreshold ? 0 : settings.standardShippingRate;
+        shipping = discountedSubtotal >= settings.freeShippingThreshold ? 0 : settings.standardShippingRate;
       } else {
-        shipping = subtotal >= 3000 ? 0 : 100;
+        shipping = discountedSubtotal >= 3000 ? 0 : 100;
       }
     } catch (e) {
       console.error('Error fetching shipping setting:', e);
-      shipping = subtotal >= 3000 ? 0 : 100;
+      shipping = discountedSubtotal >= 3000 ? 0 : 100;
     }
     
     // Calculate coupon discount
@@ -158,13 +178,13 @@ router.post('/create-pending', async (req, res) => {
     if (couponCode) {
       const uppercaseCode = couponCode.toUpperCase().trim();
       const coupon = await Coupon.findOne({ code: uppercaseCode, isActive: true });
-      if (coupon && subtotal >= coupon.threshold) {
+      if (coupon && discountedSubtotal >= coupon.threshold) {
         discount = coupon.discount;
         validatedCouponCode = coupon.code;
       }
     }
     
-    const total = subtotal - discount + shipping;
+    const total = discountedSubtotal - discount + shipping;
     
     // Create order
     const order = new Order({
@@ -182,7 +202,8 @@ router.post('/create-pending', async (req, res) => {
         color: item.color || '',
         image: item.image
       })),
-      subtotal,
+      subtotal: rawSubtotal,
+      comboDiscount,
       shipping,
       discount,
       couponCode: validatedCouponCode,

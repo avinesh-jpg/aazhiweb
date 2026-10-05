@@ -19,6 +19,7 @@ const orderSchema = new mongoose.Schema({
   guestMobile: { type: String, default: null },
   items: [orderItemSchema],
   subtotal: { type: Number, required: true },
+  comboDiscount: { type: Number, default: 0 },
   shipping: { type: Number, required: true },
   discount: { type: Number, default: 0 },
   couponCode: { type: String, default: null },

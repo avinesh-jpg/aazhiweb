@@ -9,6 +9,8 @@ import AnnouncementBar from "@/components/AnnouncementBar";
 import BackToTop from "@/components/BackToTop";
 import { toast } from "sonner";
 import { trackEvent } from '../utils/analytics';
+import { calculateSleevelessCombo } from "@/utils/comboOffers";
+import { Sparkles } from "lucide-react";
 
 // Update CartItem interface
 interface CartItem {
@@ -121,11 +123,16 @@ const Cart = () => {
     fetchStockInfo();
   }, [cartItems]);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shippingThreshold = shippingSettings.freeShippingThreshold;
-  const shippingRate = shippingSettings.standardShippingRate;
-  const shipping = subtotal >= shippingThreshold ? 0 : shippingRate;
-  const total = subtotal + shipping;
+ // Calculate raw subtotal and combo offer
+const rawSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+const sleevelessCombo = calculateSleevelessCombo(cartItems);
+
+// Apply combo discount to subtotal
+const subtotal = Math.max(0, rawSubtotal - sleevelessCombo.comboDiscount);
+const shippingThreshold = shippingSettings.freeShippingThreshold;
+const shippingRate = shippingSettings.standardShippingRate;
+const shipping = subtotal >= shippingThreshold ? 0 : shippingRate;
+const total = subtotal + shipping;
 
   // GA4: Trigger view_cart once when cart items load
   useEffect(() => {
@@ -414,6 +421,45 @@ const Cart = () => {
                 <h2 className="text-lg font-semibold mb-4 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                   Order Summary
                 </h2>
+
+                {/* 5 FOR ₹999 COMBO PROGRESS CARD */}
+{sleevelessCombo.isEligible && (
+  <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border border-purple-200 rounded-xl p-4 shadow-sm">
+    <div className="flex justify-between items-center text-xs font-bold text-purple-900 uppercase tracking-wider mb-1.5">
+      <span className="flex items-center gap-1.5">
+        <Sparkles className="w-4 h-4 text-purple-600" />
+        Sleeveless 5 for ₹999 Offer
+      </span>
+      <span className="text-purple-700 bg-purple-100/80 px-2 py-0.5 rounded-full text-[11px]">
+        {sleevelessCombo.totalEligibleQty} in cart
+      </span>
+    </div>
+
+    {sleevelessCombo.bundleCount > 0 ? (
+      <p className="text-xs text-emerald-700 font-semibold mb-1">
+        🎉 Combo Applied! {sleevelessCombo.bundleCount * 5} Sleeveless Sets for ₹{(sleevelessCombo.bundleCount * 999).toLocaleString()} 
+        <span className="text-purple-700 font-bold ml-1">(Saved ₹{sleevelessCombo.comboDiscount.toLocaleString()}!)</span>
+      </p>
+    ) : (
+      <p className="text-xs text-purple-800 leading-relaxed">
+        Add <strong className="text-purple-900 font-bold">{sleevelessCombo.neededForNext} more</strong> Sleeveless Shorts Set{sleevelessCombo.neededForNext > 1 ? 's' : ''} to get <strong className="text-purple-900 font-bold">5 for ₹999</strong>!
+      </p>
+    )}
+
+    {sleevelessCombo.neededForNext > 0 && sleevelessCombo.bundleCount > 0 && (
+      <p className="text-[11px] text-purple-600 mt-1">
+        👉 Add {sleevelessCombo.neededForNext} more to unlock another 5 for ₹999 bundle!
+      </p>
+    )}
+
+    <div className="mt-2 h-2 bg-purple-100 rounded-full overflow-hidden">
+      <div 
+        className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-full transition-all duration-500"
+        style={{ width: `${sleevelessCombo.progress}%` }}
+      />
+    </div>
+  </div>
+)}
                 
                 {/* Progress Indicators */}
                 <div className="space-y-4 mb-6">
@@ -477,11 +523,26 @@ const Cart = () => {
                 </div>
                 
                 <div className="space-y-3 mb-4">
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-500">Subtotal ({cartCount} items)</span>
-                    <span className="font-medium text-[#1e1b4b]">Rs. {subtotal.toLocaleString()}</span>
+                  <div className="flex justify-between py-1">
+                    <span className="text-gray-500">Items Total ({cartCount} items)</span>
+                    <span className="font-medium text-[#1e1b4b]">Rs. {rawSubtotal.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between py-2">
+                  {sleevelessCombo.comboDiscount > 0 && (
+                    <div className="flex justify-between py-1.5 px-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700">
+                      <span className="text-xs font-semibold flex items-center gap-1">
+                        <Sparkles size={13} className="text-emerald-600" />
+                        5 for ₹999 Combo Savings
+                      </span>
+                      <span className="text-xs font-bold">-Rs. {sleevelessCombo.comboDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {sleevelessCombo.comboDiscount > 0 && (
+                    <div className="flex justify-between py-1 text-sm border-t border-purple-50 pt-2">
+                      <span className="text-gray-500">Discounted Subtotal</span>
+                      <span className="font-semibold text-purple-700">Rs. {subtotal.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-1">
                     <span className="text-gray-500">Shipping</span>
                     <span className="font-medium text-[#1e1b4b]">
                       {shipping === 0 ? 'Free' : `Rs. ${shipping.toLocaleString()}`}
