@@ -537,7 +537,7 @@ const CategoryPage = () => {
                           </span>
                         ) : isSleevelessShortsSet(product) && inStock ? (
                           <span className="absolute top-3 left-3 text-[0.58rem] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white shadow-md">
-                            5 for ₹999
+                            any 5 at ₹999
                           </span>
                         ) : null}
                         
