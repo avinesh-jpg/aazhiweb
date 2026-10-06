@@ -36,7 +36,7 @@ const AdminDashboard = () => {
   const [productSearchQuery, setProductSearchQuery] = useState<string>('');
   const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
   const [orderPage, setOrderPage] = useState<number>(1);
-  const ordersPerPage = 20;
+  const [ordersPerPage, setOrdersPerPage] = useState<number>(20);
   
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -711,46 +711,102 @@ const filteredProducts = currentProductList.filter((product: any) => {
                 )}
               </div>
             </div>
+
+            {/* Top Orders Pagination & View Controls */}
+            {filteredOrders.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3 text-xs text-gray-600 font-medium">
+                  <span>
+                    Showing <strong className="text-gray-900">{startIndex + 1}</strong>–<strong className="text-gray-900">{Math.min(endIndex, filteredOrders.length)}</strong> of <strong className="text-gray-900">{filteredOrders.length}</strong> orders
+                  </span>
+                  <div className="flex items-center gap-1.5 pl-3 border-l border-gray-200">
+                    <span className="text-gray-400">Per page:</span>
+                    {[10, 20, 50].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => {
+                          setOrdersPerPage(num);
+                          setOrderPage(1);
+                        }}
+                        className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                          ordersPerPage === num
+                            ? 'bg-primary text-white shadow-xs'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {totalOrderPages > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setOrderPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={orderPage === 1}
+                      className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      title="Previous Page"
+                    >
+                      <ChevronLeft size={14} /> Prev
+                    </button>
+
+                    <span className="text-xs font-semibold text-gray-800 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+                      Page {orderPage} of {totalOrderPages}
+                    </span>
+
+                    <button
+                      onClick={() => setOrderPage((prev) => Math.min(prev + 1, totalOrderPages))}
+                      disabled={orderPage === totalOrderPages}
+                      className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      title="Next Page"
+                    >
+                      Next <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[1200px]">
-                  <thead className="bg-gray-50">
+                <table className="w-full text-left border-collapse min-w-[950px]">
+                  <thead className="bg-gray-50/80 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Order #</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Customer</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Items</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Total</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Payment</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Address</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Order #</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Customer</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Items</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Total</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Payment</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Date</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Address</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 text-xs sm:text-sm">
                     {displayedOrders.map((order) => (
-                      <tr key={order._id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4 text-sm font-medium">{order.orderNumber}</td>
-                        <td className="px-4 py-4">
-                          <div className="text-sm font-medium">{order.userId?.name || order.guestName || 'Guest'}</div>
-                          <div className="text-xs text-muted-foreground">{order.userId?.email || order.guestEmail || order.shippingAddress?.email || '-'}</div>
+                      <tr key={order._id} className="hover:bg-purple-50/30 transition-colors">
+                        <td className="px-3 py-3 text-sm font-semibold text-gray-900">{order.orderNumber}</td>
+                        <td className="px-3 py-3">
+                          <div className="text-sm font-medium text-gray-900">{order.userId?.name || order.guestName || 'Guest'}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-[150px]">{order.userId?.email || order.guestEmail || order.shippingAddress?.email || '-'}</div>
                           {order.guestMobile && (
-                            <div className="text-xs text-muted-foreground">📱 {order.guestMobile}</div>
+                            <div className="text-xs text-gray-500">📱 {order.guestMobile}</div>
                           )}
                         </td>
-                        <td className="px-4 py-4 text-sm">{order.items?.length || 0}</td>
-                        <td className="px-4 py-4 text-sm font-medium">₹{order.total?.toLocaleString()}</td>
-                        <td className="px-4 py-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPaymentStatusColor(order.paymentStatus)}`}>
+                        <td className="px-3 py-3 text-sm text-gray-700">{order.items?.length || 0}</td>
+                        <td className="px-3 py-3 text-sm font-semibold text-gray-900">₹{order.total?.toLocaleString()}</td>
+                        <td className="px-3 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getPaymentStatusColor(order.paymentStatus)}`}>
                             {order.paymentStatus || 'pending'}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-3">
                           <select
                             value={order.status}
                             onChange={(e) => updateOrderStatus(order._id, e.target.value)}
-                            className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}
                             disabled={updatingStatus}
                           >
                             <option value="pending">Pending</option>
@@ -761,37 +817,35 @@ const filteredProducts = currentProductList.filter((product: any) => {
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </td>
-                        <td className="px-4 py-4 text-sm">
+                        <td className="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-3">
                           {order.shippingAddress ? (
-                            <div className="text-xs max-w-[200px]">
-                              <div className="font-medium text-gray-700">{order.shippingAddress.fullName}</div>
-                              <div className="text-gray-500 truncate">{order.shippingAddress.address}</div>
-                              <div className="text-gray-500">{order.shippingAddress.city}, {order.shippingAddress.state}</div>
-                              <div className="text-gray-500">PIN: {order.shippingAddress.pincode}</div>
+                            <div className="text-xs max-w-[180px]">
+                              <div className="font-medium text-gray-800 truncate">{order.shippingAddress.fullName}</div>
+                              <div className="text-gray-500 truncate">{order.shippingAddress.city}, {order.shippingAddress.state}</div>
                               <div className="text-gray-500">📱 {order.shippingAddress.phone}</div>
                             </div>
                           ) : (
                             <span className="text-xs text-gray-400">No address</span>
                           )}
                         </td>
-                        <td className="px-4 py-4">
-                          <div className="flex gap-2">
+                        <td className="px-3 py-3">
+                          <div className="flex gap-1.5">
                             <button 
                               onClick={() => viewOrderDetails(order)} 
-                              className="text-primary hover:text-primary/80"
+                              className="p-1 rounded text-primary hover:bg-primary/10 transition-colors"
                               title="View Details"
                             >
-                              <Eye size={18} />
+                              <Eye size={16} />
                             </button>
                             <button 
                               onClick={() => printInvoice(order)} 
-                              className="text-gray-600 hover:text-gray-800"
+                              className="p-1 rounded text-gray-600 hover:bg-gray-100 transition-colors"
                               title="Print Invoice"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                                 <path d="M6 9V3h12v6"/>
                                 <rect x="6" y="15" width="12" height="6" rx="2"/>
