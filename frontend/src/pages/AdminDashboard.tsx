@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
   Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle,
-  Search, RefreshCw
+  Search, RefreshCw, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import ProductModal from '@/components/Admin/ProductModal';
 import SubcategoryManager from '@/components/Admin/SubcategoryManager';
@@ -35,6 +35,8 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [productSearchQuery, setProductSearchQuery] = useState<string>('');
   const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
+  const [orderPage, setOrderPage] = useState<number>(1);
+  const ordersPerPage = 20;
   
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -373,6 +375,16 @@ const AdminDashboard = () => {
     return true;
   });
 
+  // Reset pagination to page 1 whenever order filters change
+  useEffect(() => {
+    setOrderPage(1);
+  }, [statusFilter, paymentFilter, searchQuery]);
+
+  // Orders Pagination calculations
+  const totalOrderPages = Math.max(1, Math.ceil(filteredOrders.length / ordersPerPage));
+  const startIndex = (orderPage - 1) * ordersPerPage;
+  const endIndex = startIndex + ordersPerPage;
+  const displayedOrders = filteredOrders.slice(startIndex, endIndex);
 
   const currentProductList = viewTrash ? trashProducts : products;
 
@@ -717,7 +729,7 @@ const filteredProducts = currentProductList.filter((product: any) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filteredOrders.map((order) => (
+                    {displayedOrders.map((order) => (
                       <tr key={order._id} className="hover:bg-gray-50">
                         <td className="px-4 py-4 text-sm font-medium">{order.orderNumber}</td>
                         <td className="px-4 py-4">
@@ -796,6 +808,65 @@ const filteredProducts = currentProductList.filter((product: any) => {
                     <ShoppingBag className="mx-auto h-12 w-12 text-gray-300 mb-3" />
                     <p className="text-base font-semibold text-gray-700">No matching orders found</p>
                     <p className="text-xs text-gray-400 mt-1">Try adjusting your search query, payment filter, or status filter</p>
+                  </div>
+                )}
+
+                {/* Orders Pagination Controls */}
+                {filteredOrders.length > 0 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <div className="text-xs text-gray-500 font-medium">
+                      Showing <span className="font-semibold text-gray-800">{startIndex + 1}</span> to{' '}
+                      <span className="font-semibold text-gray-800">{Math.min(endIndex, filteredOrders.length)}</span> of{' '}
+                      <span className="font-semibold text-gray-800">{filteredOrders.length}</span> orders
+                    </div>
+
+                    {totalOrderPages > 1 && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => setOrderPage((prev) => Math.max(prev - 1, 1))}
+                          disabled={orderPage === 1}
+                          className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          title="Previous Page"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+
+                        {Array.from({ length: totalOrderPages }, (_, i) => i + 1).map((pageNum) => {
+                          if (
+                            pageNum === 1 ||
+                            pageNum === totalOrderPages ||
+                            (pageNum >= orderPage - 1 && pageNum <= orderPage + 1)
+                          ) {
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setOrderPage(pageNum)}
+                                className={`min-w-[32px] h-8 px-2 text-xs font-semibold rounded-lg transition-colors ${
+                                  orderPage === pageNum
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          }
+                          if (pageNum === orderPage - 2 || pageNum === orderPage + 2) {
+                            return <span key={pageNum} className="text-gray-400 text-xs px-1">...</span>;
+                          }
+                          return null;
+                        })}
+
+                        <button
+                          onClick={() => setOrderPage((prev) => Math.min(prev + 1, totalOrderPages))}
+                          disabled={orderPage === totalOrderPages}
+                          className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          title="Next Page"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
