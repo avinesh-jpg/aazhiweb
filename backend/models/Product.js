@@ -151,6 +151,9 @@ productSchema.methods.getStructuredData = function(baseUrl) {
     ...(this.colors && this.colors.length > 0 && {
       "color": this.colors.map(c => c.name).join(', ')
     })
+  };
+};
+
 // Database indexes for fast lookups on categories, subcategories, age, stock, and date
 productSchema.index({ category: 1, inStock: 1, createdAt: -1 });
 productSchema.index({ subcategory: 1, inStock: 1, createdAt: -1 });
