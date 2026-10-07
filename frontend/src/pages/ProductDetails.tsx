@@ -200,8 +200,26 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
 
-  // 5. General Boys / General Shorts Sets (Must be last)
-  if (lower.includes('boys shorts sets') || lower.includes('shorts sets')) {     
+  // 5. Specific: 6-24M Shorts Set
+  if (lower.includes('6-24m') || lower.includes('6-24m shorts set')) {     
+    return {
+      src: '/6_24m_shorts_set_sizechart.png',
+      alt: '6-24M Shorts Set Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  // 6. Specific: 0Y-5Y Shorts Set
+  if (lower.includes('0y-5y') || lower.includes('0-5y') || lower.includes('shorts set 0y-5y')) {     
+    return {
+      src: '/boys_0_5y_sizechart.png',
+      alt: '0Y-5Y Shorts Set Size Chart',
+      isFullWidth: true
+    };
+  }
+
+  // 7. General Boys / General Shorts Sets (Must be last)
+  if (lower.includes('boys shorts sets') || lower.includes('shorts sets') || lower.includes('shorts set')) {     
     return {
       src: '/boys_shorts_sets_sizechart.png',
       alt: 'Boys Shorts Sets Size Chart',
