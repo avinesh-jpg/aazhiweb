@@ -143,11 +143,57 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
     
-    const order = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const previousStatus = order.status;
+    order.status = status;
+    await order.save();
+
+    // If order is cancelled and was previously paid/confirmed, restore stock to inventory
+    if (status === 'cancelled' && previousStatus !== 'cancelled' && order.paymentStatus === 'paid') {
+      if (order.items && order.items.length > 0) {
+        for (const item of order.items) {
+          try {
+            const productIdNum = !isNaN(Number(item.productId)) ? Number(item.productId) : null;
+            const query = [];
+            if (productIdNum) query.push({ productId: productIdNum });
+            if (item.productId && item.productId.length === 24) query.push({ _id: item.productId });
+
+            const product = query.length > 0 ? await Product.findOne({ $or: query }) : null;
+            if (product) {
+              let stockRestored = false;
+              if (product.sizes && product.sizes.length > 0) {
+                const itemSizeClean = (item.size || '').trim().toLowerCase();
+                const sizeIndex = product.sizes.findIndex(s => (s.name || '').trim().toLowerCase() === itemSizeClean);
+                if (sizeIndex !== -1) {
+                  product.sizes[sizeIndex].stock = (product.sizes[sizeIndex].stock || 0) + (item.quantity || 1);
+                  product.inStock = true;
+                  stockRestored = true;
+                } else if (product.sizes.length === 1 && product.sizes[0].name === 'One Size') {
+                  product.sizes[0].stock = (product.sizes[0].stock || 0) + (item.quantity || 1);
+                  product.inStock = true;
+                  stockRestored = true;
+                }
+              } else if (typeof product.stockQuantity === 'number') {
+                product.stockQuantity = product.stockQuantity + (item.quantity || 1);
+                product.inStock = true;
+                stockRestored = true;
+              }
+
+              if (stockRestored) {
+                await product.save();
+                console.log(`📈 Restored stock for ${product.name} (Size: ${item.size || 'N/A'}, Qty: ${item.quantity}) due to order cancellation`);
+              }
+            }
+          } catch (err) {
+            console.error(`Error restoring stock for item ${item.name}:`, err);
+          }
+        }
+      }
+    }
     
     res.json({ success: true, order });
   } catch (error) {

@@ -75,7 +75,7 @@ const Navbar = () => {
     { label: "New Born",             category: "newborn",    path: "/collections/newborn" },
     { label: "Girls",              category: "Girls",    path: "/collections/girls" },
     { label: "Boys",             category: "Boys",   path: "/collections/boys" },
-    { label: "Unisex",              category: "UniSex",    path: "/collections/unisex" },
+    { label: "Unisex",              category: "Unisex",    path: "/collections/unisex" },
     { label: "Womens",category: "women",path: "/collections/women" },
   ];  
 

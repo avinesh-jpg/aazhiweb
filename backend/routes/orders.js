@@ -1,6 +1,8 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 import Cart from '../models/Cart.js';
 import User from '../models/User.js';
 import Coupon from '../models/Coupon.js';
@@ -134,6 +136,37 @@ router.post('/create-pending', async (req, res) => {
     }
     
     console.log('Cart items count:', cart.items.length);
+    
+    // Verify real-time stock availability before allowing checkout
+    for (const item of cart.items) {
+      const productIdNum = !isNaN(Number(item.productId)) ? Number(item.productId) : null;
+      const query = [];
+      if (productIdNum) query.push({ productId: productIdNum });
+      if (mongoose.Types.ObjectId.isValid(item.productId)) query.push({ _id: item.productId });
+
+      const product = query.length > 0 ? await Product.findOne({ $or: query }) : null;
+
+      if (!product || product.inStock === false) {
+        return res.status(400).json({
+          success: false,
+          message: `"${item.name}" is out of stock. Please remove it from your cart to proceed.`
+        });
+      }
+
+      if (product.sizes && product.sizes.length > 0 && item.size) {
+        const itemSizeClean = (item.size || '').trim().toLowerCase();
+        const sizeObj = product.sizes.find(s => (s.name || '').trim().toLowerCase() === itemSizeClean);
+
+        if (sizeObj && sizeObj.stock < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            message: sizeObj.stock === 0 
+              ? `"${product.name}" in size ${sizeObj.name} is now out of stock.`
+              : `Only ${sizeObj.stock} left in "${product.name}" (Size: ${sizeObj.name}). Please adjust the quantity in your cart.`
+          });
+        }
+      }
+    }
     
     // Calculate totals
     const rawSubtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -337,6 +370,8 @@ router.post('/confirm', async (req, res) => {
       });
     }
     
+    const wasAlreadyPaid = order.paymentStatus === 'paid';
+
     // Update order
     order.paymentStatus = 'paid';
     order.razorpayPaymentId = razorpayPaymentId;
@@ -345,6 +380,59 @@ router.post('/confirm', async (req, res) => {
     await order.save();
     
     console.log(`✅ Order confirmed: ${order.orderNumber}`);
+
+    // Deduct stock for all purchased items (only on first confirmation)
+    if (!wasAlreadyPaid && order.items && order.items.length > 0) {
+      for (const item of order.items) {
+        try {
+          const productIdNum = !isNaN(Number(item.productId)) ? Number(item.productId) : null;
+          const query = [];
+          if (productIdNum) query.push({ productId: productIdNum });
+          if (mongoose.Types.ObjectId.isValid(item.productId)) query.push({ _id: item.productId });
+
+          const product = query.length > 0 ? await Product.findOne({ $or: query }) : null;
+
+          if (product) {
+            let stockChanged = false;
+
+            if (product.sizes && product.sizes.length > 0) {
+              const itemSizeClean = (item.size || '').trim().toLowerCase();
+              const sizeIndex = product.sizes.findIndex(s => (s.name || '').trim().toLowerCase() === itemSizeClean);
+
+              if (sizeIndex !== -1) {
+                const currentStock = product.sizes[sizeIndex].stock || 0;
+                product.sizes[sizeIndex].stock = Math.max(0, currentStock - (item.quantity || 1));
+                stockChanged = true;
+              } else if (product.sizes.length === 1 && product.sizes[0].name === 'One Size') {
+                const currentStock = product.sizes[0].stock || 0;
+                product.sizes[0].stock = Math.max(0, currentStock - (item.quantity || 1));
+                stockChanged = true;
+              }
+
+              // Check if all sizes are now 0 stock
+              const totalRemaining = product.sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
+              if (totalRemaining === 0) {
+                product.inStock = false;
+                stockChanged = true;
+              }
+            } else if (typeof product.stockQuantity === 'number') {
+              product.stockQuantity = Math.max(0, product.stockQuantity - (item.quantity || 1));
+              if (product.stockQuantity === 0) {
+                product.inStock = false;
+              }
+              stockChanged = true;
+            }
+
+            if (stockChanged) {
+              await product.save();
+              console.log(`📉 Decremented stock for ${product.name} (Size: ${item.size || 'N/A'}, Qty: ${item.quantity})`);
+            }
+          }
+        } catch (stockErr) {
+          console.error(`Error decrementing stock for item ${item.name}:`, stockErr);
+        }
+      }
+    }
     
     // Clear cart
     if (order.userId) {
