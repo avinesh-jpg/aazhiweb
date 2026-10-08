@@ -11,6 +11,7 @@ import AnnouncementBar from "@/components/AnnouncementBar";
 import { toast } from "sonner";
 import { trackEvent } from '../utils/analytics';
 import { isSleevelessShortsSet } from "@/utils/comboOffers";
+import { sortSizes } from "@/utils/sizeHelper";
 
 // Types
 interface Color {
@@ -62,6 +63,14 @@ const STOCK_THRESHOLDS = {
   VERY_LOW: 3,
   WARNING: 10,
 } as const;
+
+const getProductUrl = (product: Product): string => {
+  if (product.slug) {
+    const cat = (product.category || 'collection').toLowerCase().replace(/ /g, '-');
+    return `/collections/${cat}/products/${product.slug}`;
+  }
+  return `/product/${product.productId}`;
+};
 
 // Helper Functions
 const formatDescription = (description: string | undefined): string[] => {
@@ -248,6 +257,11 @@ const useProduct = (id: string) => {
         
         if (response.ok) {
           const data = await response.json();
+          if (data && data.slug) {
+            const cat = (data.category || 'collection').toLowerCase().replace(/ /g, '-');
+            navigate(`/collections/${cat}/products/${data.slug}`, { replace: true });
+            return;
+          }
           setProduct(data);
           
           const relatedResponse = await fetch(`${API_URL}/products/category/${data.category}`);
@@ -479,6 +493,8 @@ const SizeSelector = ({
   error: string;
   onShowSizeChart?: () => void;
 }) => {
+  const sortedSizes = useMemo(() => sortSizes(sizes), [sizes]);
+
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-3">
@@ -505,7 +521,7 @@ const SizeSelector = ({
       )}
 
       <div className={`flex flex-wrap gap-3 p-2 rounded-2xl transition-all ${error ? 'ring-2 ring-red-400 bg-red-50/40' : ''}`}>
-        {sizes.filter(sizeObj => sizeObj.stock > 0).map((sizeObj) => (
+        {sortedSizes.filter(sizeObj => sizeObj.stock > 0).map((sizeObj) => (
           <button
             key={sizeObj.name}
             onClick={() => onSelect(sizeObj)}
@@ -516,11 +532,6 @@ const SizeSelector = ({
             }`}
           >
             {sizeObj.name}
-            {sizeObj.stock > 0 && sizeObj.stock <= STOCK_THRESHOLDS.VERY_LOW && (
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                Only {sizeObj.stock}
-              </span>
-            )}
           </button>
         ))}
       </div>
@@ -658,10 +669,7 @@ const ProductDetails = () => {
     }
 
     if (hasSizes) {
-      if (!selectedSize) {
-        return { text: "Select a size", color: "text-yellow-600", bg: "bg-yellow-100", badge: "bg-yellow-100 text-yellow-800" };
-      }
-      if (selectedSize.stock <= STOCK_THRESHOLDS.VERY_LOW) {
+      if (selectedSize && selectedSize.stock <= STOCK_THRESHOLDS.VERY_LOW) {
         return { text: `⚠️ Only ${selectedSize.stock} left in ${selectedSize.name}`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
       }
       return { text: "✓ In Stock", color: "text-green-600", bg: "bg-green-100", badge: "bg-green-100 text-green-800" };
@@ -1280,14 +1288,14 @@ const ProductDetails = () => {
                     return (
                       <div
                         key={related.productId}
-                        onClick={() => navigate(`/product/${related.productId}`)}
+                        onClick={() => navigate(getProductUrl(related))}
                         className="group cursor-pointer transition-all duration-300 hover:-translate-y-1"
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            navigate(`/product/${related.productId}`);
+                            navigate(getProductUrl(related));
                           }
                         }}
                       >

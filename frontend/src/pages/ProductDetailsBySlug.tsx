@@ -10,6 +10,7 @@ import BackToTop from "@/components/BackToTop";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { toast } from "sonner";
 import { isSleevelessShortsSet } from "@/utils/comboOffers";
+import { sortSizes } from "@/utils/sizeHelper";
 
 interface Color {
   name: string;
@@ -438,14 +439,9 @@ if (data.sizes && data.sizes.length > 0) {
     }
     
     if (product.sizes && product.sizes.length > 0 && product.sizes[0].name !== 'One Size') {
-      if (!selectedSize) {
-        return { text: "Select a size", color: "text-yellow-600", bg: "bg-yellow-100", badge: "bg-yellow-100 text-yellow-800" };
-      }
-      {/* Display low stock warning if applicable 
-      if (selectedSize.stock <= 3) {
+      if (selectedSize && selectedSize.stock <= 2) {
         return { text: `⚠️ Only ${selectedSize.stock} left in ${selectedSize.name}`, color: "text-orange-600", bg: "bg-orange-100", badge: "bg-orange-100 text-orange-800 animate-pulse" };
       }
-        */}
       return { text: "✓ In Stock", color: "text-green-600", bg: "bg-green-100", badge: "bg-green-100 text-green-800" };
     }
     
@@ -1033,7 +1029,7 @@ if (data.sizes && data.sizes.length > 0) {
   )}
 
   <div className={`flex flex-wrap gap-3 p-2 rounded-2xl transition-all ${sizeError ? 'ring-2 ring-red-400 bg-red-50/40' : ''}`}>
-    {product.sizes?.filter((sizeObj: Size) => sizeObj.stock > 0).map((sizeObj: Size) => (
+    {sortSizes(product.sizes)?.filter((sizeObj: Size) => sizeObj.stock > 0).map((sizeObj: Size) => (
       <button
         key={sizeObj.name}
         onClick={() => {

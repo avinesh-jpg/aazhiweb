@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Upload, Link } from 'lucide-react';
 import ImageUpload from './ImageUpload';
+import { sortSizes } from '@/utils/sizeHelper';
 
 interface Color {
   name: string;
@@ -153,13 +154,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
     const method = product?._id ? 'PUT' : 'POST';
     
     try {
+      const dataToSave = {
+        ...formData,
+        sizes: sortSizes(formData.sizes)
+      };
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSave)
       });
       
       if (response.ok) {

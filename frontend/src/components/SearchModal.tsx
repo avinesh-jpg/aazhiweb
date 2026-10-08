@@ -10,6 +10,7 @@ interface Product {
   badge: string | null;
   image: string;
   category: string;
+  slug?: string;
 }
 
 interface SearchModalProps {
@@ -18,6 +19,14 @@ interface SearchModalProps {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const getProductUrl = (product: Product): string => {
+  if (product.slug) {
+    const cat = (product.category || 'collection').toLowerCase().replace(/ /g, '-');
+    return `/collections/${cat}/products/${product.slug}`;
+  }
+  return `/product/${product.productId}`;
+};
 
 const SearchModal = ({ isOpen, onClose }: SearchModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,9 +87,9 @@ const SearchModal = ({ isOpen, onClose }: SearchModalProps) => {
     navigate(`/search?q=${encodeURIComponent(term)}`);
   };
 
-  const handleProductClick = (productId: number) => {
+  const handleProductClick = (product: Product) => {
     onClose();
-    navigate(`/product/${productId}`);
+    navigate(getProductUrl(product));
   };
 
   const clearRecentSearches = () => {
@@ -140,7 +149,7 @@ const SearchModal = ({ isOpen, onClose }: SearchModalProps) => {
                 {results.map((product) => (
                   <div
                     key={product.productId}
-                    onClick={() => handleProductClick(product.productId)}
+                    onClick={() => handleProductClick(product)}
                     className="flex items-center gap-4 p-4 hover:bg-purple-50/50 cursor-pointer transition-all duration-300 border-b border-purple-100 hover:translate-x-1"
                   >
                     <img

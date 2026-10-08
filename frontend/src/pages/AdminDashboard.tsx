@@ -11,6 +11,7 @@ import SubcategoryManager from '@/components/Admin/SubcategoryManager';
 import ShippingSettings from '@/components/Admin/ShippingSettings';
 import ComboManager from '@/components/Admin/ComboManager';
 import BlogManager from '@/components/Admin/BlogManager';
+import { sortSizes } from '@/utils/sizeHelper';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -1028,7 +1029,7 @@ const filteredProducts = currentProductList.filter((product: any) => {
                         <td className="px-6 py-4 text-sm">
   {product.sizes && product.sizes.length > 0 ? (
     <div className="space-y-1.5">
-      {product.sizes.map((size: any, idx: number) => {
+      {sortSizes(product.sizes).map((size: any, idx: number) => {
         const initial = size.initialStock ?? size.stock ?? 0;
         return (
           <div key={idx} className="text-xs flex items-center gap-1.5">
@@ -1206,7 +1207,7 @@ const filteredProducts = currentProductList.filter((product: any) => {
                           <td className="px-6 py-4 text-sm font-medium">{item.name}</td>
                           <td className="px-6 py-4 text-sm">
                             <div className="space-y-1">
-                              {item.lowStockSizes.map((size: any, sIdx: number) => (
+                              {sortSizes(item.lowStockSizes).map((size: any, sIdx: number) => (
                                 <div key={sIdx} className="text-xs">
                                   <span className="font-semibold text-gray-700">{size.name}:</span>{' '}
                                   <span className={size.stock === 0 ? 'text-red-600 font-medium' : 'text-orange-600 font-medium'}>
