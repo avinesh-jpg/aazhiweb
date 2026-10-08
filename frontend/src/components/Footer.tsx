@@ -7,7 +7,7 @@ const shopLinks = [
   { name: "New Born", category: "newborn", path: "/collections/newborn" },
   { name: "Girls", category: "Girls", path: "/collections/girls" },
   { name: "Boys", category: "Boys", path: "/collections/boys" },
-  { name: "UniSex", category: "UniSex", path: "/collections/unisex" },
+  { name: "Unisex", category: "Unisex", path: "/collections/unisex" },
   { name: "Womens", category: "Womens", path: "/collections/women" },
 ];
 

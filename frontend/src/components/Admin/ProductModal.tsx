@@ -318,7 +318,7 @@ const updateSizeInitialStock = (index: number, initialStock: number) => {
               >
                <option value="Boys">Boys</option>
                 <option value="newborn">Newborn</option>
-                <option value="UniSex">UniSex</option>
+                <option value="Unisex">Unisex</option>
                 <option value="Girls">Girls</option>
                 {/*<option value="bedding">Bedding</option>*/}
                 <option value="women">womens</option>

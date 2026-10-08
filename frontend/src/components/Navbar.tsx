@@ -62,7 +62,7 @@ const Navbar = () => {
   };
 
   const getSubcategoriesByCategory = (category: string) => {
-    return subcategories.filter(sub => sub.category === category);
+    return subcategories.filter(sub => sub.category?.toLowerCase() === category.toLowerCase());
   };
 
   const ordersCount = () => {

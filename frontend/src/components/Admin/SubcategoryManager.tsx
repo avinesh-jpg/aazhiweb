@@ -16,7 +16,7 @@ const categories = [
   { value: 'newborn', label: 'New Born' },
   { value: 'Girls', label: 'Girls' },
   { value: 'Boys', label: 'Boys' },
-  { value: 'UniSex', label: 'UniSex' },
+  { value: 'Unisex', label: 'Unisex' },
   //{ value: 'bedding', label: 'Bedding' },
   { value: 'women', label: 'Womens' }
 ];

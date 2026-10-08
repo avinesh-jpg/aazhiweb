@@ -16,8 +16,10 @@ router.get('/', async (req, res) => {
 // Get subcategories by category
 router.get('/category/:category', async (req, res) => {
   try {
+    const categoryParam = req.params.category;
+    const categoryRegex = new RegExp(`^${categoryParam}$`, 'i');
     const subcategories = await Subcategory.find({ 
-      category: req.params.category,
+      category: { $regex: categoryRegex },
       isActive: true 
     }).sort({ order: 1 });
     res.json({ success: true, subcategories });
@@ -60,26 +62,14 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-// Get subcategories by category
+
+// Get fallback subcategories by category
 router.get('/subcategories/:category', async (req, res) => {
   try {
     const { category } = req.params;
     const { subcategories } = await import('../data/subcategories.js');
-    const categorySubs = subcategories[category] || [];
+    const categorySubs = subcategories[category.toLowerCase()] || subcategories[category] || [];
     res.json({ success: true, subcategories: categorySubs });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Get subcategories by category
-router.get('/category/:category', async (req, res) => {
-  try {
-    const subcategories = await Subcategory.find({ 
-      category: req.params.category,
-      isActive: true 
-    }).sort({ order: 1 });
-    res.json({ success: true, subcategories });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

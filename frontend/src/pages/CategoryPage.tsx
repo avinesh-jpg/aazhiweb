@@ -127,7 +127,7 @@ const CategoryPage = () => {
       const exactCasingMap: { [key: string]: string } = {
         'girls': 'Girls',
         'boys': 'Boys',
-        'unisex': 'UniSex',
+        'unisex': 'Unisex',
         'newborn': 'newborn',
         'clothing': 'clothing',
         'thottil': 'thottil',
@@ -164,7 +164,9 @@ const CategoryPage = () => {
         'accessories': 'Nursery & Accessories',
         'Girls': 'Girls Collection',
         'Boys': 'Boys Collection',
+        'Unisex': 'Unisex Collection',
         'UniSex': 'Unisex Collection',
+        'unisex': 'Unisex Collection',
         'women': "Women's Collection"
       };
       return collectionMap[value || ''] || 'Shop by Collection';
