@@ -192,6 +192,8 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
             console.error(`Error restoring stock for item ${item.name}:`, err);
           }
         }
+        order.stockDeducted = false;
+        await order.save();
       }
     }
     

@@ -92,7 +92,7 @@ router.post('/verify-payment', async (req, res) => {
       await order.save();
       
       // Deduct stock for all purchased items (only on first verification)
-      if (!wasAlreadyPaid && order.items && order.items.length > 0) {
+      if (!order.stockDeducted && !wasAlreadyPaid && order.items && order.items.length > 0) {
         for (const item of order.items) {
           try {
             const productIdNum = !isNaN(Number(item.productId)) ? Number(item.productId) : null;
@@ -142,6 +142,8 @@ router.post('/verify-payment', async (req, res) => {
             console.error(`Error decrementing stock for item ${item.name}:`, stockErr);
           }
         }
+        order.stockDeducted = true;
+        await order.save();
       }
 
       // Clear cart after successful payment
