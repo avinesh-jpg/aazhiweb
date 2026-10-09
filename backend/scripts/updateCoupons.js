@@ -29,14 +29,12 @@ const updateCoupons = async () => {
     
     // Insert new coupons
     const newCoupons = [
-      { code: 'LAUNCH100', threshold: 2000, discount: 100, isActive: true },
-      { code: 'LAUNCH200', threshold: 3000, discount: 200, isActive: true }
+      { code: 'LAUNCH100', threshold: 3000, discount: 100, isActive: true }
     ];
     
     await Coupon.create(newCoupons);
     console.log('Successfully seeded new coupons:');
-    console.log('- LAUNCH100: spend 2000, get 100 off');
-    console.log('- LAUNCH200: spend 3000, get 200 off');
+    console.log('- LAUNCH100: spend 3000, get 100 off');
 
     await mongoose.disconnect();
     console.log('Database disconnected. All done!');
