@@ -1180,7 +1180,9 @@ if (data.sizes && data.sizes.length > 0) {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                   {relatedProducts.map((related) => {
-                    const relatedOutOfStock = related.sizes && related.sizes.length > 0 && related.sizes[0].stock === 0;
+                    const relatedOutOfStock = related.sizes && related.sizes.length > 0
+                      ? related.sizes.every(s => (s.stock || 0) === 0)
+                      : related.inStock === false;
                     return (
                       <div
                         key={related.productId}
