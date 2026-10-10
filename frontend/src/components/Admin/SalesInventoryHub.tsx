@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, Package, AlertOctagon, Download, Search, 
-  RefreshCw, Clock, Flame, Award, SlidersHorizontal 
+  RefreshCw, Clock, Flame, Award, SlidersHorizontal, IndianRupee 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
   const [products, setProducts] = useState<any[]>([]);
   
   // Filters
-  const [activeFilter, setActiveFilter] = useState<'bestsellers' | 'slowmovers' | 'all' | 'lowstock'>('bestsellers');
+  const [activeFilter, setActiveFilter] = useState<'bestsellers' | 'slowmovers' | 'all' | 'lowstock' | 'outofstock'>('bestsellers');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [timeRange, setTimeRange] = useState<'all' | '30d' | '7d'>('all');
@@ -61,7 +61,9 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
     } else if (activeFilter === 'slowmovers') {
       matchesFilterType = item.totalSold === 0;
     } else if (activeFilter === 'lowstock') {
-      matchesFilterType = item.totalStock <= 2;
+      matchesFilterType = item.totalStock > 0 && item.totalStock <= 2;
+    } else if (activeFilter === 'outofstock') {
+      matchesFilterType = item.totalStock === 0;
     }
 
     return matchesSearch && matchesCategory && matchesFilterType;
@@ -113,7 +115,7 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Real-time sales velocity, bestseller rankings, size demand breakdown, and dead-stock identification.
+            Real-time sales velocity, revenue earned, bestseller rankings, size demand breakdown, and dead-stock identification.
           </p>
         </div>
 
@@ -151,62 +153,101 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
 
       {/* KPI Cards */}
       {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-6">
+          {/* Total Sold Revenue Card */}
+          <div className="bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-green-500/10 border border-emerald-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+              <IndianRupee size={22} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Total Sold Amount</p>
+              <h3 className="text-xl font-black text-emerald-700 mt-0.5 truncate">
+                ₹{(summary.totalSoldRevenue || 0).toLocaleString()}
+              </h3>
+              <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
+                {timeRange === 'all' ? 'All-time gross sales' : timeRange === '30d' ? 'Last 30 days revenue' : 'Last 7 days revenue'}
+              </p>
+            </div>
+          </div>
+
           {/* Total Units Card */}
           <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-purple-100 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-purple-500 text-white flex items-center justify-center shadow-md shadow-purple-500/20">
+            <div className="w-12 h-12 rounded-xl bg-purple-500 text-white flex items-center justify-center shadow-md shadow-purple-500/20 shrink-0">
               <Package size={22} />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total In Stock</p>
-              <h3 className="text-2xl font-black text-gray-900 mt-0.5">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Total In Stock</p>
+              <h3 className="text-xl font-black text-gray-900 mt-0.5">
                 {summary.totalUnitsInStock.toLocaleString()} <span className="text-xs font-medium text-gray-500">units</span>
               </h3>
-              <p className="text-[11px] text-gray-500 mt-0.5">Across {summary.totalProductsCount} catalog items</p>
+              <p className="text-[11px] text-gray-500 mt-0.5 truncate">Across {summary.totalProductsCount} items</p>
             </div>
           </div>
 
           {/* Total Retail Valuation Card */}
-          <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-100 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+          <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
               <TrendingUp size={22} />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Inventory Valuation</p>
-              <h3 className="text-2xl font-black text-emerald-700 mt-0.5">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Stock Valuation</p>
+              <h3 className="text-xl font-black text-blue-700 mt-0.5 truncate">
                 ₹{summary.totalInventoryValue.toLocaleString()}
               </h3>
-              <p className="text-[11px] text-gray-500 mt-0.5">Total retail rack value</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Retail rack value</p>
             </div>
           </div>
 
           {/* Top Selling Product Card */}
           <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-100 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+            <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
               <Award size={22} />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">#1 Best Seller</p>
-              <h3 className="text-base font-bold text-gray-900 mt-0.5 truncate" title={summary.topSellingProduct?.name}>
+              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">#1 Best Seller</p>
+              <h3 className="text-sm font-bold text-gray-900 mt-0.5 truncate" title={summary.topSellingProduct?.name}>
                 {summary.topSellingProduct ? summary.topSellingProduct.name : 'No sales yet'}
               </h3>
-              <p className="text-[11px] text-amber-700 font-bold mt-0.5">
-                {summary.topSellingProduct ? `🔥 ${summary.topSellingProduct.totalSold} units sold` : '-'}
+              <p className="text-[11px] text-amber-700 font-bold mt-0.5 truncate">
+                {summary.topSellingProduct 
+                  ? `🔥 ${summary.topSellingProduct.totalSold} sold (₹${(summary.topSellingProduct.revenue || 0).toLocaleString()})` 
+                  : '-'}
               </p>
             </div>
           </div>
 
-          {/* Out of Stock Alert Card */}
-          <div className="bg-gradient-to-br from-red-500/10 to-rose-500/10 border border-red-100 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-md shadow-red-500/20">
+          {/* Out of Stock Alert Card (Clickable to Filter) */}
+          <div 
+            onClick={() => setActiveFilter(activeFilter === 'outofstock' ? 'all' : 'outofstock')}
+            role="button"
+            tabIndex={0}
+            title="Click to view out-of-stock products"
+            className={`transition-all duration-200 cursor-pointer border rounded-2xl p-4 shadow-sm flex items-center gap-3.5 hover:shadow-md hover:-translate-y-0.5 select-none ${
+              activeFilter === 'outofstock'
+                ? 'bg-red-500/15 border-red-500 ring-2 ring-red-400 ring-offset-1'
+                : 'bg-gradient-to-br from-red-500/10 to-rose-500/10 border-red-100 hover:border-red-300'
+            }`}
+          >
+            <div className={`w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-md shadow-red-500/20 shrink-0 transition-transform ${
+              activeFilter === 'outofstock' ? 'bg-red-600 scale-105' : 'bg-red-500'
+            }`}>
               <AlertOctagon size={22} />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Out of Stock</p>
-              <h3 className="text-2xl font-black text-red-600 mt-0.5">
-                {summary.outOfStockCount} <span className="text-xs font-medium text-gray-500">products</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Out of Stock</p>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors ${
+                  activeFilter === 'outofstock'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-red-100 text-red-700'
+                }`}>
+                  {activeFilter === 'outofstock' ? 'Active ✓' : 'Filter ↗'}
+                </span>
+              </div>
+              <h3 className="text-xl font-black text-red-600 mt-0.5">
+                {summary.outOfStockCount} <span className="text-xs font-medium text-gray-500">items</span>
               </h3>
-              <p className="text-[11px] text-gray-500 mt-0.5">{summary.lowStockCount} items running low</p>
+              <p className="text-[11px] text-gray-500 mt-0.5 truncate">{summary.lowStockCount} items low</p>
             </div>
           </div>
         </div>
@@ -259,7 +300,18 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              ⚠️ Low Stock (&le; 2)
+              ⚠️ Low Stock (1-2)
+            </button>
+
+            <button
+              onClick={() => setActiveFilter('outofstock')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                activeFilter === 'outofstock'
+                  ? 'bg-red-600 text-white shadow-sm ring-1 ring-red-400'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              🚫 Out of Stock ({summary?.outOfStockCount ?? 0})
             </button>
           </div>
 
@@ -308,6 +360,7 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
                 <th className="px-4 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="px-4 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
                 <th className="px-4 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Units Sold</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Sold Amount</th>
                 <th className="px-4 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Top Selling Size</th>
                 <th className="px-4 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Available Stock</th>
                 <th className="px-4 py-3.5 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Quick Actions</th>
@@ -316,14 +369,14 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
             <tbody className="divide-y divide-gray-100 text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-gray-400">
+                  <td colSpan={9} className="py-16 text-center text-gray-400">
                     <RefreshCw size={24} className="animate-spin mx-auto mb-2 text-purple-600" />
                     Calculating sales velocity and inventory performance...
                   </td>
                 </tr>
               ) : filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-gray-400 font-medium">
+                  <td colSpan={9} className="py-12 text-center text-gray-400 font-medium">
                     No products found matching your current filter criteria.
                   </td>
                 </tr>
@@ -393,6 +446,17 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
                           </span>
                         ) : (
                           <span className="text-gray-400 text-[11px] italic">0 sold</span>
+                        )}
+                      </td>
+
+                      {/* Sold Amount / Revenue */}
+                      <td className="px-4 py-3.5">
+                        {item.revenue > 0 ? (
+                          <span className="inline-flex items-center font-bold text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200/80">
+                            ₹{item.revenue.toLocaleString()}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-[11px] italic">₹0</span>
                         )}
                       </td>
 

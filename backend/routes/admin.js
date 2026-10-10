@@ -596,8 +596,18 @@ router.get('/inventory/analytics', authAdmin, async (req, res) => {
 
     enrichedProducts.sort((a, b) => b.totalSold - a.totalSold);
 
+    let totalSoldRevenue = 0;
+    for (const data of productSalesMap.values()) {
+      totalSoldRevenue += (data.revenue || 0);
+    }
+
     const topSellingProduct = enrichedProducts.length > 0 && enrichedProducts[0].totalSold > 0 
-      ? { name: enrichedProducts[0].name, totalSold: enrichedProducts[0].totalSold, image: enrichedProducts[0].image }
+      ? { 
+          name: enrichedProducts[0].name, 
+          totalSold: enrichedProducts[0].totalSold, 
+          revenue: enrichedProducts[0].revenue || 0,
+          image: enrichedProducts[0].image 
+        }
       : null;
 
     res.json({
@@ -605,6 +615,7 @@ router.get('/inventory/analytics', authAdmin, async (req, res) => {
       summary: {
         totalUnitsInStock,
         totalInventoryValue,
+        totalSoldRevenue,
         totalProductsCount: products.length,
         outOfStockCount,
         lowStockCount,
