@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import Cart from '../models/Cart.js';
+import StockLog from '../models/StockLog.js';
 
 const router = express.Router();
 
@@ -105,17 +106,22 @@ router.post('/verify-payment', async (req, res) => {
             if (product) {
               let stockChanged = false;
 
+              let previousStock = 0;
+              let newStock = 0;
+
               if (product.sizes && product.sizes.length > 0) {
                 const itemSizeClean = (item.size || '').trim().toLowerCase();
                 const sizeIndex = product.sizes.findIndex(s => (s.name || '').trim().toLowerCase() === itemSizeClean);
 
                 if (sizeIndex !== -1) {
-                  const currentStock = product.sizes[sizeIndex].stock || 0;
-                  product.sizes[sizeIndex].stock = Math.max(0, currentStock - (item.quantity || 1));
+                  previousStock = product.sizes[sizeIndex].stock || 0;
+                  newStock = Math.max(0, previousStock - (item.quantity || 1));
+                  product.sizes[sizeIndex].stock = newStock;
                   stockChanged = true;
                 } else if (product.sizes.length === 1 && product.sizes[0].name === 'One Size') {
-                  const currentStock = product.sizes[0].stock || 0;
-                  product.sizes[0].stock = Math.max(0, currentStock - (item.quantity || 1));
+                  previousStock = product.sizes[0].stock || 0;
+                  newStock = Math.max(0, previousStock - (item.quantity || 1));
+                  product.sizes[0].stock = newStock;
                   stockChanged = true;
                 }
 
@@ -126,7 +132,9 @@ router.post('/verify-payment', async (req, res) => {
                   stockChanged = true;
                 }
               } else if (typeof product.stockQuantity === 'number') {
-                product.stockQuantity = Math.max(0, product.stockQuantity - (item.quantity || 1));
+                previousStock = product.stockQuantity;
+                newStock = Math.max(0, product.stockQuantity - (item.quantity || 1));
+                product.stockQuantity = newStock;
                 if (product.stockQuantity === 0) {
                   product.inStock = false;
                 }
@@ -136,6 +144,21 @@ router.post('/verify-payment', async (req, res) => {
               if (stockChanged) {
                 await product.save();
                 console.log(`📉 Decremented stock for ${product.name} (Size: ${item.size || 'N/A'}, Qty: ${item.quantity})`);
+                try {
+                  await StockLog.create({
+                    productId: String(product.productId || product._id),
+                    productName: product.name,
+                    size: item.size || 'N/A',
+                    change: -(item.quantity || 1),
+                    previousStock,
+                    newStock,
+                    reason: 'order',
+                    orderNumber: order.orderNumber,
+                    note: `Purchased by ${order.shippingAddress?.fullName || 'Customer'}`
+                  });
+                } catch (logErr) {
+                  console.error('Error logging stock deduction in payment:', logErr);
+                }
               }
             }
           } catch (stockErr) {

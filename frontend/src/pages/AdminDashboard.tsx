@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
   Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle,
-  Search, RefreshCw, ChevronLeft, ChevronRight
+  Search, RefreshCw, ChevronLeft, ChevronRight, Clock
 } from 'lucide-react';
 import ProductModal from '@/components/Admin/ProductModal';
 import SubcategoryManager from '@/components/Admin/SubcategoryManager';
 import ShippingSettings from '@/components/Admin/ShippingSettings';
 import ComboManager from '@/components/Admin/ComboManager';
 import BlogManager from '@/components/Admin/BlogManager';
+import StockManagerModal from '@/components/Admin/StockManagerModal';
 import { sortSizes } from '@/utils/sizeHelper';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -38,6 +39,21 @@ const AdminDashboard = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
   const [orderPage, setOrderPage] = useState<number>(1);
   const [ordersPerPage, setOrdersPerPage] = useState<number>(20);
+  
+  // Stock Management Modal states
+  const [stockModalProduct, setStockModalProduct] = useState<any>(null);
+  const [stockModalSize, setStockModalSize] = useState<string>('');
+  const [showStockModal, setShowStockModal] = useState<boolean>(false);
+
+  const handleOpenStockModal = (product: any, sizeName?: string) => {
+    setStockModalProduct(product);
+    setStockModalSize(sizeName || '');
+    setShowStockModal(true);
+  };
+
+  const handleStockUpdated = (updatedProduct: any) => {
+    setProducts((prev) => prev.map((p) => (p._id === updatedProduct._id ? updatedProduct : p)));
+  };
   
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -1032,17 +1048,34 @@ const filteredProducts = currentProductList.filter((product: any) => {
       {sortSizes(product.sizes).map((size: any, idx: number) => {
         const initial = size.initialStock ?? size.stock ?? 0;
         return (
-          <div key={idx} className="text-xs flex items-center gap-1.5">
-            <span className="font-semibold text-gray-700">{size.name}:</span>
-            <span className={size.stock === 0 ? 'text-red-600 font-bold' : 'text-emerald-600 font-bold'}>
-              {size.stock} left
-            </span>
-            <span className="text-[11px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-              Total: {initial}
-            </span>
+          <div key={idx} className="text-xs flex items-center justify-between gap-1.5 py-0.5 group">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-gray-700">{size.name}:</span>
+              <span className={size.stock === 0 ? 'text-red-600 font-bold' : 'text-emerald-600 font-bold'}>
+                {size.stock} left
+              </span>
+              <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                Total: {initial}
+              </span>
+            </div>
+            <button
+              type="button"
+              title="Quick Adjust Stock & History Log"
+              onClick={() => handleOpenStockModal(product, size.name)}
+              className="p-1 text-gray-400 hover:text-primary hover:bg-purple-50 rounded transition-colors"
+            >
+              <Clock size={13} />
+            </button>
           </div>
         );
       })}
+      <button
+        type="button"
+        onClick={() => handleOpenStockModal(product)}
+        className="mt-1 text-[11px] text-primary hover:underline font-semibold flex items-center gap-1 transition-colors"
+      >
+        <RefreshCw size={11} /> Quick Stock / Log
+      </button>
     </div>
   ) : (
     <span className="text-gray-400 text-xs">No sizes</span>
@@ -1230,12 +1263,20 @@ const filteredProducts = currentProductList.filter((product: any) => {
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <button
-                              onClick={() => handleEditProduct(item)}
-                              className="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded hover:bg-primary/90 transition-colors"
-                            >
-                              Restock / Edit
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleOpenStockModal(item)}
+                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded flex items-center gap-1 shadow-sm transition-colors"
+                              >
+                                <Plus size={13} /> Quick Restock
+                              </button>
+                              <button
+                                onClick={() => handleEditProduct(item)}
+                                className="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded transition-colors"
+                              >
+                                Edit
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ));
@@ -1434,6 +1475,19 @@ const filteredProducts = currentProductList.filter((product: any) => {
         onClose={() => setShowProductModal(false)}
         onSave={handleSaveProduct}
         product={editingProduct}
+      />
+
+      {/* Quick Stock & Restock / History Modal */}
+      <StockManagerModal
+        isOpen={showStockModal}
+        onClose={() => {
+          setShowStockModal(false);
+          setStockModalProduct(null);
+          setStockModalSize('');
+        }}
+        product={stockModalProduct}
+        initialSelectedSize={stockModalSize}
+        onStockUpdated={handleStockUpdated}
       />
     </div>
   );

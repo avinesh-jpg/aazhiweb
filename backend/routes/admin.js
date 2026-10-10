@@ -4,6 +4,7 @@ import Admin from '../models/Admin.js';
 import User from '../models/User.js';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import StockLog from '../models/StockLog.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'tiinyberry_secret_key_2024';
@@ -186,6 +187,21 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
               if (stockRestored) {
                 await product.save();
                 console.log(`📈 Restored stock for ${product.name} (Size: ${item.size || 'N/A'}, Qty: ${item.quantity}) due to order cancellation`);
+                try {
+                  await StockLog.create({
+                    productId: String(product.productId || product._id),
+                    productName: product.name,
+                    size: item.size || 'N/A',
+                    change: +(item.quantity || 1),
+                    previousStock: Math.max(0, (product.sizes?.[sizeIndex]?.stock || 0) - (item.quantity || 1)),
+                    newStock: product.sizes?.[sizeIndex]?.stock || 0,
+                    reason: 'order_cancelled',
+                    orderNumber: order.orderNumber,
+                    note: `Stock restored due to order cancellation`
+                  });
+                } catch (logErr) {
+                  console.error('Error logging stock restore:', logErr);
+                }
               }
             }
           } catch (err) {
@@ -320,6 +336,140 @@ router.get('/users', authAdmin, async (req, res) => {
     res.json({ success: true, users });
   } catch (error) {
     console.error('Get users error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Quick stock adjustment / restock endpoint for a specific product size
+router.put('/products/:productId/stock', authAdmin, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { sizeName, newStock, addedQuantity, isRestock, note } = req.body;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    if (!product.sizes || product.sizes.length === 0) {
+      return res.status(400).json({ success: false, message: 'Product has no sizes' });
+    }
+
+    const sizeClean = (sizeName || '').trim().toLowerCase();
+    const sizeIndex = product.sizes.findIndex(s => (s.name || '').trim().toLowerCase() === sizeClean);
+
+    if (sizeIndex === -1) {
+      return res.status(404).json({ success: false, message: `Size "${sizeName}" not found` });
+    }
+
+    const prevStock = product.sizes[sizeIndex].stock || 0;
+    let finalStock = prevStock;
+    let change = 0;
+    let actionReason = 'manual_adjustment';
+
+    if (isRestock) {
+      const qtyToAdd = Math.max(0, parseInt(addedQuantity) || 0);
+      finalStock = prevStock + qtyToAdd;
+      change = qtyToAdd;
+      actionReason = 'restock';
+      const prevInitial = product.sizes[sizeIndex].initialStock ?? prevStock;
+      product.sizes[sizeIndex].initialStock = prevInitial + qtyToAdd;
+    } else {
+      finalStock = Math.max(0, parseInt(newStock) || 0);
+      change = finalStock - prevStock;
+    }
+
+    product.sizes[sizeIndex].stock = finalStock;
+    product.inStock = product.sizes.some(s => (s.stock || 0) > 0);
+    product.markModified('sizes');
+    await product.save();
+
+    // Log the change
+    try {
+      await StockLog.create({
+        productId: String(product.productId || product._id),
+        productName: product.name,
+        size: product.sizes[sizeIndex].name,
+        change,
+        previousStock: prevStock,
+        newStock: finalStock,
+        reason: actionReason,
+        note: note || (isRestock ? `Restocked +${change} units` : `Manual adjustment from ${prevStock} to ${finalStock}`)
+      });
+    } catch (logErr) {
+      console.error('Error recording stock log:', logErr);
+    }
+
+    res.json({
+      success: true,
+      product,
+      message: `Stock updated for ${product.sizes[sizeIndex].name}: ${finalStock} units`
+    });
+  } catch (error) {
+    console.error('Quick stock update error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get Stock History Logs for a product & size
+router.get('/products/:productId/stock-logs', authAdmin, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { size } = req.query;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const prodIds = [String(product._id)];
+    if (product.productId) prodIds.push(String(product.productId));
+
+    // 1. Fetch from StockLog
+    const logQuery = { productId: { $in: prodIds } };
+    if (size) {
+      logQuery.size = new RegExp(`^${size.trim()}$`, 'i');
+    }
+    const explicitLogs = await StockLog.find(logQuery).sort({ createdAt: -1 }).lean();
+
+    // 2. Fetch from Orders to provide seamless historical order context
+    const orderItemsQuery = {
+      $or: [{ status: 'confirmed' }, { paymentStatus: 'paid' }],
+      'items.productId': { $in: prodIds }
+    };
+    const pastOrders = await Order.find(orderItemsQuery).sort({ createdAt: -1 }).limit(30).lean();
+
+    const orderLogs = [];
+    const loggedOrderNumbers = new Set(explicitLogs.map(l => l.orderNumber).filter(Boolean));
+
+    for (const order of pastOrders) {
+      if (loggedOrderNumbers.has(order.orderNumber)) continue;
+      for (const item of order.items) {
+        if (prodIds.includes(String(item.productId))) {
+          if (!size || (item.size || '').trim().toLowerCase() === size.trim().toLowerCase()) {
+            orderLogs.push({
+              _id: `ord_${order._id}_${item._id || item.productId}`,
+              productId: String(product._id),
+              productName: product.name,
+              size: item.size,
+              change: -(item.quantity || 1),
+              previousStock: null,
+              newStock: null,
+              reason: 'order',
+              orderNumber: order.orderNumber,
+              note: `Purchased by ${order.shippingAddress?.fullName || 'Customer'} (${order.shippingAddress?.email || ''})`,
+              createdAt: order.createdAt
+            });
+          }
+        }
+      }
+    }
+
+    const allLogs = [...explicitLogs, ...orderLogs].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ success: true, logs: allLogs });
+  } catch (error) {
+    console.error('Get stock logs error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
