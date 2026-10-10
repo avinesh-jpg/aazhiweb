@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
   Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle,
-  Search, RefreshCw, ChevronLeft, ChevronRight, Clock
+  Search, RefreshCw, ChevronLeft, ChevronRight, Clock, Flame
 } from 'lucide-react';
 import ProductModal from '@/components/Admin/ProductModal';
 import SubcategoryManager from '@/components/Admin/SubcategoryManager';
@@ -12,6 +12,7 @@ import ShippingSettings from '@/components/Admin/ShippingSettings';
 import ComboManager from '@/components/Admin/ComboManager';
 import BlogManager from '@/components/Admin/BlogManager';
 import StockManagerModal from '@/components/Admin/StockManagerModal';
+import SalesInventoryHub from '@/components/Admin/SalesInventoryHub';
 import { sortSizes } from '@/utils/sizeHelper';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -23,7 +24,7 @@ const AdminDashboard = () => {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos' | 'blogs' | 'inventory'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos' | 'blogs' | 'inventory' | 'analytics'>('dashboard');
   const [loading, setLoading] = useState(true);
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -539,6 +540,15 @@ const filteredProducts = currentProductList.filter((product: any) => {
           >
             <AlertTriangle size={18} />
             Inventory Alerts
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'analytics' ? 'bg-primary text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Flame size={18} />
+            Best Sellers & Stock
           </button>
           <div className="pt-4 border-t mt-4">
             <button
@@ -1285,6 +1295,13 @@ const filteredProducts = currentProductList.filter((product: any) => {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Best Sellers & Stock Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <div>
+            <SalesInventoryHub onOpenStockModal={handleOpenStockModal} />
           </div>
         )}
       </div>

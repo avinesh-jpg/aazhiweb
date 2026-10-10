@@ -474,4 +474,148 @@ router.get('/products/:productId/stock-logs', authAdmin, async (req, res) => {
   }
 });
 
+// Get Inventory & Sales Analytics
+router.get('/inventory/analytics', authAdmin, async (req, res) => {
+  try {
+    const { timeRange } = req.query; // 'all', '30d', '7d'
+
+    let orderDateFilter = {};
+    if (timeRange === '7d') {
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      orderDateFilter = { createdAt: { $gte: d } };
+    } else if (timeRange === '30d') {
+      const d = new Date();
+      d.setDate(d.getDate() - 30);
+      orderDateFilter = { createdAt: { $gte: d } };
+    }
+
+    const orders = await Order.find({
+      $or: [{ status: 'confirmed' }, { paymentStatus: 'paid' }],
+      ...orderDateFilter
+    }).select('items createdAt').lean();
+
+    const productSalesMap = new Map();
+
+    for (const order of orders) {
+      for (const item of (order.items || [])) {
+        const prodIdKey = String(item.productId);
+        const qty = item.quantity || 1;
+        const price = item.price || 0;
+        const sizeName = (item.size || 'One Size').trim();
+
+        if (!productSalesMap.has(prodIdKey)) {
+          productSalesMap.set(prodIdKey, {
+            totalSold: 0,
+            revenue: 0,
+            sizeSales: {}
+          });
+        }
+
+        const data = productSalesMap.get(prodIdKey);
+        data.totalSold += qty;
+        data.revenue += (price * qty);
+        data.sizeSales[sizeName] = (data.sizeSales[sizeName] || 0) + qty;
+      }
+    }
+
+    const products = await Product.find({ isDeleted: { $ne: true } })
+      .select('productId name category subcategory price image sizes inStock stockQuantity createdAt')
+      .lean();
+
+    let totalUnitsInStock = 0;
+    let totalInventoryValue = 0;
+    let outOfStockCount = 0;
+    let lowStockCount = 0;
+
+    const enrichedProducts = products.map(prod => {
+      const prodIdStr = String(prod._id);
+      const customIdStr = prod.productId ? String(prod.productId) : null;
+
+      const salesData = productSalesMap.get(prodIdStr) || (customIdStr ? productSalesMap.get(customIdStr) : null) || {
+        totalSold: 0,
+        revenue: 0,
+        sizeSales: {}
+      };
+
+      let stockSum = 0;
+      let hasLowStock = false;
+      const sizesWithSales = (prod.sizes || []).map(sz => {
+        const currentStock = sz.stock || 0;
+        stockSum += currentStock;
+        if (currentStock <= 2) hasLowStock = true;
+
+        const sizeSold = salesData.sizeSales[sz.name] || 0;
+        return {
+          name: sz.name,
+          stock: currentStock,
+          initialStock: sz.initialStock ?? currentStock,
+          sold: sizeSold
+        };
+      });
+
+      if ((!prod.sizes || prod.sizes.length === 0) && typeof prod.stockQuantity === 'number') {
+        stockSum = prod.stockQuantity;
+        if (stockSum <= 2) hasLowStock = true;
+      }
+
+      totalUnitsInStock += stockSum;
+      totalInventoryValue += (stockSum * (prod.price || 0));
+
+      if (stockSum === 0) {
+        outOfStockCount++;
+      } else if (hasLowStock) {
+        lowStockCount++;
+      }
+
+      let topSize = null;
+      let maxSold = 0;
+      for (const [szName, count] of Object.entries(salesData.sizeSales)) {
+        if (count > maxSold) {
+          maxSold = count;
+          topSize = `${szName} (${count} sold)`;
+        }
+      }
+
+      return {
+        _id: prod._id,
+        productId: prod.productId,
+        name: prod.name,
+        category: prod.category,
+        subcategory: prod.subcategory,
+        price: prod.price,
+        image: prod.image,
+        totalStock: stockSum,
+        totalSold: salesData.totalSold,
+        revenue: salesData.revenue,
+        topSize: topSize || (salesData.totalSold > 0 ? 'Various' : 'None yet'),
+        sizes: sizesWithSales,
+        createdAt: prod.createdAt
+      };
+    });
+
+    enrichedProducts.sort((a, b) => b.totalSold - a.totalSold);
+
+    const topSellingProduct = enrichedProducts.length > 0 && enrichedProducts[0].totalSold > 0 
+      ? { name: enrichedProducts[0].name, totalSold: enrichedProducts[0].totalSold, image: enrichedProducts[0].image }
+      : null;
+
+    res.json({
+      success: true,
+      summary: {
+        totalUnitsInStock,
+        totalInventoryValue,
+        totalProductsCount: products.length,
+        outOfStockCount,
+        lowStockCount,
+        topSellingProduct
+      },
+      products: enrichedProducts
+    });
+  } catch (error) {
+    console.error('Inventory analytics error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;
