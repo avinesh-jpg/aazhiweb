@@ -86,6 +86,62 @@ const Checkout = () => {
     pincode: '',
   });
 
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (formErrors[field]) {
+      setFormErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+      });
+    }
+  };
+
+  const validateCheckoutForm = () => {
+    const errors: { [key: string]: string } = {};
+
+    if (!formData.fullName.trim()) {
+      errors.fullName = 'Please enter your full name';
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Please enter your email address';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (!formData.phone.trim()) {
+      errors.phone = 'Please enter your mobile number';
+    } else if (cleanPhone.length !== 10) {
+      errors.phone = 'Mobile number must be exactly 10 digits';
+    }
+
+    if (!formData.address.trim()) {
+      errors.address = 'Please enter your street address / house no.';
+    }
+
+    if (!formData.city.trim()) {
+      errors.city = 'Please enter your city';
+    }
+
+    if (!formData.state.trim()) {
+      errors.state = 'Please select your state';
+    }
+
+    const cleanPincode = formData.pincode.replace(/\D/g, '');
+    if (!formData.pincode.trim()) {
+      errors.pincode = 'Please enter your pincode';
+    } else if (cleanPincode.length !== 6) {
+      errors.pincode = 'Pincode must be exactly 6 digits';
+    }
+
+    setFormErrors(errors);
+    return errors;
+  };
+
   const rawSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const sleevelessCombo = calculateSleevelessCombo(cartItems);
   const subtotal = Math.max(0, rawSubtotal - sleevelessCombo.comboDiscount);
@@ -166,6 +222,7 @@ const Checkout = () => {
           state: matchedState || prev.state,
           pincode: addr.pincode || prev.pincode,
         }));
+        setFormErrors({});
         setAutoFilledInfo('✨ Welcome back! Your address details were automatically filled.');
       }
     } catch (err) {
@@ -313,17 +370,17 @@ const Checkout = () => {
       headers['x-session-id'] = sessionId;
     }
     
-    if (!formData.fullName) {
-      throw new Error('Please enter your full name');
-    }
-    if (!formData.email) {
-      throw new Error('Please enter your email address');
-    }
-    if (!formData.phone || formData.phone.length < 10) {
-      throw new Error('Please enter a valid 10-digit mobile number');
-    }
-    if (!formData.address) {
-      throw new Error('Please enter your address');
+    const errors = validateCheckoutForm();
+    const errorKeys = Object.keys(errors);
+    if (errorKeys.length > 0) {
+      const firstKey = errorKeys[0];
+      const element = document.getElementById(`checkout-${firstKey}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+      toast.error(errors[firstKey]);
+      throw new Error(errors[firstKey]);
     }
 
     // GA4: Trigger add_payment_info
@@ -518,89 +575,148 @@ const Checkout = () => {
                 )}
                 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Full Name *</label>
+                  <label htmlFor="checkout-fullName" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input
+                    id="checkout-fullName"
                     type="text"
                     required
                     autoComplete="name"
                     value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
+                    onChange={(e) => handleFieldChange('fullName', e.target.value)}
+                    className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/80 ${
+                      formErrors.fullName 
+                        ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
+                        : 'border-purple-200 focus:ring-purple-400 focus:border-transparent'
+                    }`}
                     placeholder="Enter your full name"
                   />
+                  {formErrors.fullName && (
+                    <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.fullName}</p>
+                  )}
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Email Address *</label>
+                    <label htmlFor="checkout-email" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      id="checkout-email"
                       type="email"
                       required
                       autoComplete="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
                       onBlur={() => lookupCustomerAddress(formData.email)}
-                      className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
+                      className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/80 ${
+                        formErrors.email 
+                          ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
+                          : 'border-purple-200 focus:ring-purple-400 focus:border-transparent'
+                      }`}
                       placeholder="your@email.com"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Type your email to automatically load your saved details
-                    </p>
+                    {formErrors.email ? (
+                      <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.email}</p>
+                    ) : (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Type your email to automatically load your saved details
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Mobile Number *</label>
+                    <label htmlFor="checkout-phone" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
+                      Mobile Number <span className="text-red-500">*</span>
+                    </label>
                     <div className="flex">
                       <span className="inline-flex items-center px-3 border border-r-0 border-purple-200 rounded-l-xl bg-purple-50 text-purple-600">+91</span>
                       <input
+                        id="checkout-phone"
                         type="tel"
                         required
                         autoComplete="tel"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                        className="flex-1 px-4 py-2 border border-purple-200 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
+                        onChange={(e) => handleFieldChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        className={`flex-1 px-4 py-2 border rounded-r-xl focus:outline-none focus:ring-2 transition-all bg-white/80 ${
+                          formErrors.phone 
+                            ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
+                            : 'border-purple-200 focus:ring-purple-400 focus:border-transparent'
+                        }`}
                         placeholder="9876543210"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      For order updates
-                    </p>
+                    {formErrors.phone ? (
+                      <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.phone}</p>
+                    ) : (
+                      <p className="text-xs text-gray-500 mt-1">
+                        For order updates (10 digits)
+                      </p>
+                    )}
                   </div>
                 </div>
                 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Address *</label>
+                  <label htmlFor="checkout-address" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
+                    Address <span className="text-red-500">*</span>
+                  </label>
                   <input
+                    id="checkout-address"
                     type="text"
                     required
                     autoComplete="street-address"
                     value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
+                    onChange={(e) => handleFieldChange('address', e.target.value)}
+                    className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/80 ${
+                      formErrors.address 
+                        ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
+                        : 'border-purple-200 focus:ring-purple-400 focus:border-transparent'
+                    }`}
                     placeholder="House No, Street, Area"
                   />
+                  {formErrors.address && (
+                    <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.address}</p>
+                  )}
                 </div>
                 
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">City *</label>
+                    <label htmlFor="checkout-city" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
+                      City <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      id="checkout-city"
                       type="text"
                       required
                       autoComplete="address-level2"
                       value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
+                      onChange={(e) => handleFieldChange('city', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/80 ${
+                        formErrors.city 
+                          ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
+                          : 'border-purple-200 focus:ring-purple-400 focus:border-transparent'
+                      }`}
                       placeholder="City"
                     />
+                    {formErrors.city && (
+                      <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.city}</p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">State *</label>
+                    <label htmlFor="checkout-state" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
+                      State <span className="text-red-500">*</span>
+                    </label>
                     <select
+                      id="checkout-state"
                       required
                       autoComplete="address-level1"
                       value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                      className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80 text-[#1e1b4b]"
+                      onChange={(e) => handleFieldChange('state', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/80 text-[#1e1b4b] ${
+                        formErrors.state 
+                          ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
+                          : 'border-purple-200 focus:ring-purple-400 focus:border-transparent'
+                      }`}
                     >
                       <option value="" disabled>Select State</option>
                       {INDIAN_STATES.map((state) => (
@@ -612,18 +728,31 @@ const Checkout = () => {
                         <option value={formData.state}>{formData.state}</option>
                       )}
                     </select>
+                    {formErrors.state && (
+                      <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.state}</p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-[#1e1b4b]">Pincode *</label>
+                    <label htmlFor="checkout-pincode" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
+                      Pincode <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      id="checkout-pincode"
                       type="text"
                       required
                       autoComplete="postal-code"
                       value={formData.pincode}
-                      onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                      className="w-full px-4 py-2 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all bg-white/80"
-                      placeholder="Pincode"
+                      onChange={(e) => handleFieldChange('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className={`w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/80 ${
+                        formErrors.pincode 
+                          ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
+                          : 'border-purple-200 focus:ring-purple-400 focus:border-transparent'
+                      }`}
+                      placeholder="6-digit Pincode"
                     />
+                    {formErrors.pincode && (
+                      <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.pincode}</p>
+                    )}
                   </div>
                 </div>
                 
