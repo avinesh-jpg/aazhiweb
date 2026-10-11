@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import BackToTop from '@/components/BackToTop';
 import { Truck, Shield, Sparkles, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { trackEvent } from '../utils/analytics';
 import { calculateSleevelessCombo } from '@/utils/comboOffers';
 
@@ -685,9 +686,14 @@ const Checkout = () => {
                   amount={total}
                   onCreateOrder={createPendingOrder}
                   onSuccess={handlePaymentSuccess}
-                  onFailure={(error) => {
+                  onFailure={(error: any) => {
                     console.error('Payment failed:', error);
-                    alert('Payment failed. Please try again.');
+                    const errorMessage = error?.message || (typeof error === 'string' ? error : 'Payment failed. Please try again.');
+                    toast.error(errorMessage);
+                    alert(errorMessage);
+                    if (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('out of stock')) {
+                      navigate('/cart');
+                    }
                   }}
                 />
                 

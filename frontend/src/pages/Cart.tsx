@@ -102,7 +102,9 @@ const Cart = () => {
               const product = await response.json();
               if (product.sizes && product.sizes.length > 0 && typeof product.sizes[0] === 'object') {
                 product.sizes.forEach((s: any) => {
-                  stockMap.set(`${pId}-${s.name}`, s.stock);
+                  const cleanName = (s.name || '').trim();
+                  stockMap.set(`${pId}-${cleanName}`, s.stock ?? 0);
+                  if (s.name) stockMap.set(`${pId}-${s.name}`, s.stock ?? 0);
                 });
               } else if (product.stockQuantity !== undefined) {
                 stockMap.set(`${pId}-`, product.stockQuantity);
@@ -186,8 +188,9 @@ const total = subtotal + shipping;
   const couponState = getCouponLadderState();
 
   const getAvailableStock = (item: CartItem): number => {
-    const key = `${item.productId}-${item.size || ''}`;
-    return stockInfo.get(key) || Infinity;
+    const cleanSize = (item.size || '').trim();
+    const stock = stockInfo.get(`${item.productId}-${cleanSize}`) ?? stockInfo.get(`${item.productId}-${item.size || ''}`);
+    return typeof stock === 'number' ? stock : Infinity;
   };
 
   const handleQuantityChange = async (item: CartItem, newQuantity: number) => {
