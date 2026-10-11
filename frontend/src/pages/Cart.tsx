@@ -229,16 +229,39 @@ const total = subtotal + shipping;
   const handleCheckout = () => {
     if (cartItems.length === 0) {
       toast.error('Your cart is empty');
+      alert('Your cart is empty. Please add items before checking out.');
       return;
     }
     
-    const hasOutOfStock = cartItems.some(item => {
+    // Check for out of stock items
+    const outOfStockItems = cartItems.filter(item => {
       const availableStock = getAvailableStock(item);
       return availableStock === 0;
     });
     
-    if (hasOutOfStock) {
+    if (outOfStockItems.length > 0) {
+      const itemsList = outOfStockItems
+        .map(it => `• ${it.name} (Size: ${it.size || 'Standard'})`)
+        .join('\n');
+      
+      alert(`⚠️ Cannot Proceed to Checkout\n\nThe following item(s) in your cart are currently OUT OF STOCK:\n\n${itemsList}\n\nPlease click "Remove" on these item(s) to continue.`);
       toast.error('Some items in your cart are out of stock. Please remove them to continue.');
+      return;
+    }
+
+    // Check for items where requested quantity exceeds available stock
+    const excessQuantityItems = cartItems.filter(item => {
+      const availableStock = getAvailableStock(item);
+      return availableStock > 0 && item.quantity > availableStock;
+    });
+
+    if (excessQuantityItems.length > 0) {
+      const itemsList = excessQuantityItems
+        .map(it => `• ${it.name} (Size: ${it.size || 'Standard'}): Only ${getAvailableStock(it)} left in stock (you selected ${it.quantity})`)
+        .join('\n');
+      
+      alert(`⚠️ Insufficient Stock\n\n${itemsList}\n\nPlease reduce the quantity to proceed.`);
+      toast.error('Please adjust item quantities to match available stock.');
       return;
     }
     
