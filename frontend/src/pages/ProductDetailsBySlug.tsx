@@ -224,6 +224,14 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
 
+  if (lower.includes('only shorts 1y-4y')) {
+    return {
+      src: '/aazhi_shorts_sizechart.png',
+      alt: 'Only Shorts 1Y-4Y Size Chart',
+      isFullWidth: true
+    };
+  }
+
   return null;
 };
 
