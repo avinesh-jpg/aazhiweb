@@ -493,11 +493,18 @@ router.get('/inventory/analytics', authAdmin, async (req, res) => {
     const orders = await Order.find({
       $or: [{ status: 'confirmed' }, { paymentStatus: 'paid' }],
       ...orderDateFilter
-    }).select('items createdAt').lean();
+    }).select('items total shipping paymentStatus status createdAt').lean();
 
     const productSalesMap = new Map();
+    let totalPaidRevenue = 0;
+    let totalShippingCollected = 0;
 
     for (const order of orders) {
+      // Calculate revenue matching Dashboard stats (paid orders)
+      if (order.paymentStatus === 'paid') {
+        totalPaidRevenue += (order.total || 0);
+        totalShippingCollected += (order.shipping || 0);
+      }
       for (const item of (order.items || [])) {
         const prodIdKey = String(item.productId);
         const qty = item.quantity || 1;
@@ -596,10 +603,13 @@ router.get('/inventory/analytics', authAdmin, async (req, res) => {
 
     enrichedProducts.sort((a, b) => b.totalSold - a.totalSold);
 
-    let totalSoldRevenue = 0;
+    let totalMerchandiseRevenue = 0;
     for (const data of productSalesMap.values()) {
-      totalSoldRevenue += (data.revenue || 0);
+      totalMerchandiseRevenue += (data.revenue || 0);
     }
+
+    // Match dashboard revenue (which is sum of order.total for paid orders, including shipping)
+    const finalTotalSoldRevenue = totalPaidRevenue > 0 ? totalPaidRevenue : totalMerchandiseRevenue;
 
     const topSellingProduct = enrichedProducts.length > 0 && enrichedProducts[0].totalSold > 0 
       ? { 
@@ -615,7 +625,9 @@ router.get('/inventory/analytics', authAdmin, async (req, res) => {
       summary: {
         totalUnitsInStock,
         totalInventoryValue,
-        totalSoldRevenue,
+        totalSoldRevenue: finalTotalSoldRevenue,
+        totalMerchandiseRevenue,
+        totalShippingCollected,
         totalProductsCount: products.length,
         outOfStockCount,
         lowStockCount,

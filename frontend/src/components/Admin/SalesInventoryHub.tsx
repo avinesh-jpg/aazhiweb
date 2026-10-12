@@ -164,8 +164,10 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
               <h3 className="text-xl font-black text-emerald-700 mt-0.5 truncate">
                 ₹{(summary.totalSoldRevenue || 0).toLocaleString()}
               </h3>
-              <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
-                {timeRange === 'all' ? 'All-time gross sales' : timeRange === '30d' ? 'Last 30 days revenue' : 'Last 7 days revenue'}
+              <p className="text-[11px] text-emerald-800 font-medium mt-0.5 truncate" title={summary.totalShippingCollected ? `Includes ₹${summary.totalShippingCollected.toLocaleString()} shipping` : undefined}>
+                {summary.totalShippingCollected 
+                  ? `Incl. ₹${summary.totalShippingCollected.toLocaleString()} shipping`
+                  : (timeRange === 'all' ? 'All-time gross sales' : timeRange === '30d' ? 'Last 30 days revenue' : 'Last 7 days revenue')}
               </p>
             </div>
           </div>
