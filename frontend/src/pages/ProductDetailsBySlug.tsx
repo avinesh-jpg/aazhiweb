@@ -224,6 +224,14 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
 
+  if (lower.includes('skirt set 2y-12y')) {
+    return {
+      src: '/girls_skirt_set_sizechart.png',
+      alt: 'Girls Skirt Set Size Chart',
+      isFullWidth: true
+    };
+  }
+
   if (lower.includes('only shorts 1y-4y')) {
     return {
       src: '/aazhi_shorts_sizechart.png',
@@ -231,6 +239,8 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
       isFullWidth: true
     };
   }
+
+  
 
   return null;
 };
