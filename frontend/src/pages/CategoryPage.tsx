@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
-import { Heart, ArrowLeft, ShoppingBag } from "lucide-react";
+import { Heart, ArrowLeft, ShoppingBag, X, Check } from "lucide-react";
 import { useCart } from "@/context/useCart";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -104,6 +104,7 @@ const CategoryPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [wishlisted, setWishlisted] = useState<number[]>([]);
   const [added, setAdded] = useState<number[]>([]);
+  const [activeSizePicker, setActiveSizePicker] = useState<number | null>(null);
   const { addToCart } = useCart();
 
   const { type, value } = (() => {
@@ -369,6 +370,20 @@ const CategoryPage = () => {
     }
   };
 
+  // Get only sizes that are currently IN STOCK (stock > 0)
+  const getInStockSizes = (product: Product): { name: string; stock: number }[] => {
+    if (!product.sizes || product.sizes.length === 0) return [];
+    
+    if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
+      return (product.sizes as Size[])
+        .filter(size => size.stock > 0)
+        .map(size => ({ name: size.name, stock: size.stock }));
+    }
+    
+    // For string array, assume in stock if product.inStock is true
+    return (product.sizes as string[]).map(s => ({ name: s, stock: 10 }));
+  };
+
   const handleAdd = async (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -376,35 +391,53 @@ const CategoryPage = () => {
       toast.error('This product is out of stock!');
       return;
     }
-    
-    let selectedSize = '';
-    let selectedColor = '';
-    
-    if (product.sizes && product.sizes.length > 0) {
-      if (typeof product.sizes[0] === 'object' && product.sizes[0] !== null && 'stock' in product.sizes[0]) {
-        const availableSize = (product.sizes as Size[]).find(size => size.stock > 0);
-        if (availableSize) {
-          selectedSize = availableSize.name;
-        }
-      } else if (product.sizes[0] !== 'One Size') {
-        selectedSize = product.sizes[0] as string;
+
+    const inStockSizes = getInStockSizes(product);
+
+    // If product has no sizes or only 'One Size', add directly with instant 0ms feedback
+    if (inStockSizes.length === 0 || (inStockSizes.length === 1 && inStockSizes[0].name === 'One Size')) {
+      const selectedSize = inStockSizes.length === 1 ? inStockSizes[0].name : '';
+      const selectedColor = product.colors && product.colors.length > 0 ? product.colors[0].name : '';
+
+      setAdded((prev) => [...prev, product.productId]);
+      toast.success(`Added ${product.name} to cart!`);
+
+      const success = await addToCart(product.productId, 1, selectedSize, selectedColor);
+      if (!success) {
+        setAdded((prev) => prev.filter((x) => x !== product.productId));
+        toast.error('Failed to add to cart. Please check your connection.');
       } else {
-        selectedSize = 'One Size';
+        setTimeout(() => setAdded((prev) => prev.filter((x) => x !== product.productId)), 1800);
       }
+      return;
     }
-    
+
+    // Toggle size selector on this card
+    setActiveSizePicker(prev => prev === product.productId ? null : product.productId);
+  };
+
+  const handleSelectSize = async (product: Product, sizeName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // 1. Instant 0ms UI feedback (Amazon style)
+    setAdded((prev) => [...prev, product.productId]);
+    setActiveSizePicker(null); // Close size picker immediately
+    toast.success(`Added ${product.name} (${sizeName}) to cart!`);
+
+    let selectedColor = '';
     if (product.colors && product.colors.length > 0) {
       selectedColor = product.colors[0].name;
     }
-    
-    const success = await addToCart(product.productId, 1, selectedSize, selectedColor);
-    
-    if (success) {
-      setAdded((prev) => [...prev, product.productId]);
-      toast.success(`Added ${product.name} to cart!`);
-      setTimeout(() => setAdded((prev) => prev.filter((x) => x !== product.productId)), 1800);
+
+    // 2. Background sync to server
+    const success = await addToCart(product.productId, 1, sizeName, selectedColor);
+
+    if (!success) {
+      // Revert if network error
+      setAdded((prev) => prev.filter((x) => x !== product.productId));
+      toast.error('Failed to add to cart. Please check your connection.');
     } else {
-      toast.error('Failed to add to cart');
+      setTimeout(() => setAdded((prev) => prev.filter((x) => x !== product.productId)), 1800);
     }
   };
 
@@ -622,6 +655,40 @@ const CategoryPage = () => {
                           >
                             Out of Stock
                           </button>
+                        ) : activeSizePicker === product.productId ? (
+                          <div 
+                            className="mt-3 p-2.5 bg-white/95 backdrop-blur-sm border border-purple-200 rounded-2xl shadow-lg animate-in fade-in zoom-in-95 duration-200"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center justify-between mb-2 px-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700">
+                                Select Size:
+                              </span>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveSizePicker(null);
+                                }}
+                                className="p-0.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                                aria-label="Close"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                            
+                            <div className="flex flex-wrap gap-1.5">
+                              {getInStockSizes(product).map((sizeObj) => (
+                                <button
+                                  key={sizeObj.name}
+                                  onClick={(e) => handleSelectSize(product, sizeObj.name, e)}
+                                  className="flex-1 min-w-[52px] py-1.5 px-2 text-[11px] font-bold rounded-lg border border-purple-200 text-[#1e1b4b] hover:border-purple-500 hover:bg-gradient-to-r hover:from-purple-600 hover:to-indigo-600 hover:text-white transition-all duration-200 active:scale-95 shadow-sm text-center"
+                                  title={`${sizeObj.stock} left in stock`}
+                                >
+                                  {sizeObj.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         ) : (
                           <button
                             onClick={(e) => handleAdd(product, e)}

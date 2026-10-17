@@ -79,7 +79,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [fetchCart]);
 
   const addToCart = async (productId: number, quantity: number = 1, size: string = '', color: string = '', colorImage: string = '') => {
-    setLoading(true);
     try {
       console.log('Adding to cart:', { productId, quantity, size, color, colorImage });
       
@@ -99,7 +98,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Add to cart response:', data);
       
       if (response.ok) {
-        await fetchCart();
+        // Direct state update from server response - eliminates the slow second network request!
+        if (data && Array.isArray(data.items)) {
+          setCartItems(data.items);
+        } else {
+          fetchCart(); // Fallback background sync
+        }
         return true;
       } else {
         console.error('Add to cart error:', data);
@@ -108,8 +112,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to add to cart:', error);
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
