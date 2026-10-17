@@ -197,7 +197,7 @@ const SubcategoryManager = () => {
                       </td>
                     </tr>
                   ))}
-                  {(!groupedSubcategories[cat.value] || groupedSubcategories[cat.value].length === 0) && (
+                  {list.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
                         No subcategories yet. Click "Add Subcategory" to create one.
@@ -208,8 +208,9 @@ const SubcategoryManager = () => {
               </table>
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
+    </div>
 
       {/* Add/Edit Modal */}
       {showModal && (
