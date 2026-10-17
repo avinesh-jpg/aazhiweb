@@ -121,12 +121,13 @@ const SubcategoryManager = () => {
     });
   };
 
-  // Group subcategories by category
+  // Group subcategories by lowercase category key for reliable case-insensitive grouping
   const groupedSubcategories = subcategories.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
+    const key = (item.category || '').toLowerCase();
+    if (!acc[key]) {
+      acc[key] = [];
     }
-    acc[item.category].push(item);
+    acc[key].push(item);
     return acc;
   }, {} as Record<string, Subcategory[]>);
 
@@ -152,27 +153,29 @@ const SubcategoryManager = () => {
 
       {/* Display subcategories by category */}
       <div className="space-y-6">
-        {categories.map(cat => (
-          <div key={cat.value} className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-3 bg-gray-50 border-b">
-              <h3 className="font-semibold text-lg">{cat.label}</h3>
-              <p className="text-sm text-muted-foreground">
-                {groupedSubcategories[cat.value]?.length || 0} subcategories
-              </p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Path</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Order</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {groupedSubcategories[cat.value]?.map((item) => (
+        {categories.map(cat => {
+          const list = groupedSubcategories[cat.value.toLowerCase()] || [];
+          return (
+            <div key={cat.value} className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-3 bg-gray-50 border-b">
+                <h3 className="font-semibold text-lg">{cat.label}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {list.length} subcategories
+                </p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Path</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Order</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {list.map((item) => (
                     <tr key={item._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm">{item.name}</td>
                       <td className="px-6 py-4 text-sm font-mono text-xs">{item.path}</td>
