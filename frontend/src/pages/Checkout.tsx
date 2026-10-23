@@ -14,6 +14,28 @@ import { calculateSleevelessCombo } from '@/utils/comboOffers';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Intelligent Indian mobile number sanitizer: handles autofill with +91, 91, or leading 0
+export const sanitizePhoneNumber = (input: string): string => {
+  if (!input) return '';
+  let digits = input.replace(/\D/g, '');
+
+  // If autofill pasted with country code e.g. 919876543210 (12 digits)
+  if (digits.length === 12 && digits.startsWith('91')) {
+    digits = digits.slice(2);
+  }
+  // If autofill has leading 0 e.g. 09876543210 (11 digits)
+  else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = digits.slice(1);
+  }
+  // If user pasted +91 followed by digits
+  else if (digits.length > 10 && digits.startsWith('91')) {
+    digits = digits.slice(2);
+  }
+
+  // Cap at standard 10 digits
+  return digits.slice(0, 10);
+};
+
 const INDIAN_STATES = [
   'Andhra Pradesh',
   'Arunachal Pradesh',
@@ -112,11 +134,13 @@ const Checkout = () => {
       errors.email = 'Please enter a valid email address';
     }
 
-    const cleanPhone = formData.phone.replace(/\D/g, '');
+    const cleanPhone = sanitizePhoneNumber(formData.phone);
     if (!formData.phone.trim()) {
       errors.phone = 'Please enter your mobile number';
     } else if (cleanPhone.length !== 10) {
       errors.phone = 'Mobile number must be exactly 10 digits';
+    } else if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      errors.phone = 'Please enter a valid Indian mobile number (starts with 6, 7, 8, or 9)';
     }
 
     if (!formData.address.trim()) {
@@ -408,7 +432,7 @@ const Checkout = () => {
           city: formData.city,
           state: formData.state,
           pincode: formData.pincode,
-          phone: formData.phone,
+          phone: sanitizePhoneNumber(formData.phone),
           email: formData.email
         },
         shippingMethod,
@@ -637,7 +661,7 @@ const Checkout = () => {
                         required
                         autoComplete="tel"
                         value={formData.phone}
-                        onChange={(e) => handleFieldChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        onChange={(e) => handleFieldChange('phone', sanitizePhoneNumber(e.target.value))}
                         className={`flex-1 px-4 py-2 border rounded-r-xl focus:outline-none focus:ring-2 transition-all bg-white/80 ${
                           formErrors.phone 
                             ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 focus:ring-red-400' 
