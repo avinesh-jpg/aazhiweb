@@ -194,7 +194,10 @@ const total = subtotal + shipping;
   };
 
   const handleQuantityChange = async (item: CartItem, newQuantity: number) => {
-    if (newQuantity < 1) return;
+     if (newQuantity < 1) {
+    await handleRemove(item);
+    return;
+  }
     
     const availableStock = getAvailableStock(item);
     if (newQuantity > availableStock) {
