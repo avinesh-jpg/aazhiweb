@@ -227,7 +227,8 @@
                     </span>
                   )}
                 </div>
-                <button
+                {/*
+               <button
                   onClick={(e) => handleAdd(product, e)}
                   className={`w-full mt-3 py-2.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] rounded-full transition-all duration-300 ${
                     added.includes(product.productId) 
@@ -237,6 +238,7 @@
                 >
                   {added.includes(product.productId) ? "Added! ✓" : "Add to Cart"}
                 </button>
+                */}
               </div>
             </div>
           ))}

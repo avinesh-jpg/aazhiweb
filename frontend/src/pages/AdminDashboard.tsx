@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
@@ -13,7 +13,7 @@ import ComboManager from '@/components/Admin/ComboManager';
 import BlogManager from '@/components/Admin/BlogManager';
 import StockManagerModal from '@/components/Admin/StockManagerModal';
 import SalesInventoryHub from '@/components/Admin/SalesInventoryHub';
-import { sortSizes } from '@/utils/sizeHelper';
+import { sortSizes, normalizeSize, getSizeSortRank } from '@/utils/sizeHelper';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -38,6 +38,7 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [productSearchQuery, setProductSearchQuery] = useState<string>('');
   const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
+  const [productSizeFilter, setProductSizeFilter] = useState<string>('all');
   const [orderPage, setOrderPage] = useState<number>(1);
   const [ordersPerPage, setOrdersPerPage] = useState<number>(20);
   
@@ -406,6 +407,21 @@ const AdminDashboard = () => {
 
   const currentProductList = viewTrash ? trashProducts : products;
 
+  // Extract, normalize, deduplicate, and sort all available product sizes for filtering
+  const availableProductSizes = useMemo(() => {
+    const sizeSet = new Set<string>();
+    currentProductList.forEach((p: any) => {
+      (p.sizes || []).forEach((s: any) => {
+        const rawName = typeof s === 'string' ? s : s?.name;
+        const normalized = normalizeSize(rawName);
+        if (normalized) {
+          sizeSet.add(normalized);
+        }
+      });
+    });
+    return Array.from(sizeSet).sort((a, b) => getSizeSortRank(a) - getSizeSortRank(b));
+  }, [currentProductList]);
+
 const filteredProducts = currentProductList.filter((product: any) => {
   // 1. Search by name, category, subcategory, product ID, or color
   const matchesSearch = 
@@ -421,7 +437,15 @@ const filteredProducts = currentProductList.filter((product: any) => {
     productCategoryFilter === 'all' || 
     product.category?.toLowerCase() === productCategoryFilter.toLowerCase();
 
-  return matchesSearch && matchesCategory;
+  // 3. Filter by Size dropdown (normalized comparison)
+  const matchesSize = 
+    productSizeFilter === 'all' || 
+    (product.sizes || []).some((s: any) => {
+      const rawName = typeof s === 'string' ? s : s?.name;
+      return normalizeSize(rawName) === productSizeFilter;
+    });
+
+  return matchesSearch && matchesCategory && matchesSize;
 });
 
   const getStatusColor = (status: string) => {
@@ -992,7 +1016,7 @@ const filteredProducts = currentProductList.filter((product: any) => {
             {/* Product Search & Filter Bar */}
 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
   {/* Search Input Box */}
-  <div className="sm:col-span-8 relative">
+  <div className="sm:col-span-6 relative">
     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
     <input 
       type="text"
@@ -1012,7 +1036,7 @@ const filteredProducts = currentProductList.filter((product: any) => {
   </div>
 
   {/* Category Filter Dropdown */}
-  <div className="sm:col-span-4">
+  <div className="sm:col-span-3">
     <select 
       value={productCategoryFilter}
       onChange={(e) => setProductCategoryFilter(e.target.value)}
@@ -1024,6 +1048,22 @@ const filteredProducts = currentProductList.filter((product: any) => {
       <option value="Newborn">Newborn</option>
       <option value="Unisex">Unisex</option>
       <option value="Women">Women</option>
+    </select>
+  </div>
+
+  {/* Size Filter Dropdown */}
+  <div className="sm:col-span-3">
+    <select 
+      value={productSizeFilter}
+      onChange={(e) => setProductSizeFilter(e.target.value)}
+      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+    >
+      <option value="all">📏 All Sizes</option>
+      {availableProductSizes.map((size) => (
+        <option key={size} value={size}>
+          {size}
+        </option>
+      ))}
     </select>
   </div>
 </div>

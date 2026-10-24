@@ -56,12 +56,18 @@ export const getSizeSortRank = (name: string): number => {
     'XXL': 3500,
     '2XL': 3500,
     '3XL': 3600,
+    '4XL': 3700,
     'FREE SIZE': 5000,
     'ONE SIZE': 5000,
   };
 
   if (exactRanks[s] !== undefined) {
     return exactRanks[s];
+  }
+
+  // Adult multi-sizes: e.g. "3XL & 4XL"
+  if (s.includes('3XL') || s.includes('4XL')) {
+    return 3650;
   }
 
   // Regex for Month formats: e.g. "0-3M", "3-6 M", "6-12M", "12-18M"
@@ -72,21 +78,67 @@ export const getSizeSortRank = (name: string): number => {
     return start * 10 + end;
   }
 
-  // Regex for Year formats: e.g. "2-3Y", "5-6Y", "9-10Y", "2-3 YRS", "3-4 YEARS", "2Y", "5Y"
-  const yearMatch = s.match(/^(\d+)(?:\s*-\s*(\d+))?\s*(?:Y|YR|YRS|YEAR|YEARS)?$/i);
-  if (yearMatch && !s.includes('M')) {
-    const start = parseInt(yearMatch[1], 10);
-    const end = yearMatch[2] ? parseInt(yearMatch[2], 10) : start;
-    return 1000 + (start * 100) + end;
+  // Regex for Year formats: e.g. "2-3Y", "5-6Y", "9-10Y", "2-3 YRS", "3-4 YEARS", "2Y", "5Y", "1.5-2Y"
+  const yearMatch = s.match(/^(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*(?:Y|YR|YRS|YEAR|YEARS)?$/i);
+  if (yearMatch && !s.includes('M') && !s.includes('CM')) {
+    const start = parseFloat(yearMatch[1]);
+    const end = yearMatch[2] ? parseFloat(yearMatch[2]) : start;
+    return 1000 + Math.round(start * 50) + end;
   }
 
-  // Generic fallback: find any leading number
+  // Generic fallback: find any leading number (e.g. measurements like 90*90CM)
   const numMatch = s.match(/^(\d+)/);
   if (numMatch) {
-    return 2000 + parseInt(numMatch[1], 10);
+    return 8000 + parseInt(numMatch[1], 10);
   }
 
   return 9999;
+};
+
+/**
+ * Normalizes user-input or legacy database size variations into clean, canonical size strings.
+ * Examples:
+ *   "2 - 3y", "2-3Y ", "2Y-3Y", "2-3" -> "2-3Y"
+ *   "18M - 24M", "18-24", "18-24M" -> "18-24M"
+ *   " 7-8Y", "7Y-8Y" -> "7-8Y"
+ *   "4Y To 6Y" -> "4-6Y"
+ *   "2XL", "XXL " -> "XXL"
+ */
+export const normalizeSize = (raw: string | undefined | null): string => {
+  if (!raw) return '';
+  let s = String(raw).trim().toUpperCase();
+
+  // Normalize multi-spaces
+  s = s.replace(/\s+/g, ' ');
+
+  // Standardize connector words like "TO" (e.g. "4Y TO 6Y" -> "4Y-6Y")
+  s = s.replace(/\s*TO\s*/i, '-');
+
+  // Strip whitespace around hyphens
+  s = s.replace(/\s*-\s*/g, '-');
+
+  // Canonicalize adult size aliases
+  if (s === '2XL') return 'XXL';
+
+  // Month ranges: e.g. "12M-18M", "18M-24M" -> "12-18M", "18-24M"
+  s = s.replace(/(\d+)M-(\d+)M?/g, (_match, p1, p2) => `${p1}-${p2}M`);
+
+  // Year ranges: e.g. "2Y-3Y", "4Y-6Y", "1.5Y-2Y" -> "2-3Y", "4-6Y", "1.5-2Y"
+  s = s.replace(/(\d+(?:\.\d+)?)Y-(\d+(?:\.\d+)?)Y?/g, (_match, p1, p2) => `${p1}-${p2}Y`);
+
+  // Numbers-only ranges without units (e.g. "18-24" -> "18-24M", "2-3" -> "2-3Y", "5-6" -> "5-6Y")
+  const numRangeMatch = s.match(/^(\d+)-(\d+)$/);
+  if (numRangeMatch) {
+    const start = parseInt(numRangeMatch[1], 10);
+    const end = parseInt(numRangeMatch[2], 10);
+    if (start >= 12 && end <= 24) {
+      return `${start}-${end}M`;
+    } else {
+      return `${start}-${end}Y`;
+    }
+  }
+
+  return s.trim();
 };
 
 /**
