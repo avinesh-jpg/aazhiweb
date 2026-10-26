@@ -240,7 +240,13 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
 
-  
+  if (lower.includes('girls a-line dresses') || lower.includes('girls a line dresses') || lower.includes('a-line') || lower.includes('a line')) {
+    return {
+      src: '/aline_frock_sizechart.png',
+      alt: 'Girls A-Line Dresses Size Chart',
+      isFullWidth: true
+    };
+  }
 
   return null;
 };
