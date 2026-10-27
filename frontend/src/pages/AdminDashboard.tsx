@@ -1527,12 +1527,17 @@ const filteredProducts = currentProductList.filter((product: any) => {
       )}
 
       {/* Product Modal */}
-      <ProductModal
+      {showProductModal && (
+        <ProductModal
         isOpen={showProductModal}
-        onClose={() => setShowProductModal(false)}
+        onClose={() => {
+          setShowProductModal(false);
+          setEditingProduct(null);
+        }}
         onSave={handleSaveProduct}
         product={editingProduct}
       />
+      )}
 
       {/* Quick Stock & Restock / History Modal */}
       <StockManagerModal

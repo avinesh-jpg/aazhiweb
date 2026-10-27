@@ -145,9 +145,32 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Auto-capture manual image URL if typed but 'Set URL' wasn't clicked
+    let mainImage = formData.image;
+    if (!mainImage && manualImageUrl && manualImageUrl.trim()) {
+      mainImage = manualImageUrl.trim();
+      setFormData(prev => ({ ...prev, image: mainImage }));
+    }
+
+    if (!mainImage) {
+      alert('Please upload a Main Image or enter an Image URL before saving.');
+      return;
+    }
+
+    if (!formData.description || !formData.description.trim()) {
+      alert('Please enter a Product Description before saving.');
+      return;
+    }
+
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      alert('Your admin session has expired. Please log in again.');
+      return;
+    }
+
     setLoading(true);
     
-    const token = localStorage.getItem('admin_token');
     const url = product?._id 
       ? `${API_URL}/admin/products/${product._id}`
       : `${API_URL}/admin/products`;
@@ -156,6 +179,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
     try {
       const dataToSave = {
         ...formData,
+        image: mainImage,
         sizes: sortSizes(formData.sizes)
       };
 
@@ -174,9 +198,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
       } else {
         const error = await response.json();
         console.error('Server error:', error);
+        alert(error.message || 'Failed to save product. Please check all fields.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save product error:', error);
+      alert('Error saving product: ' + (error?.message || 'Network error. Please try again.'));
     } finally {
       setLoading(false);
     }
