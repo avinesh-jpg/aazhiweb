@@ -25,7 +25,7 @@ const AdminDashboard = () => {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos' | 'blogs' | 'inventory' | 'analytics'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'users' | 'subcategories' | 'shipping' | 'combos' | 'blogs' | 'inventory' | 'analytics' | 'stock-activity'>('dashboard');
   const [loading, setLoading] = useState(true);
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -596,6 +596,15 @@ const filteredProducts = currentProductList.filter((product: any) => {
           >
             <Flame size={18} />
             Best Sellers & Stock
+          </button>
+          <button
+            onClick={() => setActiveTab('stock-activity')}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'stock-activity' ? 'bg-primary text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <History size={18} />
+            Stock & Edit Activity
           </button>
           {/* This Laptop Attribution Card */}
           <div className="pt-4 border-t mt-4">
@@ -1406,6 +1415,13 @@ const filteredProducts = currentProductList.filter((product: any) => {
         {activeTab === 'analytics' && (
           <div>
             <SalesInventoryHub onOpenStockModal={handleOpenStockModal} />
+          </div>
+        )}
+
+        {/* Stock & Edit Activity Audit Tab */}
+        {activeTab === 'stock-activity' && (
+          <div>
+            <StockAuditLog onOpenProductModal={handleEditProduct} />
           </div>
         )}
       </div>

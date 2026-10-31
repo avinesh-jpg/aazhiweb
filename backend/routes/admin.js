@@ -288,10 +288,16 @@ router.put('/products/:productId', authAdmin, async (req, res) => {
     const performedBy = req.admin?.name || req.admin?.email || 'Admin';
     const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
 
-    // Map existing sizes before updating to detect stock adjustments
+    // Map existing sizes before updating to detect stock adjustments and initial total edits
     const oldSizesMap = new Map();
     if (product.sizes && Array.isArray(product.sizes)) {
-      product.sizes.forEach(s => oldSizesMap.set((s.name || '').trim().toLowerCase(), s.stock || 0));
+      product.sizes.forEach(s => {
+        oldSizesMap.set((s.name || '').trim().toLowerCase(), {
+          name: s.name,
+          stock: s.stock || 0,
+          initialStock: s.initialStock ?? s.stock ?? 0
+        });
+      });
     }
 
     const incomingSizes = req.body.sizes;
@@ -306,15 +312,23 @@ router.put('/products/:productId', authAdmin, async (req, res) => {
     
     await product.save();
 
-    // Check if any size stock changed and record audit log
+    // Check if any size stock or initialStock changed in Edit Product modal
     if (incomingSizes && Array.isArray(incomingSizes)) {
+      const incomingNames = new Set();
+
       for (const newSz of incomingSizes) {
         const cleanName = (newSz.name || '').trim().toLowerCase();
-        const oldStock = oldSizesMap.has(cleanName) ? oldSizesMap.get(cleanName) : null;
-        const newStock = newSz.stock !== undefined ? parseInt(newSz.stock) : 0;
+        incomingNames.add(cleanName);
 
-        if (oldStock === null) {
-          // Brand new size added
+        const oldObj = oldSizesMap.get(cleanName);
+        const oldStock = oldObj ? oldObj.stock : null;
+        const oldInitial = oldObj ? oldObj.initialStock : null;
+
+        const newStock = newSz.stock !== undefined ? parseInt(newSz.stock) : 0;
+        const newInitial = newSz.initialStock !== undefined ? parseInt(newSz.initialStock) : newStock;
+
+        if (!oldObj) {
+          // Brand new size added in modal
           await StockLog.create({
             productId: String(product.productId || product._id),
             productName: product.name,
@@ -322,28 +336,57 @@ router.put('/products/:productId', authAdmin, async (req, res) => {
             change: newStock,
             previousStock: 0,
             newStock,
-            reason: 'manual_adjustment',
+            reason: 'product_edit',
             deviceName,
             performedBy,
             ip: clientIp,
-            note: `New size added via Edit Product modal`
+            initialStockChange: { previous: 0, current: newInitial },
+            note: `New size "${newSz.name}" added via Edit Product modal (Stock: ${newStock}, Initial Total: ${newInitial})`
           }).catch(err => console.error('Error logging new size stock:', err));
-        } else if (oldStock !== newStock) {
-          // Existing size stock updated
-          const diff = newStock - oldStock;
+        } else {
+          const stockChanged = oldStock !== newStock;
+          const initialChanged = oldInitial !== newInitial;
+
+          if (stockChanged || initialChanged) {
+            const diff = newStock - oldStock;
+            let noteDesc = `Edited in Edit Product modal:`;
+            if (stockChanged) noteDesc += ` Stock (${oldStock} → ${newStock});`;
+            if (initialChanged) noteDesc += ` Initial Total (${oldInitial} → ${newInitial});`;
+
+            await StockLog.create({
+              productId: String(product.productId || product._id),
+              productName: product.name,
+              size: newSz.name,
+              change: diff,
+              previousStock: oldStock,
+              newStock,
+              reason: 'product_edit',
+              deviceName,
+              performedBy,
+              ip: clientIp,
+              initialStockChange: { previous: oldInitial, current: newInitial },
+              note: noteDesc.trim()
+            }).catch(err => console.error('Error logging stock update:', err));
+          }
+        }
+      }
+
+      // Check if any size was removed in Edit Product modal
+      for (const [cleanName, oldObj] of oldSizesMap.entries()) {
+        if (!incomingNames.has(cleanName)) {
           await StockLog.create({
             productId: String(product.productId || product._id),
             productName: product.name,
-            size: newSz.name,
-            change: diff,
-            previousStock: oldStock,
-            newStock,
-            reason: diff > 0 ? 'restock' : 'manual_adjustment',
+            size: oldObj.name,
+            change: -oldObj.stock,
+            previousStock: oldObj.stock,
+            newStock: 0,
+            reason: 'product_edit',
             deviceName,
             performedBy,
             ip: clientIp,
-            note: `Stock adjusted from ${oldStock} to ${newStock} via Edit Product modal`
-          }).catch(err => console.error('Error logging stock update:', err));
+            note: `Size "${oldObj.name}" removed via Edit Product modal (Had ${oldObj.stock} in stock)`
+          }).catch(err => console.error('Error logging size removal:', err));
         }
       }
     }
