@@ -45,12 +45,27 @@ const AdminDashboard = () => {
   // Stock Management Modal states
   const [stockModalProduct, setStockModalProduct] = useState<any>(null);
   const [stockModalSize, setStockModalSize] = useState<string>('');
+  const [stockModalTab, setStockModalTab] = useState<'adjust' | 'history'>('adjust');
   const [showStockModal, setShowStockModal] = useState<boolean>(false);
 
-  const handleOpenStockModal = (product: any, sizeName?: string) => {
+  // Laptop / Device Identification state
+  const [currentDeviceName, setCurrentDeviceName] = useState<string>('');
+  const [showDeviceModal, setShowDeviceModal] = useState<boolean>(false);
+  const [deviceInput, setDeviceInput] = useState<string>('');
+
+  const handleOpenStockModal = (product: any, sizeName?: string, tab: 'adjust' | 'history' = 'adjust') => {
     setStockModalProduct(product);
     setStockModalSize(sizeName || '');
+    setStockModalTab(tab);
     setShowStockModal(true);
+  };
+
+  const handleSaveDeviceName = (name: string) => {
+    const clean = name.trim();
+    if (!clean) return;
+    saveDeviceName(clean);
+    setCurrentDeviceName(clean);
+    setShowDeviceModal(false);
   };
 
   const handleStockUpdated = (updatedProduct: any) => {
@@ -58,6 +73,13 @@ const AdminDashboard = () => {
   };
   
   useEffect(() => {
+    const dev = getDeviceName();
+    setCurrentDeviceName(dev);
+    if (!hasPromptedDeviceName()) {
+      setDeviceInput(dev);
+      setShowDeviceModal(true);
+    }
+
     const token = localStorage.getItem('admin_token');
     if (!token) {
       navigate('/admin/login');
@@ -574,7 +596,33 @@ const filteredProducts = currentProductList.filter((product: any) => {
             <Flame size={18} />
             Best Sellers & Stock
           </button>
+          {/* This Laptop Attribution Card */}
           <div className="pt-4 border-t mt-4">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3">
+              <div className="flex items-center justify-between text-slate-700 font-semibold text-xs mb-1">
+                <span className="flex items-center gap-1.5 text-slate-800">
+                  <Laptop size={13} className="text-primary" />
+                  This Laptop:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeviceInput(currentDeviceName);
+                    setShowDeviceModal(true);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  Rename
+                </button>
+              </div>
+              <div className="text-xs font-bold text-slate-900 truncate">
+                {currentDeviceName || 'Staff Device'}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">
+                Stamped on all stock changes
+              </div>
+            </div>
+
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
@@ -1148,11 +1196,26 @@ const filteredProducts = currentProductList.filter((product: any) => {
                               </button>
                             </div>
                           ) : (
-                            <div className="flex gap-2">
-                              <button onClick={() => handleEditProduct(product)} className="text-blue-600 hover:text-blue-800">
+                            <div className="flex gap-2 items-center">
+                              <button 
+                                onClick={() => handleEditProduct(product)} 
+                                className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition-colors"
+                                title="Edit Product"
+                              >
                                 <Edit size={18} />
                               </button>
-                              <button onClick={() => handleDeleteProduct(product._id, false)} className="text-red-600 hover:text-red-800">
+                              <button 
+                                onClick={() => handleOpenStockModal(product, undefined, 'history')} 
+                                className="text-purple-600 hover:text-purple-800 p-1 hover:bg-purple-50 rounded transition-colors"
+                                title="View Stock History & Audit Log"
+                              >
+                                <Clock size={18} />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteProduct(product._id, false)} 
+                                className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
+                                title="Delete Product"
+                              >
                                 <Trash2 size={18} />
                               </button>
                             </div>
@@ -1546,11 +1609,85 @@ const filteredProducts = currentProductList.filter((product: any) => {
           setShowStockModal(false);
           setStockModalProduct(null);
           setStockModalSize('');
+          setStockModalTab('adjust');
         }}
         product={stockModalProduct}
         initialSelectedSize={stockModalSize}
+        initialTab={stockModalTab}
         onStockUpdated={handleStockUpdated}
       />
+
+      {/* 🖥️ One-Time Laptop / Device Name Modal */}
+      {showDeviceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-100">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <Laptop size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Name This Device</h3>
+                <p className="text-xs text-gray-500">Tag who or which laptop updates stock & products</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+              Every time you add or adjust stock on this laptop, this name will be stamped on the audit history so you can see who made the change.
+            </p>
+
+            <div className="space-y-3 mb-5">
+              <label className="text-xs font-bold text-gray-700 block">
+                Device Nickname:
+              </label>
+              <input
+                type="text"
+                value={deviceInput}
+                onChange={(e) => setDeviceInput(e.target.value)}
+                placeholder="e.g. Billing Laptop, Packing Table PC, Store PC"
+                className="w-full px-3.5 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+                autoFocus
+              />
+
+              {/* Quick suggestions */}
+              <div>
+                <span className="text-[11px] font-semibold text-gray-400 block mb-1.5">Quick Suggestions:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Billing Laptop', 'Packing Table PC', 'Store Laptop', 'Office PC', 'Admin Laptop 1'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setDeviceInput(preset)}
+                      className="text-[11px] font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg transition-colors"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => {
+                  markDevicePrompted();
+                  setShowDeviceModal(false);
+                }}
+                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Skip For Now
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveDeviceName(deviceInput || currentDeviceName || 'Staff Device')}
+                className="px-5 py-2 bg-primary hover:bg-primary/95 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+              >
+                Save Device Name
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

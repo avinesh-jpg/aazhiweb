@@ -14,6 +14,14 @@ const stockLogSchema = new mongoose.Schema({
   },
   orderNumber: { type: String, default: null, index: true },
   note: { type: String, default: '' },
+  deviceName: { type: String, default: 'Web Admin' },
+  performedBy: { type: String, default: '' },
+  customerDetails: {
+    name: { type: String, default: '' },
+    email: { type: String, default: '' },
+    phone: { type: String, default: '' }
+  },
+  ip: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now, index: true }
 });
 

@@ -197,7 +197,9 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
                     newStock: product.sizes?.[sizeIndex]?.stock || 0,
                     reason: 'order_cancelled',
                     orderNumber: order.orderNumber,
-                    note: `Stock restored due to order cancellation`
+                    deviceName: req.body?.deviceName || req.headers['x-device-name'] || 'Admin Panel',
+                    performedBy: req.admin?.name || req.admin?.email || 'Admin',
+                    note: `Stock restored due to order #${order.orderNumber} cancellation`
                   });
                 } catch (logErr) {
                   console.error('Error logging stock restore:', logErr);
@@ -236,6 +238,36 @@ router.post('/products', authAdmin, async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
+
+    // Log initial stock for sizes with device & staff attribution
+    const deviceName = req.body.deviceName || req.headers['x-device-name'] || 'Web Admin';
+    const performedBy = req.admin?.name || req.admin?.email || 'Admin';
+    const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+
+    if (product.sizes && product.sizes.length > 0) {
+      for (const sz of product.sizes) {
+        if ((sz.stock || 0) > 0 || (sz.initialStock || 0) > 0) {
+          try {
+            await StockLog.create({
+              productId: String(product.productId || product._id),
+              productName: product.name,
+              size: sz.name,
+              change: sz.stock || 0,
+              previousStock: 0,
+              newStock: sz.stock || 0,
+              reason: 'manual_adjustment',
+              deviceName,
+              performedBy,
+              ip: clientIp,
+              note: `Initial stock added on product creation (Starting: ${sz.stock || 0})`
+            });
+          } catch (logErr) {
+            console.error('Error logging initial stock:', logErr);
+          }
+        }
+      }
+    }
+
     res.json({ success: true, product });
   } catch (error) {
     console.error('Create product error:', error);
@@ -252,6 +284,18 @@ router.put('/products/:productId', authAdmin, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
     
+    const deviceName = req.body.deviceName || req.headers['x-device-name'] || 'Web Admin';
+    const performedBy = req.admin?.name || req.admin?.email || 'Admin';
+    const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+
+    // Map existing sizes before updating to detect stock adjustments
+    const oldSizesMap = new Map();
+    if (product.sizes && Array.isArray(product.sizes)) {
+      product.sizes.forEach(s => oldSizesMap.set((s.name || '').trim().toLowerCase(), s.stock || 0));
+    }
+
+    const incomingSizes = req.body.sizes;
+
     // Update fields
     Object.assign(product, req.body);
     
@@ -261,6 +305,49 @@ router.put('/products/:productId', authAdmin, async (req, res) => {
     }
     
     await product.save();
+
+    // Check if any size stock changed and record audit log
+    if (incomingSizes && Array.isArray(incomingSizes)) {
+      for (const newSz of incomingSizes) {
+        const cleanName = (newSz.name || '').trim().toLowerCase();
+        const oldStock = oldSizesMap.has(cleanName) ? oldSizesMap.get(cleanName) : null;
+        const newStock = newSz.stock !== undefined ? parseInt(newSz.stock) : 0;
+
+        if (oldStock === null) {
+          // Brand new size added
+          await StockLog.create({
+            productId: String(product.productId || product._id),
+            productName: product.name,
+            size: newSz.name,
+            change: newStock,
+            previousStock: 0,
+            newStock,
+            reason: 'manual_adjustment',
+            deviceName,
+            performedBy,
+            ip: clientIp,
+            note: `New size added via Edit Product modal`
+          }).catch(err => console.error('Error logging new size stock:', err));
+        } else if (oldStock !== newStock) {
+          // Existing size stock updated
+          const diff = newStock - oldStock;
+          await StockLog.create({
+            productId: String(product.productId || product._id),
+            productName: product.name,
+            size: newSz.name,
+            change: diff,
+            previousStock: oldStock,
+            newStock,
+            reason: diff > 0 ? 'restock' : 'manual_adjustment',
+            deviceName,
+            performedBy,
+            ip: clientIp,
+            note: `Stock adjusted from ${oldStock} to ${newStock} via Edit Product modal`
+          }).catch(err => console.error('Error logging stock update:', err));
+        }
+      }
+    }
+
     res.json({ success: true, product });
   } catch (error) {
     console.error('Update product error:', error);
@@ -384,8 +471,12 @@ router.put('/products/:productId/stock', authAdmin, async (req, res) => {
     product.markModified('sizes');
     await product.save();
 
-    // Log the change
+    // Log the change with device & operator attribution
     try {
+      const deviceName = req.body.deviceName || req.headers['x-device-name'] || 'Web Admin';
+      const performedBy = req.admin?.name || req.admin?.email || 'Admin';
+      const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+
       await StockLog.create({
         productId: String(product.productId || product._id),
         productName: product.name,
@@ -394,6 +485,9 @@ router.put('/products/:productId/stock', authAdmin, async (req, res) => {
         previousStock: prevStock,
         newStock: finalStock,
         reason: actionReason,
+        deviceName,
+        performedBy,
+        ip: clientIp,
         note: note || (isRestock ? `Restocked +${change} units` : `Manual adjustment from ${prevStock} to ${finalStock}`)
       });
     } catch (logErr) {
@@ -457,7 +551,14 @@ router.get('/products/:productId/stock-logs', authAdmin, async (req, res) => {
               newStock: null,
               reason: 'order',
               orderNumber: order.orderNumber,
-              note: `Purchased by ${order.shippingAddress?.fullName || 'Customer'} (${order.shippingAddress?.email || ''})`,
+              deviceName: 'Online Store',
+              performedBy: order.shippingAddress?.fullName || 'Online Customer',
+              customerDetails: {
+                name: order.shippingAddress?.fullName || 'Customer',
+                email: order.shippingAddress?.email || '',
+                phone: order.shippingAddress?.phone || ''
+              },
+              note: `Purchased by ${order.shippingAddress?.fullName || 'Customer'} (${order.shippingAddress?.phone || order.shippingAddress?.email || ''})`,
               createdAt: order.createdAt
             });
           }
@@ -470,6 +571,36 @@ router.get('/products/:productId/stock-logs', authAdmin, async (req, res) => {
     res.json({ success: true, logs: allLogs });
   } catch (error) {
     console.error('Get stock logs error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get Global Stock Audit Ledger (Store-wide stock history across all products)
+router.get('/inventory/stock-ledger', authAdmin, async (req, res) => {
+  try {
+    const { limit = 100, reason, search } = req.query;
+    const query = {};
+
+    if (reason && reason !== 'all') {
+      query.reason = reason;
+    }
+    if (search) {
+      query.$or = [
+        { productName: new RegExp(search.trim(), 'i') },
+        { orderNumber: new RegExp(search.trim(), 'i') },
+        { deviceName: new RegExp(search.trim(), 'i') },
+        { performedBy: new RegExp(search.trim(), 'i') }
+      ];
+    }
+
+    const logs = await StockLog.find(query)
+      .sort({ createdAt: -1 })
+      .limit(Math.min(200, parseInt(limit) || 100))
+      .lean();
+
+    res.json({ success: true, logs });
+  } catch (error) {
+    console.error('Get stock ledger error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

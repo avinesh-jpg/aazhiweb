@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Upload, Link } from 'lucide-react';
 import ImageUpload from './ImageUpload';
 import { sortSizes } from '@/utils/sizeHelper';
+import { getDeviceName } from '@/utils/deviceHelper';
 
 interface Color {
   name: string;
@@ -180,14 +181,16 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSave, pr
       const dataToSave = {
         ...formData,
         image: mainImage,
-        sizes: sortSizes(formData.sizes)
+        sizes: sortSizes(formData.sizes),
+        deviceName: getDeviceName()
       };
 
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Device-Name': getDeviceName()
         },
         body: JSON.stringify(dataToSave)
       });

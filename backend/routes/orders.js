@@ -444,7 +444,14 @@ router.post('/confirm', async (req, res) => {
                   newStock,
                   reason: 'order',
                   orderNumber: order.orderNumber,
-                  note: `Purchased by ${order.shippingAddress?.fullName || 'Customer'}`
+                  note: `Purchased by ${order.shippingAddress?.fullName || 'Customer'} (${order.shippingAddress?.phone || order.shippingAddress?.email || ''})`,
+                  deviceName: 'Online Store',
+                  performedBy: order.shippingAddress?.fullName || 'Online Customer',
+                  customerDetails: {
+                    name: order.shippingAddress?.fullName || 'Customer',
+                    email: order.shippingAddress?.email || '',
+                    phone: order.shippingAddress?.phone || ''
+                  }
                 });
               } catch (logErr) {
                 console.error('Error logging stock deduction:', logErr);

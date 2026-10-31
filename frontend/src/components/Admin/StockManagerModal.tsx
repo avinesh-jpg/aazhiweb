@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { X, Clock, ArrowDownRight, ArrowUpRight, RefreshCw, Check, ShoppingBag, Plus } from 'lucide-react';
+import { X, Clock, ArrowDownRight, ArrowUpRight, RefreshCw, Check, ShoppingBag, Plus, Laptop, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { sortSizes } from '@/utils/sizeHelper';
+import { getDeviceName } from '@/utils/deviceHelper';
 
 interface StockManagerModalProps {
   isOpen: boolean;
