@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
   Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle,
-  Search, RefreshCw, ChevronLeft, ChevronRight, Clock, Flame, Laptop
+  Search, RefreshCw, ChevronLeft, ChevronRight, Clock, Flame, Laptop, History
 } from 'lucide-react';
 import { getDeviceName, setDeviceName as saveDeviceName, hasPromptedDeviceName, markDevicePrompted } from '@/utils/deviceHelper';
 import ProductModal from '@/components/Admin/ProductModal';
@@ -14,6 +14,7 @@ import ComboManager from '@/components/Admin/ComboManager';
 import BlogManager from '@/components/Admin/BlogManager';
 import StockManagerModal from '@/components/Admin/StockManagerModal';
 import SalesInventoryHub from '@/components/Admin/SalesInventoryHub';
+import StockAuditLog from '@/components/Admin/StockAuditLog';
 import { sortSizes, normalizeSize, getSizeSortRank } from '@/utils/sizeHelper';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
