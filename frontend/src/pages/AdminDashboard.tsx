@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Package, Users, ShoppingBag, DollarSign, TrendingUp, 
   Eye, Edit, Trash2, Plus, LogOut, X, List, Truck, Gift, FileText, AlertTriangle,
-  Search, RefreshCw, ChevronLeft, ChevronRight, Clock, Flame
+  Search, RefreshCw, ChevronLeft, ChevronRight, Clock, Flame, Laptop
 } from 'lucide-react';
+import { getDeviceName, setDeviceName as saveDeviceName, hasPromptedDeviceName, markDevicePrompted } from '@/utils/deviceHelper';
 import ProductModal from '@/components/Admin/ProductModal';
 import SubcategoryManager from '@/components/Admin/SubcategoryManager';
 import ShippingSettings from '@/components/Admin/ShippingSettings';
