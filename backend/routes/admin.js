@@ -651,7 +651,7 @@ router.get('/inventory/stock-ledger', authAdmin, async (req, res) => {
 // Get Inventory & Sales Analytics
 router.get('/inventory/analytics', authAdmin, async (req, res) => {
   try {
-    const { timeRange } = req.query; // 'all', '30d', '7d'
+    const { timeRange, startDate, endDate } = req.query; // 'all', '30d', '7d', 'custom'
 
     let orderDateFilter = {};
     if (timeRange === '7d') {
@@ -662,6 +662,19 @@ router.get('/inventory/analytics', authAdmin, async (req, res) => {
       const d = new Date();
       d.setDate(d.getDate() - 30);
       orderDateFilter = { createdAt: { $gte: d } };
+    } else if (timeRange === 'custom') {
+      const dateQuery = {};
+      if (startDate) {
+        dateQuery.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        dateQuery.$lte = end;
+      }
+      if (Object.keys(dateQuery).length > 0) {
+        orderDateFilter = { createdAt: dateQuery };
+      }
     }
 
     const orders = await Order.find({

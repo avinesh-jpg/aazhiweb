@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, Package, AlertOctagon, Download, Search, 
-  RefreshCw, Clock, Flame, Award, SlidersHorizontal, IndianRupee 
+  RefreshCw, Clock, Flame, Award, SlidersHorizontal, IndianRupee, Calendar 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,33 +21,44 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
   const [activeFilter, setActiveFilter] = useState<'bestsellers' | 'slowmovers' | 'all' | 'lowstock' | 'outofstock'>('bestsellers');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [timeRange, setTimeRange] = useState<'all' | '30d' | '7d'>('all');
+  const [timeRange, setTimeRange] = useState<'all' | '30d' | '7d' | 'custom'>('all');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   useEffect(() => {
     fetchInventoryAnalytics();
   }, [timeRange]);
 
   const fetchInventoryAnalytics = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${API_URL}/admin/inventory/analytics?timeRange=${timeRange}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSummary(data.summary);
-        setProducts(data.products || []);
-      } else {
-        toast.error(data.message || 'Failed to load inventory analytics');
-      }
-    } catch (err) {
-      console.error('Error fetching inventory analytics:', err);
-      toast.error('Failed to load inventory sales data');
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const token = localStorage.getItem('admin_token');
+    
+    // Build query params
+    const params = new URLSearchParams();
+    params.append('timeRange', timeRange);
+    if (timeRange === 'custom') {
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
     }
-  };
+
+    const res = await fetch(`${API_URL}/admin/inventory/analytics?${params.toString()}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      setSummary(data.summary);
+      setProducts(data.products || []);
+    } else {
+      toast.error(data.message || 'Failed to load inventory analytics');
+    }
+  } catch (err) {
+    console.error('Error fetching inventory analytics:', err);
+    toast.error('Failed to load inventory sales data');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Filtered & Sorted Products
   const filteredProducts = products.filter((item) => {
@@ -124,12 +135,42 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as any)}
-            className="text-xs px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="text-xs px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary font-medium"
           >
             <option value="all">📅 All Time Sales</option>
             <option value="30d">🗓️ Last 30 Days</option>
             <option value="7d">⚡ Last 7 Days</option>
+            <option value="custom">📆 Custom Calendar / Date Range</option>
           </select>
+
+          {/* Custom Date Pickers */}
+          {timeRange === 'custom' && (
+            <div className="flex items-center gap-1.5 bg-white border border-gray-200 px-2 py-1 rounded-lg shadow-sm text-xs">
+              <Calendar size={14} className="text-gray-400" />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-2 py-1 text-xs border rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary text-gray-700"
+                title="Start Date"
+              />
+              <span className="text-gray-400 font-semibold text-[11px]">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-2 py-1 text-xs border rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary text-gray-700"
+                title="End Date"
+              />
+              <button
+                type="button"
+                onClick={fetchInventoryAnalytics}
+                className="px-2.5 py-1 bg-primary text-white text-xs font-semibold rounded hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                Apply
+              </button>
+            </div>
+          )}
 
           {/* Export button */}
           <button
@@ -167,7 +208,7 @@ const SalesInventoryHub: React.FC<SalesInventoryHubProps> = ({ onOpenStockModal 
               <p className="text-[11px] text-emerald-800 font-medium mt-0.5 truncate" title={summary.totalShippingCollected ? `Includes ₹${summary.totalShippingCollected.toLocaleString()} shipping` : undefined}>
                 {summary.totalShippingCollected 
                   ? `Incl. ₹${summary.totalShippingCollected.toLocaleString()} shipping`
-                  : (timeRange === 'all' ? 'All-time gross sales' : timeRange === '30d' ? 'Last 30 days revenue' : 'Last 7 days revenue')}
+                  : (timeRange === 'all' ? 'All-time gross sales' : timeRange === '30d' ? 'Last 30 days revenue' : timeRange === '7d' ? 'Last 7 days revenue' : (startDate && endDate ? `${startDate} to ${endDate} sales` : 'Custom date range sales'))}
               </p>
             </div>
           </div>
