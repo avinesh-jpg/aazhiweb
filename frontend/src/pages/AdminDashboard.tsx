@@ -181,9 +181,10 @@ const AdminDashboard = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Device-Name': getDeviceName()
         },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, deviceName: getDeviceName() })
       });
       
       if (response.ok) {
@@ -194,6 +195,33 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Update order error:', error);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
+    setUpdatingStatus(true);
+    const token = localStorage.getItem('admin_token');
+    try {
+      const response = await fetch(`${API_URL}/admin/orders/${orderId}/payment-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Device-Name': getDeviceName()
+        },
+        body: JSON.stringify({ paymentStatus, deviceName: getDeviceName() })
+      });
+      
+      if (response.ok) {
+        fetchOrders();
+        if (selectedOrder && selectedOrder._id === orderId) {
+          setSelectedOrder({ ...selectedOrder, paymentStatus });
+        }
+      }
+    } catch (error) {
+      console.error('Update payment status error:', error);
     } finally {
       setUpdatingStatus(false);
     }
@@ -908,9 +936,17 @@ const filteredProducts = currentProductList.filter((product: any) => {
                         <td className="px-3 py-3 text-sm text-gray-700">{order.items?.length || 0}</td>
                         <td className="px-3 py-3 text-sm font-semibold text-gray-900">₹{order.total?.toLocaleString()}</td>
                         <td className="px-3 py-3">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getPaymentStatusColor(order.paymentStatus)}`}>
-                            {order.paymentStatus || 'pending'}
-                          </span>
+                          <select
+                            value={(order.paymentStatus || 'pending').toLowerCase()}
+                            onChange={(e) => updatePaymentStatus(order._id, e.target.value)}
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium border cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary ${getPaymentStatusColor(order.paymentStatus)}`}
+                            disabled={updatingStatus}
+                            title="Click to change payment status"
+                          >
+                            <option value="pending">pending</option>
+                            <option value="paid">paid</option>
+                            <option value="failed">failed</option>
+                          </select>
                         </td>
                         <td className="px-3 py-3">
                           <select

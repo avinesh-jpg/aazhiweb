@@ -151,7 +151,98 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
 
     const previousStatus = order.status;
     order.status = status;
+    if (req.body.paymentStatus) {
+      order.paymentStatus = req.body.paymentStatus;
+    }
     await order.save();
+
+    const deviceName = req.body?.deviceName || req.headers['x-device-name'] || 'Admin Panel';
+    const performedBy = req.admin?.name || req.admin?.email || 'Admin';
+
+    // If order is confirmed/processing/shipped/delivered and stock was not deducted yet, deduct it now
+    const activeConfirmedStatuses = ['confirmed', 'processing', 'shipped', 'delivered'];
+    if (activeConfirmedStatuses.includes(status) && !order.stockDeducted && order.items && order.items.length > 0) {
+      for (const item of order.items) {
+        try {
+          const productIdNum = !isNaN(Number(item.productId)) ? Number(item.productId) : null;
+          const query = [];
+          if (productIdNum) query.push({ productId: productIdNum });
+          if (item.productId && item.productId.length === 24) query.push({ _id: item.productId });
+
+          const product = query.length > 0 ? await Product.findOne({ $or: query }) : null;
+          if (product) {
+            let stockChanged = false;
+            let previousStock = 0;
+            let newStock = 0;
+
+            if (product.sizes && product.sizes.length > 0) {
+              const itemSizeClean = (item.size || '').trim().toLowerCase();
+              const sizeIndex = product.sizes.findIndex(s => (s.name || '').trim().toLowerCase() === itemSizeClean);
+
+              if (sizeIndex !== -1) {
+                previousStock = product.sizes[sizeIndex].stock || 0;
+                newStock = Math.max(0, previousStock - (item.quantity || 1));
+                product.sizes[sizeIndex].stock = newStock;
+                stockChanged = true;
+              } else if (product.sizes.length === 1 && product.sizes[0].name === 'One Size') {
+                previousStock = product.sizes[0].stock || 0;
+                newStock = Math.max(0, previousStock - (item.quantity || 1));
+                product.sizes[0].stock = newStock;
+                stockChanged = true;
+              }
+
+              const totalRemaining = product.sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
+              if (totalRemaining === 0) {
+                product.inStock = false;
+                stockChanged = true;
+              }
+            } else if (typeof product.stockQuantity === 'number') {
+              previousStock = product.stockQuantity;
+              newStock = Math.max(0, product.stockQuantity - (item.quantity || 1));
+              product.stockQuantity = newStock;
+              if (product.stockQuantity === 0) {
+                product.inStock = false;
+              }
+              stockChanged = true;
+            }
+
+            if (stockChanged) {
+              await product.save();
+              console.log(`📉 Decremented stock for ${product.name} (Size: ${item.size || 'N/A'}, Qty: ${item.quantity}) via admin status confirmation`);
+              try {
+                await StockLog.create({
+                  productId: String(product.productId || product._id),
+                  productName: product.name,
+                  size: item.size || 'N/A',
+                  change: -(item.quantity || 1),
+                  previousStock,
+                  newStock,
+                  reason: 'order',
+                  orderNumber: order.orderNumber,
+                  deviceName,
+                  performedBy,
+                  note: `Stock deducted on manual order confirmation by Admin (${performedBy})`,
+                  customerDetails: {
+                    name: order.shippingAddress?.fullName || '',
+                    email: order.shippingAddress?.email || '',
+                    phone: order.shippingAddress?.phone || ''
+                  }
+                });
+              } catch (logErr) {
+                console.error('Error logging manual confirmation stock deduction:', logErr);
+              }
+            }
+          }
+        } catch (itemErr) {
+          console.error(`Error deducting stock for item ${item.name}:`, itemErr);
+        }
+      }
+      order.stockDeducted = true;
+      if (order.paymentStatus === 'pending') {
+        order.paymentStatus = 'paid';
+      }
+      await order.save();
+    }
 
     // If order is cancelled and was previously paid/confirmed, restore stock to inventory
     if (status === 'cancelled' && previousStatus !== 'cancelled' && order.paymentStatus === 'paid') {
@@ -218,6 +309,109 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
     res.json({ success: true, order });
   } catch (error) {
     console.error('Update order status error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update Order Payment Status
+router.put('/orders/:orderId/payment-status', authAdmin, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { paymentStatus } = req.body;
+    
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    order.paymentStatus = paymentStatus;
+    const deviceName = req.body?.deviceName || req.headers['x-device-name'] || 'Admin Panel';
+    const performedBy = req.admin?.name || req.admin?.email || 'Admin';
+
+    // If marking as paid and stock was not yet deducted, deduct it now
+    if (paymentStatus === 'paid' && !order.stockDeducted && order.items && order.items.length > 0) {
+      for (const item of order.items) {
+        try {
+          const productIdNum = !isNaN(Number(item.productId)) ? Number(item.productId) : null;
+          const query = [];
+          if (productIdNum) query.push({ productId: productIdNum });
+          if (item.productId && item.productId.length === 24) query.push({ _id: item.productId });
+
+          const product = query.length > 0 ? await Product.findOne({ $or: query }) : null;
+          if (product) {
+            let stockChanged = false;
+            let previousStock = 0;
+            let newStock = 0;
+
+            if (product.sizes && product.sizes.length > 0) {
+              const itemSizeClean = (item.size || '').trim().toLowerCase();
+              const sizeIndex = product.sizes.findIndex(s => (s.name || '').trim().toLowerCase() === itemSizeClean);
+
+              if (sizeIndex !== -1) {
+                previousStock = product.sizes[sizeIndex].stock || 0;
+                newStock = Math.max(0, previousStock - (item.quantity || 1));
+                product.sizes[sizeIndex].stock = newStock;
+                stockChanged = true;
+              } else if (product.sizes.length === 1 && product.sizes[0].name === 'One Size') {
+                previousStock = product.sizes[0].stock || 0;
+                newStock = Math.max(0, previousStock - (item.quantity || 1));
+                product.sizes[0].stock = newStock;
+                stockChanged = true;
+              }
+
+              const totalRemaining = product.sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
+              if (totalRemaining === 0) {
+                product.inStock = false;
+                stockChanged = true;
+              }
+            } else if (typeof product.stockQuantity === 'number') {
+              previousStock = product.stockQuantity;
+              newStock = Math.max(0, product.stockQuantity - (item.quantity || 1));
+              product.stockQuantity = newStock;
+              if (product.stockQuantity === 0) {
+                product.inStock = false;
+              }
+              stockChanged = true;
+            }
+
+            if (stockChanged) {
+              await product.save();
+              console.log(`📉 Decremented stock for ${product.name} (Size: ${item.size || 'N/A'}, Qty: ${item.quantity}) via admin payment status change`);
+              try {
+                await StockLog.create({
+                  productId: String(product.productId || product._id),
+                  productName: product.name,
+                  size: item.size || 'N/A',
+                  change: -(item.quantity || 1),
+                  previousStock,
+                  newStock,
+                  reason: 'order',
+                  orderNumber: order.orderNumber,
+                  deviceName,
+                  performedBy,
+                  note: `Stock deducted on payment confirmed by Admin (${performedBy})`,
+                  customerDetails: {
+                    name: order.shippingAddress?.fullName || '',
+                    email: order.shippingAddress?.email || '',
+                    phone: order.shippingAddress?.phone || ''
+                  }
+                });
+              } catch (logErr) {
+                console.error('Error logging payment confirmation stock deduction:', logErr);
+              }
+            }
+          }
+        } catch (itemErr) {
+          console.error(`Error deducting stock for item ${item.name}:`, itemErr);
+        }
+      }
+      order.stockDeducted = true;
+    }
+
+    await order.save();
+    res.json({ success: true, order });
+  } catch (error) {
+    console.error('Update payment status error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
