@@ -245,7 +245,7 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
     }
 
     // If order is cancelled and was previously paid/confirmed, restore stock to inventory
-    if (status === 'cancelled' && previousStatus !== 'cancelled' && order.paymentStatus === 'paid') {
+    if ((status === 'cancelled' || status === 'pending') && previousStatus !== status && order.stockDeducted) {
       if (order.items && order.items.length > 0) {
         for (const item of order.items) {
           try {
@@ -290,7 +290,7 @@ router.put('/orders/:orderId/status', authAdmin, async (req, res) => {
                     orderNumber: order.orderNumber,
                     deviceName: req.body?.deviceName || req.headers['x-device-name'] || 'Admin Panel',
                     performedBy: req.admin?.name || req.admin?.email || 'Admin',
-                    note: `Stock restored due to order #${order.orderNumber} cancellation`
+                    note: `Stock restored - Order status changed to ${status} by Admin (${performedBy})`
                   });
                 } catch (logErr) {
                   console.error('Error logging stock restore:', logErr);
@@ -406,6 +406,79 @@ router.put('/orders/:orderId/payment-status', authAdmin, async (req, res) => {
         }
       }
       order.stockDeducted = true;
+    }
+
+    // If changing payment to failed or pending and stock was previously deducted, REVERT the stock (+Qty)
+    if ((paymentStatus === 'failed' || paymentStatus === 'pending') && order.stockDeducted && order.items && order.items.length > 0) {
+      for (const item of order.items) {
+        try {
+          const productIdNum = !isNaN(Number(item.productId)) ? Number(item.productId) : null;
+          const query = [];
+          if (productIdNum) query.push({ productId: productIdNum });
+          if (item.productId && item.productId.length === 24) query.push({ _id: item.productId });
+
+          const product = query.length > 0 ? await Product.findOne({ $or: query }) : null;
+          if (product) {
+            let stockRestored = false;
+            let previousStock = 0;
+            let newStock = 0;
+
+            if (product.sizes && product.sizes.length > 0) {
+              const itemSizeClean = (item.size || '').trim().toLowerCase();
+              const sizeIndex = product.sizes.findIndex(s => (s.name || '').trim().toLowerCase() === itemSizeClean);
+              if (sizeIndex !== -1) {
+                previousStock = product.sizes[sizeIndex].stock || 0;
+                newStock = previousStock + (item.quantity || 1);
+                product.sizes[sizeIndex].stock = newStock;
+                product.inStock = true;
+                stockRestored = true;
+              } else if (product.sizes.length === 1 && product.sizes[0].name === 'One Size') {
+                previousStock = product.sizes[0].stock || 0;
+                newStock = previousStock + (item.quantity || 1);
+                product.sizes[0].stock = newStock;
+                product.inStock = true;
+                stockRestored = true;
+              }
+            } else if (typeof product.stockQuantity === 'number') {
+              previousStock = product.stockQuantity;
+              newStock = previousStock + (item.quantity || 1);
+              product.stockQuantity = newStock;
+              product.inStock = true;
+              stockRestored = true;
+            }
+
+            if (stockRestored) {
+              await product.save();
+              console.log(`📈 Restored stock for ${product.name} (Size: ${item.size || 'N/A'}, Qty: ${item.quantity}) because payment marked as ${paymentStatus}`);
+              try {
+                await StockLog.create({
+                  productId: String(product.productId || product._id),
+                  productName: product.name,
+                  size: item.size || 'N/A',
+                  change: +(item.quantity || 1),
+                  previousStock,
+                  newStock,
+                  reason: 'order_cancelled',
+                  orderNumber: order.orderNumber,
+                  deviceName,
+                  performedBy,
+                  note: `Stock restored - Payment marked as ${paymentStatus} by Admin (${performedBy})`,
+                  customerDetails: {
+                    name: order.shippingAddress?.fullName || '',
+                    email: order.shippingAddress?.email || '',
+                    phone: order.shippingAddress?.phone || ''
+                  }
+                });
+              } catch (logErr) {
+                console.error('Error logging payment status stock restore:', logErr);
+              }
+            }
+          }
+        } catch (itemErr) {
+          console.error(`Error restoring stock for item ${item.name}:`, itemErr);
+        }
+      }
+      order.stockDeducted = false;
     }
 
     await order.save();
