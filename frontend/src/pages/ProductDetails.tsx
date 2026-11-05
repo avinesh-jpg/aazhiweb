@@ -268,6 +268,14 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
 
+   if (lower.includes('modal full pants')) {
+    return {
+      src: '/modal_tshirt_pant_set_sizechart.png',
+      alt: 'Modal Full Pants Size Chart',
+      isFullWidth: true
+    };
+  }
+
   if (lower.includes('girls a-line dresses') || lower.includes('girls a line dresses') || lower.includes('a-line') || lower.includes('a line')) {
     return {
       src: '/aline_frock_sizechart.png',
