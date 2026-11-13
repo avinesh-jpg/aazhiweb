@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   History, Search, RefreshCw, Laptop, User, Phone, 
-  ShoppingBag, ArrowUpRight, ArrowDownRight, Edit3, Filter, CheckCircle2 
+  ShoppingBag, ArrowUpRight, ArrowDownRight, Edit3, Filter, CheckCircle2, PlusCircle, Trash2, RotateCcw 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -110,6 +110,9 @@ const StockAuditLog: React.FC<StockAuditLogProps> = () => {
             className="w-full sm:w-auto px-3 py-2 text-xs border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary font-medium"
           >
             <option value="all">All Activity Types</option>
+            <option value="product_created">➕ Products Added (New)</option>
+            <option value="product_deleted">🗑️ Products Deleted / Trashed</option>
+            <option value="product_restored">♻️ Products Restored</option>
             <option value="product_edit">✏️ Edit Product Modal Changes</option>
             <option value="order">🛒 Online Customer Purchases</option>
             <option value="restock">📦 Restocks (+Qty)</option>
@@ -148,6 +151,9 @@ const StockAuditLog: React.FC<StockAuditLogProps> = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredLogs.map((log: any, idx: number) => {
+                  const isCreate = log.reason === 'product_created';
+                  const isDelete = log.reason === 'product_deleted';
+                  const isRestore = log.reason === 'product_restored';
                   const isOrder = log.reason === 'order';
                   const isEdit = log.reason === 'product_edit';
                   const isRestock = log.reason === 'restock';
@@ -173,7 +179,22 @@ const StockAuditLog: React.FC<StockAuditLogProps> = () => {
 
                       {/* Action Type Badge */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        {isEdit ? (
+                        {isCreate ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <PlusCircle size={11} />
+                            Product Added
+                          </span>
+                        ) : isDelete ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-200">
+                            <Trash2 size={11} />
+                            Product Deleted
+                          </span>
+                        ) : isRestore ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                            <RotateCcw size={11} />
+                            Product Restored
+                          </span>
+                        ) : isEdit ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-700 border border-purple-200">
                             <Edit3 size={11} />
                             Edit Product Modal

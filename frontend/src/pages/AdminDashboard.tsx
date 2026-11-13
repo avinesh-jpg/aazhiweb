@@ -377,7 +377,10 @@ const AdminDashboard = () => {
       try {
         await fetch(`${API_URL}/admin/products/${productId}`, {
           method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'X-Device-Name': getDeviceName()
+          }
         });
         fetchProducts();
         fetchTrashProducts();
@@ -392,7 +395,10 @@ const AdminDashboard = () => {
     try {
       const response = await fetch(`${API_URL}/admin/products/${productId}/restore`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'X-Device-Name': getDeviceName()
+        }
       });
       const data = await response.json();
       if (data.success) {

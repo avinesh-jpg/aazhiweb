@@ -513,25 +513,42 @@ router.post('/products', authAdmin, async (req, res) => {
 
     if (product.sizes && product.sizes.length > 0) {
       for (const sz of product.sizes) {
-        if ((sz.stock || 0) > 0 || (sz.initialStock || 0) > 0) {
-          try {
-            await StockLog.create({
-              productId: String(product.productId || product._id),
-              productName: product.name,
-              size: sz.name,
-              change: sz.stock || 0,
-              previousStock: 0,
-              newStock: sz.stock || 0,
-              reason: 'manual_adjustment',
-              deviceName,
-              performedBy,
-              ip: clientIp,
-              note: `Initial stock added on product creation (Starting: ${sz.stock || 0})`
-            });
-          } catch (logErr) {
-            console.error('Error logging initial stock:', logErr);
-          }
+        try {
+          await StockLog.create({
+            productId: String(product.productId || product._id),
+            productName: product.name,
+            size: sz.name,
+            change: sz.stock || 0,
+            previousStock: 0,
+            newStock: sz.stock || 0,
+            reason: 'product_created',
+            deviceName,
+            performedBy,
+            ip: clientIp,
+            initialStockChange: { previous: 0, current: sz.initialStock ?? sz.stock ?? 0 },
+            note: `New product added: "${product.name}" (Size: ${sz.name}, Starting Stock: ${sz.stock || 0}, Initial Total: ${sz.initialStock ?? sz.stock ?? 0})`
+          });
+        } catch (logErr) {
+          console.error('Error logging product creation size:', logErr);
         }
+      }
+    } else {
+      try {
+        await StockLog.create({
+          productId: String(product.productId || product._id),
+          productName: product.name,
+          size: 'Standard',
+          change: product.stockQuantity || 0,
+          previousStock: 0,
+          newStock: product.stockQuantity || 0,
+          reason: 'product_created',
+          deviceName,
+          performedBy,
+          ip: clientIp,
+          note: `New product added: "${product.name}" (Starting Stock: ${product.stockQuantity || 0})`
+        });
+      } catch (logErr) {
+        console.error('Error logging product creation:', logErr);
       }
     }
 
@@ -675,9 +692,32 @@ router.delete('/products/:productId', authAdmin, async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+
+    const deviceName = req.body?.deviceName || req.headers['x-device-name'] || 'Web Admin';
+    const performedBy = req.admin?.name || req.admin?.email || 'Admin';
+    const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+    const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0) || product.stockQuantity || 0;
     
     if (product.isDeleted) {
       // If it is already soft-deleted, this action acts as a permanent delete!
+      try {
+        await StockLog.create({
+          productId: String(product.productId || product._id),
+          productName: product.name,
+          size: 'All Sizes',
+          change: -totalStock,
+          previousStock: totalStock,
+          newStock: 0,
+          reason: 'product_deleted',
+          deviceName,
+          performedBy,
+          ip: clientIp,
+          note: `Product permanently deleted by Admin (${totalStock} units total stock)`
+        });
+      } catch (logErr) {
+        console.error('Error logging permanent delete:', logErr);
+      }
+
       await Product.deleteOne({ _id: productId });
       return res.json({ success: true, message: 'Product permanently deleted' });
     }
@@ -686,6 +726,24 @@ router.delete('/products/:productId', authAdmin, async (req, res) => {
     product.isDeleted = true;
     product.deletedAt = new Date();
     await product.save();
+
+    try {
+      await StockLog.create({
+        productId: String(product.productId || product._id),
+        productName: product.name,
+        size: 'All Sizes',
+        change: -totalStock,
+        previousStock: totalStock,
+        newStock: 0,
+        reason: 'product_deleted',
+        deviceName,
+        performedBy,
+        ip: clientIp,
+        note: `Product moved to Trash Bin by Admin (${totalStock} units in stock)`
+      });
+    } catch (logErr) {
+      console.error('Error logging soft delete:', logErr);
+    }
     
     res.json({ success: true, message: 'Product moved to trash bin' });
   } catch (error) {
@@ -714,10 +772,33 @@ router.put('/products/:productId/restore', authAdmin, async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+
+    const deviceName = req.body?.deviceName || req.headers['x-device-name'] || 'Web Admin';
+    const performedBy = req.admin?.name || req.admin?.email || 'Admin';
+    const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+    const totalStock = (product.sizes || []).reduce((sum, s) => sum + (s.stock || 0), 0) || product.stockQuantity || 0;
     
     product.isDeleted = false;
     product.deletedAt = null;
     await product.save();
+
+    try {
+      await StockLog.create({
+        productId: String(product.productId || product._id),
+        productName: product.name,
+        size: 'All Sizes',
+        change: totalStock,
+        previousStock: 0,
+        newStock: totalStock,
+        reason: 'product_restored',
+        deviceName,
+        performedBy,
+        ip: clientIp,
+        note: `Product restored from Trash Bin back to active store catalog (${totalStock} units)`
+      });
+    } catch (logErr) {
+      console.error('Error logging restore:', logErr);
+    }
     
     res.json({ success: true, product, message: 'Product restored successfully' });
   } catch (error) {

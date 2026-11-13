@@ -9,7 +9,7 @@ const stockLogSchema = new mongoose.Schema({
   newStock: { type: Number, required: true },
   reason: {
     type: String,
-    enum: ['order', 'manual_adjustment', 'restock', 'order_cancelled', 'product_edit'],
+    enum: ['order', 'manual_adjustment', 'restock', 'order_cancelled', 'product_edit', 'product_created', 'product_deleted', 'product_restored'],
     default: 'manual_adjustment'
   },
   orderNumber: { type: String, default: null, index: true },
