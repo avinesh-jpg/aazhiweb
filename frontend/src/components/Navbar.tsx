@@ -282,14 +282,19 @@ const Navbar = () => {
                           <div className="dropdown-header">{item.label}</div>
                           <div className="max-h-96 overflow-y-auto">
                             {subItems.map((sub) => (
-                              <button
-                                key={sub._id}
-                                onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
-                                className="dropdown-item"
-                              >
-                                {sub.name}
-                              </button>
-                            ))}
+  <button
+    key={sub._id}
+    onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
+    className="dropdown-item flex items-center justify-between w-full text-left"
+  >
+    <span>{sub.name}</span>
+    {sub.isNewBadge && (
+      <span className="px-1.5 py-0.5 text-[9px] font-black tracking-wider bg-rose-500 text-white rounded-full uppercase shadow-xs">
+        NEW
+      </span>
+    )}
+  </button>
+))}
                           </div>
                         </div>
                       </div>
@@ -414,14 +419,19 @@ const Navbar = () => {
                           All {item.label}
                         </button>
                         {subItems.map((sub) => (
-                          <button
-                            key={sub._id}
-                            onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
-                            className="mobile-sub-item"
-                          >
-                            {sub.name}
-                          </button>
-                        ))}
+  <button
+    key={sub._id}
+    onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
+    className="mobile-sub-item flex items-center justify-between w-full text-left"
+  >
+    <span>{sub.name}</span>
+    {sub.isNewBadge && (
+      <span className="px-1.5 py-0.5 text-[9px] font-black tracking-wider bg-rose-500 text-white rounded-full uppercase">
+        NEW
+      </span>
+    )}
+  </button>
+))}
                       </div>
                     )}
                   </div>

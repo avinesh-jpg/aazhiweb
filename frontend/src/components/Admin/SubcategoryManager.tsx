@@ -8,6 +8,7 @@ interface Subcategory {
   path: string;
   order: number;
   isActive: boolean;
+  isNewBadge?: boolean; // 👈THIS is a new sale badgein nav bar view  
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -31,7 +32,8 @@ const SubcategoryManager = () => {
     category: 'newborn',
     path: '',
     order: 0,
-    isActive: true
+    isActive: true,
+    isNewBadge: false // 👈 ADD THIS
   });
 
   useEffect(() => {
@@ -105,7 +107,8 @@ const SubcategoryManager = () => {
       category: item.category,
       path: item.path,
       order: item.order,
-      isActive: item.isActive
+      isActive: item.isActive,
+      isNewBadge: item.isNewBadge || false // 👈 ADD THIS
     });
     setShowModal(true);
   };
@@ -117,7 +120,8 @@ const SubcategoryManager = () => {
       category: 'newborn',
       path: '',
       order: 0,
-      isActive: true
+      isActive: true,
+      isNewBadge: false // 👈 ADD THIS
     });
   };
 
@@ -178,7 +182,16 @@ const SubcategoryManager = () => {
                   <tbody className="divide-y divide-gray-200">
                     {list.map((item) => (
                     <tr key={item._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm">{item.name}</td>
+                      <td className="px-6 py-4 text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{item.name}</span>
+                          {item.isNewBadge && (
+                            <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-500 text-white rounded-full uppercase">
+                              NEW
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-sm font-mono text-xs">{item.path}</td>
                       <td className="px-6 py-4 text-sm">{item.order}</td>
                       <td className="px-6 py-4">
@@ -287,6 +300,20 @@ const SubcategoryManager = () => {
                   className="w-4 h-4"
                 />
                 <label className="text-sm">Active (visible in navbar)</label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isNewBadge"
+                  checked={formData.isNewBadge}
+                  onChange={(e) => setFormData({ ...formData, isNewBadge: e.target.checked })}
+                  className="w-4 h-4 text-primary rounded"
+                />
+                <label htmlFor="isNewBadge" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                  Show "NEW" Badge
+                  <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-500 text-white rounded-full uppercase">NEW</span>
+                </label>
               </div>
               
               <div className="flex justify-end gap-3 pt-4">

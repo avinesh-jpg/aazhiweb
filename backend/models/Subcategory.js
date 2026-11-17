@@ -6,6 +6,7 @@ const subcategorySchema = new mongoose.Schema({
   path: { type: String, required: true },
   order: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },
+  isNewBadge: { type: Boolean, default: false }, // 👈 this  is for a new badge sale on a navbar view 
   createdAt: { type: Date, default: Date.now }
 });
 
