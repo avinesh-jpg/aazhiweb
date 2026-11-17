@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Check, Sparkles } from 'lucide-react';
 
 interface Subcategory {
   _id: string;
@@ -183,11 +183,13 @@ const SubcategoryManager = () => {
                     {list.map((item) => (
                     <tr key={item._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-medium">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <span>{item.name}</span>
                           {item.isNewBadge && (
-                            <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-500 text-white rounded-full uppercase">
-                              NEW
+                            <span className="crackle-badge flex-shrink-0 ml-2 px-2 py-0.5 text-[9px] font-extrabold text-white rounded-full uppercase shadow-xs">
+                              <span className="crackle-shimmer-sweep" />
+                              <Sparkles className="w-2.5 h-2.5 text-yellow-300 mr-1 crackle-icon relative z-10" />
+                              <span className="relative z-10">NEW</span>
                             </span>
                           )}
                         </div>
@@ -312,7 +314,11 @@ const SubcategoryManager = () => {
                 />
                 <label htmlFor="isNewBadge" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
                   Show "NEW" Badge
-                  <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-500 text-white rounded-full uppercase">NEW</span>
+                  <span className="crackle-badge px-2 py-0.5 text-[9px] font-extrabold text-white rounded-full uppercase shadow-xs">
+                    <span className="crackle-shimmer-sweep" />
+                    <Sparkles className="w-2.5 h-2.5 text-yellow-300 mr-1 crackle-icon relative z-10" />
+                    <span className="relative z-10">NEW</span>
+                  </span>
                 </label>
               </div>
               

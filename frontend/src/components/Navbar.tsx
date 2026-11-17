@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, User, ShoppingBag, Menu, X, ChevronDown, LogOut, Package } from 'lucide-react';
+import { Search, User, ShoppingBag, Menu, X, ChevronDown, LogOut, Package, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/useCart';
 import EmailOTPLogin from './EmailOTPLogin';
 import SearchModal from './SearchModal';
@@ -277,24 +277,26 @@ const Navbar = () => {
                       )}
                     </button>
                     {subItems.length > 0 && (
-                      <div className="absolute left-0 top-full w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <div className="dropdown-panel rounded-xl mt-1 overflow-hidden">
+                      <div className="absolute left-0 top-full w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <div className="dropdown-panel rounded-xl mt-1 overflow-hidden shadow-lg">
                           <div className="dropdown-header">{item.label}</div>
                           <div className="max-h-96 overflow-y-auto">
                             {subItems.map((sub) => (
-  <button
-    key={sub._id}
-    onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
-    className="dropdown-item flex items-center justify-between w-full text-left"
-  >
-    <span>{sub.name}</span>
-    {sub.isNewBadge && (
-      <span className="px-1.5 py-0.5 text-[9px] font-black tracking-wider bg-rose-500 text-white rounded-full uppercase shadow-xs">
-        NEW
-      </span>
-    )}
-  </button>
-))}
+                              <button
+                                key={sub._id}
+                                onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
+                                className="dropdown-item flex items-center justify-between gap-3 w-full text-left"
+                              >
+                                <span>{sub.name}</span>
+                                {sub.isNewBadge && (
+                                  <span className="crackle-badge flex-shrink-0 ml-3 px-2 py-0.5 text-[9px] font-black tracking-wider text-white uppercase rounded-full shadow-xs">
+                                    <span className="crackle-shimmer-sweep" />
+                                    <Sparkles className="w-2.5 h-2.5 text-yellow-300 mr-1 crackle-icon relative z-10" />
+                                    <span className="relative z-10">NEW</span>
+                                  </span>
+                                )}
+                              </button>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -419,19 +421,21 @@ const Navbar = () => {
                           All {item.label}
                         </button>
                         {subItems.map((sub) => (
-  <button
-    key={sub._id}
-    onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
-    className="mobile-sub-item flex items-center justify-between w-full text-left"
-  >
-    <span>{sub.name}</span>
-    {sub.isNewBadge && (
-      <span className="px-1.5 py-0.5 text-[9px] font-black tracking-wider bg-rose-500 text-white rounded-full uppercase">
-        NEW
-      </span>
-    )}
-  </button>
-))}
+                          <button
+                            key={sub._id}
+                            onClick={() => handleNavigation(`/collections/${sub.name.toLowerCase().replace(/ /g, '-')}`)}
+                            className="mobile-sub-item flex items-center justify-between gap-3 w-full text-left"
+                          >
+                            <span>{sub.name}</span>
+                            {sub.isNewBadge && (
+                              <span className="crackle-badge flex-shrink-0 ml-3 px-2 py-0.5 text-[9px] font-black tracking-wider text-white uppercase rounded-full shadow-xs">
+                                <span className="crackle-shimmer-sweep" />
+                                <Sparkles className="w-2.5 h-2.5 text-yellow-300 mr-1 crackle-icon relative z-10" />
+                                <span className="relative z-10">NEW</span>
+                              </span>
+                            )}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
