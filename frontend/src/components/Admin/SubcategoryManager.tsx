@@ -154,7 +154,8 @@ const SubcategoryManager = () => {
       {/* Display subcategories by category */}
       <div className="space-y-6">
         {categories.map(cat => {
-          const list = groupedSubcategories[cat.value.toLowerCase()] || [];
+          const list = (groupedSubcategories[cat.value.toLowerCase()] || [])
+            .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
           return (
             <div key={cat.value} className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-3 bg-gray-50 border-b">
