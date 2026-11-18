@@ -180,18 +180,24 @@ const BlogPost: React.FC = () => {
         }
         .blog-content-body blockquote {
           border-left: 4px solid #a855f7;
-          padding-left: 1rem;
+          background: rgba(168, 85, 247, 0.06);
+          padding: 1rem 1.25rem;
+          border-radius: 0 0.75rem 0.75rem 0;
           font-style: italic;
-          margin: 1.5rem 0;
-          color: #9ca3af;
+          margin: 1.75rem 0;
+          color: #e5e7eb;
           width: 100%;
         }
         .blog-content-body img {
           border-radius: 12px;
-          margin: 2rem 0;
+          margin: 2rem auto;
+          display: block;
           max-width: 100%;
+          max-height: 550px;
           height: auto;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          object-fit: contain;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.12);
         }
         .blog-content-body strong {
           color: #ffffff;
@@ -205,6 +211,82 @@ const BlogPost: React.FC = () => {
         .blog-content-body a:hover {
           color: #d8b4fe;
         }
+
+        /* 💡 Structural Content Helper Classes */
+        .blog-content-body .tip-box,
+        .blog-content-body .note-box {
+          background: rgba(168, 85, 247, 0.08);
+          border-left: 4px solid #a855f7;
+          padding: 1.25rem 1.5rem;
+          border-radius: 0 0.75rem 0.75rem 0;
+          margin: 2rem 0;
+          color: #f3f4f6;
+        }
+        .blog-content-body .info-box {
+          background: rgba(59, 130, 246, 0.08);
+          border-left: 4px solid #3b82f6;
+          padding: 1.25rem 1.5rem;
+          border-radius: 0 0.75rem 0.75rem 0;
+          margin: 2rem 0;
+          color: #f3f4f6;
+        }
+        .blog-content-body .card-box {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 1.5rem;
+          border-radius: 1rem;
+          margin: 2rem 0;
+        }
+        .blog-content-body .grid-2 {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1.5rem;
+          margin: 2rem 0;
+        }
+        .blog-content-body .blog-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #8b5cf6, #6366f1);
+          color: #ffffff !important;
+          font-weight: 600;
+          border-radius: 0.5rem;
+          text-decoration: none !important;
+          margin: 1.5rem 0;
+          transition: transform 0.2s, box-shadow 0.2s;
+          box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+        }
+        .blog-content-body .blog-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        }
+        .blog-content-body table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 2rem 0;
+          border-radius: 0.75rem;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .blog-content-body th {
+          background: rgba(139, 92, 246, 0.2);
+          color: #ffffff;
+          padding: 0.85rem 1rem;
+          text-align: left;
+          font-weight: 700;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .blog-content-body td {
+          padding: 0.85rem 1rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          color: #e5e7eb;
+        }
+        .blog-content-body tr:hover td {
+          background: rgba(255, 255, 255, 0.03);
+        }
+
         .blog-content-body div,
         .blog-content-body section,
         .blog-content-body article {
@@ -288,11 +370,11 @@ const BlogPost: React.FC = () => {
               </header>
 
               {/* Cover Image */}
-              <div className="rounded-2xl border border-white/10 overflow-hidden mb-8 h-[240px] sm:h-[350px] md:h-[450px]">
+              <div className="w-full rounded-2xl border border-white/10 overflow-hidden mb-8 shadow-xl bg-slate-900">
                 <img 
                   src={getImageUrl(blog.coverImage)} 
                   alt={blog.title} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-[280px] sm:h-[380px] md:h-[460px] lg:h-[520px] object-cover object-center block"
                 />
               </div>
 

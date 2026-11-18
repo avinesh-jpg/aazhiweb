@@ -592,6 +592,30 @@ const BlogManager: React.FC = () => {
                     >
                       Line Break
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => insertHTMLTag('<div class="tip-box">\n  <strong>💡 Tip:</strong> ', '\n</div>')}
+                      className="px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 transition"
+                      title="Tip Box"
+                    >
+                      Tip Box
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertHTMLTag('<a href="/collections/all" class="blog-btn">', ' →</a>')}
+                      className="px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded hover:bg-purple-100 transition"
+                      title="Styled Button"
+                    >
+                      Button
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertHTMLTag('<table>\n  <thead>\n    <tr><th>Feature</th><th>Details</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>Fabric</td><td>100% Combed Cotton</td></tr>\n    <tr><td>Fit</td><td>Relaxed fit</td></tr>\n  </tbody>\n</table>\n', '')}
+                      className="px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded hover:bg-emerald-100 transition"
+                      title="Insert Table"
+                    >
+                      Table
+                    </button>
                   </div>
                 </div>
 
