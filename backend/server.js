@@ -58,6 +58,19 @@ app.use(express.json());
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// ✅ Block legacy PHP requests and spam keywords with HTTP 410 Gone
+app.use((req, res, next) => {
+  const url = req.originalUrl || req.url;
+  if (
+    /\.php($|\?)/i.test(url) ||
+    /(phim-sex|bokep|xvideos|vidio-porn|poto-bugil|porn-izie|shop-[a-zA-Z0-9_-]+)/i.test(url)
+  ) {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    return res.status(410).send('410 Gone: This resource has been permanently removed.');
+  }
+  next();
+});
+
 // ✅ Apply SEO middleware to all routes
 app.use(seoMiddleware);
 
