@@ -133,9 +133,9 @@ const BlogPost: React.FC = () => {
 
       <style>{`
         .blog-content-body {
-          color: #d1d5db;
+          color: #374151;
           font-size: 1.05rem;
-          line-height: 1.8;
+          line-height: 1.85;
           width: 100%;
           max-width: 100%;
         }
@@ -145,16 +145,16 @@ const BlogPost: React.FC = () => {
           max-width: 100%;
         }
         .blog-content-body h2 {
-          color: #ffffff;
-          font-size: 1.6rem;
+          color: #111827;
+          font-size: 1.65rem;
           font-weight: 700;
-          margin-top: 2rem;
+          margin-top: 2.25rem;
           margin-bottom: 1rem;
           font-family: 'Cormorant Garamond', serif;
           width: 100%;
         }
         .blog-content-body h3 {
-          color: #ffffff;
+          color: #1f2937;
           font-size: 1.3rem;
           font-weight: 600;
           margin-top: 1.8rem;
@@ -179,63 +179,71 @@ const BlogPost: React.FC = () => {
           width: 100%;
         }
         .blog-content-body blockquote {
-          border-left: 4px solid #a855f7;
-          background: rgba(168, 85, 247, 0.06);
-          padding: 1rem 1.25rem;
+          border-left: 4px solid #7c3aed;
+          background: #fbf8ff;
+          padding: 1.25rem 1.5rem;
           border-radius: 0 0.75rem 0.75rem 0;
           font-style: italic;
           margin: 1.75rem 0;
-          color: #e5e7eb;
+          color: #4b5563;
           width: 100%;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
         .blog-content-body img {
-          border-radius: 12px;
+          border-radius: 14px;
           margin: 2rem auto;
           display: block;
           max-width: 100%;
           max-height: 550px;
           height: auto;
           object-fit: contain;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+          border: 1px solid #f1f5f9;
         }
         .blog-content-body strong {
-          color: #ffffff;
-          font-weight: 600;
+          color: #111827;
+          font-weight: 700;
         }
         .blog-content-body a {
-          color: #c084fc;
+          color: #7c3aed;
           text-decoration: underline;
           transition: color 0.2s;
         }
         .blog-content-body a:hover {
-          color: #d8b4fe;
+          color: #5b21b6;
         }
 
         /* 💡 Structural Content Helper Classes */
         .blog-content-body .tip-box,
         .blog-content-body .note-box {
-          background: rgba(168, 85, 247, 0.08);
-          border-left: 4px solid #a855f7;
+          background: #fffbeb;
+          border-left: 4px solid #f59e0b;
+          border-top: 1px solid #fef3c7;
+          border-right: 1px solid #fef3c7;
+          border-bottom: 1px solid #fef3c7;
           padding: 1.25rem 1.5rem;
           border-radius: 0 0.75rem 0.75rem 0;
           margin: 2rem 0;
-          color: #f3f4f6;
+          color: #78350f;
         }
         .blog-content-body .info-box {
-          background: rgba(59, 130, 246, 0.08);
+          background: #eff6ff;
           border-left: 4px solid #3b82f6;
+          border-top: 1px solid #dbeafe;
+          border-right: 1px solid #dbeafe;
+          border-bottom: 1px solid #dbeafe;
           padding: 1.25rem 1.5rem;
           border-radius: 0 0.75rem 0.75rem 0;
           margin: 2rem 0;
-          color: #f3f4f6;
+          color: #1e3a8a;
         }
         .blog-content-body .card-box {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           padding: 1.5rem;
           border-radius: 1rem;
           margin: 2rem 0;
+          color: #334155;
         }
         .blog-content-body .grid-2 {
           display: grid;
@@ -248,19 +256,19 @@ const BlogPost: React.FC = () => {
           align-items: center;
           justify-content: center;
           gap: 0.5rem;
-          padding: 0.75rem 1.5rem;
-          background: linear-gradient(135deg, #8b5cf6, #6366f1);
+          padding: 0.85rem 1.75rem;
+          background: linear-gradient(135deg, #7c3aed, #4f46e5);
           color: #ffffff !important;
           font-weight: 600;
-          border-radius: 0.5rem;
+          border-radius: 0.75rem;
           text-decoration: none !important;
           margin: 1.5rem 0;
           transition: transform 0.2s, box-shadow 0.2s;
-          box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+          box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
         }
         .blog-content-body .blog-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
         }
         .blog-content-body table {
           width: 100%;
@@ -268,23 +276,24 @@ const BlogPost: React.FC = () => {
           margin: 2rem 0;
           border-radius: 0.75rem;
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
         .blog-content-body th {
-          background: rgba(139, 92, 246, 0.2);
-          color: #ffffff;
+          background: #f5f3ff;
+          color: #4c1d95;
           padding: 0.85rem 1rem;
           text-align: left;
           font-weight: 700;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+          border-bottom: 1px solid #e9d5ff;
         }
         .blog-content-body td {
           padding: 0.85rem 1rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          color: #e5e7eb;
+          border-bottom: 1px solid #f3f4f6;
+          color: #374151;
         }
         .blog-content-body tr:hover td {
-          background: rgba(255, 255, 255, 0.03);
+          background: #faf5ff;
         }
 
         .blog-content-body div,
@@ -296,7 +305,7 @@ const BlogPost: React.FC = () => {
       `}</style>
       
       <div className="min-h-screen bg-gradient-to-br from-[#0f0e1a] via-[#1a1a2e] to-[#16213e] pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Background Elements */}
+        {/* Subtle Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -325,7 +334,7 @@ const BlogPost: React.FC = () => {
                 {/* Author & Date Metainfo */}
                 <div className="flex flex-wrap items-center gap-6 py-4 border-y border-white/10 text-gray-400 text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-xs">
                       {blog.author.slice(0, 1).toUpperCase()}
                     </div>
                     <span>
@@ -356,7 +365,7 @@ const BlogPost: React.FC = () => {
                   >
                     {copied ? (
                       <>
-                        <Check size={12} className="text-green-400" />
+                        <Check size={12} className="text-green-600" />
                         <span>Copied!</span>
                       </>
                     ) : (
@@ -384,10 +393,13 @@ const BlogPost: React.FC = () => {
               </div>
 
               {/* Blog Content body - FULL WIDTH */}
-              <div 
-                className="blog-content-body w-full"
-                dangerouslySetInnerHTML={{ __html: blog.content }}
-              />
+              {/* Blog Content Body - CRISP WHITE PAPER CARD */}
+              <div className="bg-white text-gray-900 rounded-2xl sm:rounded-3xl p-6 sm:p-10 md:p-12 shadow-2xl border border-white/20">
+                <div 
+                  className="blog-content-body w-full"
+                  dangerouslySetInnerHTML={{ __html: blog.content }}
+                />
+              </div>
             </main>
 
             {/* Read Next / Recent Articles Section */}
