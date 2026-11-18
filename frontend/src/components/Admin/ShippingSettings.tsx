@@ -5,8 +5,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const ShippingSettings = () => {
   const [settings, setSettings] = useState({
-    freeShippingThreshold: 2000,
-    standardShippingRate: 100,
+    freeShippingThreshold: 3000,
+    tamilNaduShippingRate: 70,
+    otherStatesShippingRate: 80,
+    standardShippingRate: 70,
     expressShippingRate: 200,
     internationalShippingRate: 500
   });
@@ -75,20 +77,38 @@ const ShippingSettings = () => {
           <input
             type="number"
             value={settings.freeShippingThreshold}
-            onChange={(e) => setSettings({ ...settings, freeShippingThreshold: parseInt(e.target.value) })}
+            onChange={(e) => setSettings({ ...settings, freeShippingThreshold: parseInt(e.target.value) || 0 })}
             className="w-full px-3 py-2 border rounded-lg"
           />
           <p className="text-xs text-muted-foreground mt-1">Orders above this amount get free shipping</p>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1">Standard Shipping Rate (₹)</label>
-          <input
-            type="number"
-            value={settings.standardShippingRate}
-            onChange={(e) => setSettings({ ...settings, standardShippingRate: parseInt(e.target.value) })}
-            className="w-full px-3 py-2 border rounded-lg"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-3 bg-purple-50/60 rounded-lg border border-purple-100">
+            <label className="block text-sm font-semibold text-purple-900 mb-1">
+              Tamil Nadu Shipping Rate (₹)
+            </label>
+            <input
+              type="number"
+              value={settings.tamilNaduShippingRate ?? 70}
+              onChange={(e) => setSettings({ ...settings, tamilNaduShippingRate: parseInt(e.target.value) || 0, standardShippingRate: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 border rounded-lg bg-white"
+            />
+            <p className="text-xs text-purple-600 mt-1">Delivery fee for orders within Tamil Nadu</p>
+          </div>
+
+          <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+            <label className="block text-sm font-semibold text-blue-900 mb-1">
+              Other States Shipping Rate (₹)
+            </label>
+            <input
+              type="number"
+              value={settings.otherStatesShippingRate ?? 80}
+              onChange={(e) => setSettings({ ...settings, otherStatesShippingRate: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 border rounded-lg bg-white"
+            />
+            <p className="text-xs text-blue-600 mt-1">Delivery fee for all other states & UTs across India</p>
+          </div>
         </div>
         
         <div>

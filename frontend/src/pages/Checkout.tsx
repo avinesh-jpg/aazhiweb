@@ -36,6 +36,13 @@ export const sanitizePhoneNumber = (input: string): string => {
   return digits.slice(0, 10);
 };
 
+// Helper to determine whether state is Tamil Nadu
+export const isTamilNaduState = (state: string): boolean => {
+  if (!state) return false;
+  const cleaned = state.toLowerCase().replace(/[^a-z]/g, '');
+  return cleaned === 'tamilnadu' || cleaned === 'tn';
+};
+
 const INDIAN_STATES = [
   'Andhra Pradesh',
   'Arunachal Pradesh',
@@ -81,10 +88,12 @@ const Checkout = () => {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
   const [shippingMethod, setShippingMethod] = useState('standard');
-  const [shippingCost, setShippingCost] = useState(0);
+  const [shippingCost, setShippingCost] = useState(70);
   const [isFreeShipping, setIsFreeShipping] = useState(false);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(3000);
   const [remainingForFree, setRemainingForFree] = useState(0);
+  const [isTamilNadu, setIsTamilNadu] = useState(false);
+  const [rateRegion, setRateRegion] = useState('');
   
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
@@ -112,6 +121,13 @@ const Checkout = () => {
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === 'state') {
+      const isTN = isTamilNaduState(value);
+      setIsTamilNadu(isTN);
+      if (!isFreeShipping) {
+        setShippingCost(isTN ? 70 : (value ? 80 : 70));
+      }
+    }
     if (formErrors[field]) {
       setFormErrors((prev) => {
         const updated = { ...prev };
@@ -331,6 +347,17 @@ const Checkout = () => {
     loadAddress();
   }, [token]);
 
+  // Synchronize state-based shipping rate immediately on state change
+  useEffect(() => {
+    if (formData.state) {
+      const isTN = isTamilNaduState(formData.state);
+      setIsTamilNadu(isTN);
+      if (!isFreeShipping) {
+        setShippingCost(isTN ? 70 : 80);
+      }
+    }
+  }, [formData.state, isFreeShipping]);
+
   // Redirect to cart if cart is empty
   useEffect(() => {
     if (cartItems.length === 0 && !orderPlaced) {
@@ -347,15 +374,25 @@ const Checkout = () => {
         const response = await fetch(`${API_URL}/shipping/calculate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subtotal: calculatedSubtotal, shippingMethod })
+          body: JSON.stringify({ 
+            subtotal: calculatedSubtotal, 
+            shippingMethod,
+            state: formData.state 
+          })
         });
         const data = await response.json();
         
         if (data.success) {
-          setShippingCost(data.shippingCost);
+          const isTN = isTamilNaduState(formData.state);
+          const stateExpectedRate = isTN ? 70 : (formData.state ? 80 : 70);
+          const effectiveShipping = data.isFree ? 0 : ((data.rateRegion || data.isTamilNadu !== undefined) ? data.shippingCost : stateExpectedRate);
+
+          setShippingCost(effectiveShipping);
           setIsFreeShipping(data.isFree);
           setFreeShippingThreshold(data.freeShippingThreshold);
           setRemainingForFree(data.remainingForFree);
+          setIsTamilNadu(Boolean(data.isTamilNadu ?? isTN));
+          setRateRegion(data.rateRegion || (isTN ? 'Tamil Nadu' : (formData.state ? 'Other States' : 'Tamil Nadu')));
 
           if (cartItems.length > 0) {
             trackEvent('add_shipping_info', {
@@ -381,7 +418,7 @@ const Checkout = () => {
     if (cartItems.length > 0) {
       calculateShipping();
     }
-  }, [cartItems, subtotal, shippingMethod, appliedCoupon]);
+  }, [cartItems, subtotal, shippingMethod, appliedCoupon, formData.state]);
 
   // Create pending order before payment & track payment info
   const createPendingOrder = async () => {
@@ -755,6 +792,16 @@ const Checkout = () => {
                     {formErrors.state && (
                       <p className="text-xs text-red-500 font-semibold mt-1">⚠️ {formErrors.state}</p>
                     )}
+                    {formData.state && (
+                      <p className="text-xs text-purple-700 mt-1.5 font-medium flex items-center gap-1.5 bg-purple-50/80 px-2.5 py-1 rounded-lg border border-purple-100">
+                        <span>🚚</span>
+                        <span>
+                          {isTamilNaduState(formData.state) 
+                            ? 'Tamil Nadu delivery charge: ₹70' 
+                            : `${formData.state} delivery charge: ₹80`}
+                        </span>
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="checkout-pincode" className="block text-sm font-medium mb-2 text-[#1e1b4b]">
@@ -794,11 +841,26 @@ const Checkout = () => {
                       className="text-purple-500 focus:ring-purple-400"
                     />
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Truck size={16} className="text-purple-500" />
                         <span className="font-medium text-[#1e1b4b]">Standard Shipping</span>
+                        {formData.state ? (
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${isTamilNadu ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {isTamilNadu ? 'Tamil Nadu (₹70)' : `${formData.state} (₹80)`}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
+                            TN ₹70 / Other ₹80
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-500">Delivery in 2-4 business days</p>
+                      <p className="text-xs text-gray-500">
+                        {isFreeShipping 
+                          ? '🎉 Eligible for Free Shipping!' 
+                          : (isTamilNadu 
+                              ? 'Fast delivery across Tamil Nadu (2-3 business days)' 
+                              : 'Secure delivery across India (3-5 business days)')}
+                      </p>
                     </div>
                     <span className="font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                       {isFreeShipping ? 'FREE' : `₹${shippingCost}`}
@@ -954,9 +1016,24 @@ const Checkout = () => {
                     <span>-₹{appliedCoupon.discount.toLocaleString()}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Shipping</span>
-                  <span className="text-[#1e1b4b]">{isFreeShipping ? 'FREE' : `₹${shippingCost.toLocaleString()}`}</span>
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-gray-500 flex items-center gap-1.5">
+                    Shipping
+                    {formData.state ? (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${isTamilNadu ? 'bg-purple-50 border border-purple-200 text-purple-700' : 'bg-blue-50 border border-blue-200 text-blue-700'}`}>
+                        {isTamilNadu ? 'TN (₹70)' : 'Other States (₹80)'}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-gray-400 font-normal">(TN: ₹70 / Other: ₹80)</span>
+                    )}
+                  </span>
+                  <span className="text-[#1e1b4b] font-medium">
+                    {isFreeShipping ? (
+                      <span className="text-emerald-600 font-semibold">FREE</span>
+                    ) : (
+                      `₹${shippingCost.toLocaleString()}`
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t border-purple-200">
                   <span className="text-[#1e1b4b]">Total</span>

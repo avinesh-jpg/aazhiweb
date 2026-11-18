@@ -192,18 +192,22 @@ router.post('/create-pending', async (req, res) => {
     // Subtotal after combo discount
     const discountedSubtotal = Math.max(0, rawSubtotal - comboDiscount);
     
-    // Fetch shipping rate dynamically from DB settings
-    let shipping = 100;
+    // Fetch shipping rate dynamically from DB settings based on customer state
+    const cleanCustomerState = (shippingAddress?.state || '').toLowerCase().replace(/[^a-z]/g, '');
+    const isCustomerInTN = cleanCustomerState === 'tamilnadu' || cleanCustomerState === 'tn';
+    
+    let shipping = isCustomerInTN ? 70 : 80;
     try {
       const settings = await ShippingSetting.findOne();
-      if (settings) {
-        shipping = discountedSubtotal >= settings.freeShippingThreshold ? 0 : settings.standardShippingRate;
-      } else {
-        shipping = discountedSubtotal >= 3000 ? 0 : 100;
-      }
+      const freeThreshold = settings?.freeShippingThreshold ?? 3000;
+      const tnRate = settings?.tamilNaduShippingRate ?? 70;
+      const otherRate = settings?.otherStatesShippingRate ?? 80;
+      const rate = isCustomerInTN ? tnRate : otherRate;
+
+      shipping = discountedSubtotal >= freeThreshold ? 0 : rate;
     } catch (e) {
       console.error('Error fetching shipping setting:', e);
-      shipping = discountedSubtotal >= 3000 ? 0 : 100;
+      shipping = discountedSubtotal >= 3000 ? 0 : (isCustomerInTN ? 70 : 80);
     }
     
     // Calculate coupon discount

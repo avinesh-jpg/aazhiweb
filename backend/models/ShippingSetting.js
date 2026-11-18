@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 const shippingSettingSchema = new mongoose.Schema({
   freeShippingThreshold: { type: Number, default: 3000 },
+  tamilNaduShippingRate: { type: Number, default: 70 },
+  otherStatesShippingRate: { type: Number, default: 80 },
   standardShippingRate: { type: Number, default: 70 },
   expressShippingRate: { type: Number, default: 200 },
   internationalShippingRate: { type: Number, default: 500 },
