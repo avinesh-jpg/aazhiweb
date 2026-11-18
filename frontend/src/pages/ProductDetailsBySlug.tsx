@@ -264,6 +264,14 @@ const getSizeChartInfo = (subcategory: string | undefined): { src: string; alt: 
     };
   }
 
+  if (lower.includes('kids winter collections')) {
+    return {
+      src: '/winter_set_collection_sizechart.png',
+      alt: 'Kids Winter Collections Size Chart',
+      isFullWidth: true
+    };
+  }
+
   if (lower.includes('girls a-line dresses') || lower.includes('girls a line dresses') || lower.includes('a-line') || lower.includes('a line')) {
     return {
       src: '/aline_frock_sizechart.png',
