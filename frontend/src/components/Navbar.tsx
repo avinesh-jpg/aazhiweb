@@ -8,7 +8,6 @@ import SearchModal from './SearchModal';
 import logo from '@/assets/logo.png';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-/* need to use the same API_URL as in the backend for fetching subcategories */
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);

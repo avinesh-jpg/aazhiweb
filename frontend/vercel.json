@@ -26,18 +26,6 @@
       ],
       "destination": "/api/blog-preview"
     },
-    {
-      "source": "/(.*\\.php.*)",
-      "destination": "/api/gone"
-    },
-    {
-      "source": "/(.*(phim-sex|bokep|xvideos|vidio-porn|poto-bugil|porn-izie).*)",
-      "destination": "/api/gone"
-    },
-    {
-      "source": "/(shop-[a-zA-Z0-9_-]+.*)",
-      "destination": "/api/gone"
-    },
     { 
       "source": "/((?!.*\\.[^/]+$).*)", 
       "destination": "/" 
